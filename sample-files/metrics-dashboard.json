@@ -1,0 +1,31 @@
+{
+  "dashboard": "ClawDrive Metrics",
+  "period": "2026-03",
+  "panels": [
+    {
+      "title": "Files Ingested",
+      "value": 1247,
+      "trend": "+15%"
+    },
+    {
+      "title": "Search Queries",
+      "value": 8934,
+      "trend": "+23%"
+    },
+    {
+      "title": "Avg Latency (ms)",
+      "value": 38,
+      "trend": "-12%"
+    },
+    {
+      "title": "Active Agents",
+      "value": 7,
+      "trend": "+2"
+    },
+    {
+      "title": "Storage Used (GB)",
+      "value": 4.2,
+      "trend": "+0.8"
+    }
+  ]
+}

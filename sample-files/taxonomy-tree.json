@@ -1,0 +1,52 @@
+{
+  "name": "root",
+  "children": [
+    {
+      "name": "Research Papers",
+      "children": [
+        {
+          "name": "NLP",
+          "count": 15
+        },
+        {
+          "name": "Computer Vision",
+          "count": 12
+        },
+        {
+          "name": "Reinforcement Learning",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "children": [
+        {
+          "name": "API Docs",
+          "count": 6
+        },
+        {
+          "name": "Guides",
+          "count": 9
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "children": [
+        {
+          "name": "Images",
+          "count": 25
+        },
+        {
+          "name": "Audio",
+          "count": 10
+        },
+        {
+          "name": "Video",
+          "count": 5
+        }
+      ]
+    }
+  ]
+}

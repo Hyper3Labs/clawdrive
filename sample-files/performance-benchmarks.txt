@@ -1,0 +1,28 @@
+ClawDrive Performance Benchmarks (2026-03-20)
+
+Hardware: M2 MacBook Pro, 16GB RAM, 512GB SSD
+
+=== Ingestion ===
+Single file (1MB PDF):       120ms
+Batch (100 files, 50MB):     8.2s
+Batch (1000 files, 500MB):   1m 42s
+
+=== Embedding ===
+Text chunk (avg 800 tokens):  45ms
+Image (640x480 JPEG):         89ms
+Batch (32 chunks):            380ms
+
+=== Search ===
+Vector search (10k files):    12ms
+Vector search (100k files):   38ms
+Hybrid search + rerank:       95ms
+
+=== 3D Visualization ===
+UMAP reduction (10k pts):     2.1s
+Three.js render (10k pts):    16ms/frame
+Three.js render (50k pts):    14ms/frame (instanced)
+
+=== Storage ===
+SQLite write (single):        0.8ms
+SQLite write (batch 100):     12ms
+DB size per 1k files:         ~45MB (with embeddings)

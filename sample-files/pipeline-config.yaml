@@ -1,0 +1,27 @@
+# File processing pipeline configuration
+pipeline:
+  stages:
+    - name: detect
+      timeout_ms: 1000
+    - name: chunk
+      config:
+        text:
+          max_chunk_size: 1000
+          overlap: 200
+        pdf:
+          extract_images: true
+          ocr_fallback: true
+    - name: embed
+      config:
+        model: gemini-embedding-2
+        batch_size: 32
+        retry:
+          max_attempts: 3
+          backoff_ms: 1000
+    - name: store
+      config:
+        create_thumbnails: true
+        index_metadata: true
+
+  concurrency: 4
+  error_handling: skip_and_log

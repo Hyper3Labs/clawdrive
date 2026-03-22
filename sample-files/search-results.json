@@ -1,0 +1,25 @@
+{
+  "query": "attention mechanism in transformers",
+  "results": [
+    {
+      "id": "f001",
+      "title": "attention-is-all-you-need.pdf",
+      "score": 0.95,
+      "type": "pdf"
+    },
+    {
+      "id": "f002",
+      "title": "bert-paper.pdf",
+      "score": 0.87,
+      "type": "pdf"
+    },
+    {
+      "id": "f003",
+      "title": "machine-learning-notes.md",
+      "score": 0.72,
+      "type": "markdown"
+    }
+  ],
+  "total": 3,
+  "latency_ms": 42
+}

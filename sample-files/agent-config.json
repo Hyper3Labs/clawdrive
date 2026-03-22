@@ -1,0 +1,25 @@
+{
+  "agent": {
+    "name": "research-assistant",
+    "version": "1.0.0",
+    "capabilities": [
+      "search",
+      "summarize",
+      "compare"
+    ],
+    "mcp_tools": [
+      "clawdrive-search",
+      "clawdrive-upload",
+      "clawdrive-browse"
+    ],
+    "a2a_peers": [
+      "data-collector-agent",
+      "report-writer-agent"
+    ]
+  },
+  "storage": {
+    "backend": "sqlite",
+    "embedding_model": "gemini-embedding-2",
+    "max_file_size_mb": 100
+  }
+}

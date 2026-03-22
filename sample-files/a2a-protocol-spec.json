@@ -1,0 +1,43 @@
+{
+  "protocol": "A2A",
+  "version": "1.0",
+  "description": "Agent-to-Agent file sharing protocol",
+  "message_types": {
+    "discover": {
+      "fields": [
+        "agent_id",
+        "capabilities",
+        "file_types"
+      ]
+    },
+    "request_file": {
+      "fields": [
+        "file_id",
+        "requester_id",
+        "purpose"
+      ]
+    },
+    "share_file": {
+      "fields": [
+        "file_id",
+        "recipient_id",
+        "permissions",
+        "expiry"
+      ]
+    },
+    "search_request": {
+      "fields": [
+        "query",
+        "requester_id",
+        "max_results"
+      ]
+    },
+    "search_response": {
+      "fields": [
+        "results",
+        "total",
+        "latency_ms"
+      ]
+    }
+  }
+}
