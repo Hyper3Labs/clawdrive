@@ -79,6 +79,20 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
     }
   });
 
+  // GET /api/files/:id/content — Download file content (must be before /:id)
+  router.get("/:id/content", async (req, res, next) => {
+    try {
+      const filePath = await getFilePath(req.params.id, { wsPath });
+      if (!filePath) {
+        res.status(404).json({ error: "File not found" });
+        return;
+      }
+      res.sendFile(filePath);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // GET /api/files/:id — Get file metadata
   router.get("/:id", async (req, res, next) => {
     try {
@@ -88,20 +102,6 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
         return;
       }
       res.json(info);
-    } catch (err) {
-      next(err);
-    }
-  });
-
-  // GET /api/files/:id/content — Download file content
-  router.get("/:id/content", async (req, res, next) => {
-    try {
-      const filePath = await getFilePath(req.params.id, { wsPath });
-      if (!filePath) {
-        res.status(404).json({ error: "File not found" });
-        return;
-      }
-      res.sendFile(filePath);
     } catch (err) {
       next(err);
     }
