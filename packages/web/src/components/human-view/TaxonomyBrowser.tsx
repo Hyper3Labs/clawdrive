@@ -2,12 +2,14 @@ import { useState } from "react";
 import { TaxonomySidebar } from "./TaxonomySidebar";
 import { FileGrid } from "./FileGrid";
 import { Breadcrumb } from "./Breadcrumb";
+import { FilePreview } from "./FilePreview";
 
 export function TaxonomyBrowser() {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
 
   return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}>
       {/* Sidebar */}
       <div
         style={{
@@ -26,9 +28,14 @@ export function TaxonomyBrowser() {
           <Breadcrumb path={selectedPath} onNavigate={setSelectedPath} />
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          <FileGrid selectedPath={selectedPath} />
+          <FileGrid selectedPath={selectedPath} onFileClick={setPreviewFileId} />
         </div>
       </div>
+
+      {/* File preview panel */}
+      {previewFileId && (
+        <FilePreview fileId={previewFileId} onClose={() => setPreviewFileId(null)} />
+      )}
     </div>
   );
 }

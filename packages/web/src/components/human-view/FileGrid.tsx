@@ -4,6 +4,7 @@ import type { FileInfo } from "../../types";
 
 interface FileGridProps {
   selectedPath: string[];
+  onFileClick?: (fileId: string) => void;
 }
 
 function contentTypeIcon(ct: string): string {
@@ -20,7 +21,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function FileGrid({ selectedPath: _selectedPath }: FileGridProps) {
+export function FileGrid({ selectedPath: _selectedPath, onFileClick }: FileGridProps) {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,6 +82,7 @@ export function FileGrid({ selectedPath: _selectedPath }: FileGridProps) {
             e.currentTarget.style.background = "rgba(255,255,255,0.03)";
             e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
           }}
+          onClick={() => onFileClick?.(f.id)}
         >
           <span style={{ fontSize: 24 }}>{contentTypeIcon(f.content_type)}</span>
           <div
