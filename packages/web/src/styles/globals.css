@@ -1,0 +1,20 @@
+:root {
+  --bg: #0a0a0f;
+  --bg-secondary: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #e4e4e7;
+  --text-dim: rgba(255, 255, 255, 0.5);
+  --accent: rgba(99, 102, 241, 0.3);
+  --blue: #7dd3fc;
+  --green: #86efac;
+  --purple: #c084fc;
+  --yellow: #fbbf24;
+  --red: #f87171;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+button { font-family: inherit; }

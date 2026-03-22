@@ -1,0 +1,25 @@
+{
+  "name": "@clawdrive/web",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19",
+    "react-dom": "^19",
+    "@react-three/fiber": "^9",
+    "@react-three/drei": "^10",
+    "three": "^0.175"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.175",
+    "@vitejs/plugin-react": "^4",
+    "vite": "^6",
+    "typescript": "^5.7"
+  }
+}
