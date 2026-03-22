@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { getTaxonomy } from "../../api";
 import type { TaxonomyNode } from "../../types";
 
+function getTotalCount(node: TaxonomyNode): number {
+  if (!node.children || node.children.length === 0) return node.itemCount;
+  return node.children.reduce((sum, child) => sum + getTotalCount(child), 0);
+}
+
 interface TaxonomySidebarProps {
   selectedPath: string[];
   onSelect: (path: string[]) => void;
@@ -110,7 +115,7 @@ function TreeNode({ node, depth, selectedPath, onSelect, parentPath }: TreeNodeP
         <span style={{ flex: 1, color: isSelected ? "#e4e4e7" : "rgba(255,255,255,0.7)" }}>
           {node.label}
         </span>
-        <span style={{ fontSize: 11, opacity: 0.35, marginLeft: 8 }}>{node.itemCount}</span>
+        <span style={{ fontSize: 11, opacity: 0.35, marginLeft: 8 }}>{getTotalCount(node)}</span>
       </div>
 
       {hasChildren && expanded && (

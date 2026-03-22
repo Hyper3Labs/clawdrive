@@ -21,19 +21,42 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function FileGrid({ selectedPath: _selectedPath, onFileClick }: FileGridProps) {
+export function FileGrid({ selectedPath, onFileClick }: FileGridProps) {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    listFiles({ limit: 100 })
-      .then((res: { items?: FileInfo[] }) => {
-        setFiles(res.items ?? []);
+    // Fetch all files by paginating through results
+    async function fetchAll() {
+      const allFiles: FileInfo[] = [];
+      let cursor: string | undefined;
+      for (let i = 0; i < 20; i++) { // max 20 pages safety
+        const res: { items?: FileInfo[]; nextCursor?: string } = await listFiles({ limit: 100, cursor });
+        const items = res.items ?? [];
+        allFiles.push(...items);
+        if (!res.nextCursor || items.length === 0) break;
+        cursor = res.nextCursor;
+      }
+      return allFiles;
+    }
+    fetchAll()
+      .then((allFiles) => {
+        // Filter by taxonomy path if a node is selected
+        if (selectedPath.length > 0) {
+          const filtered = allFiles.filter((f: any) => {
+            const tp = f.taxonomy_path ?? [];
+            // File belongs to this node if its taxonomy_path starts with selectedPath
+            return selectedPath.every((seg, i) => tp[i] === seg);
+          });
+          setFiles(filtered);
+        } else {
+          setFiles(allFiles);
+        }
       })
       .catch(() => setFiles([]))
       .finally(() => setLoading(false));
-  }, [_selectedPath]);
+  }, [selectedPath]);
 
   if (loading) {
     return (
