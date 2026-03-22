@@ -1,0 +1,22 @@
+{
+  "name": "@clawdrive/server",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@clawdrive/core": "*",
+    "express": "^5",
+    "cors": "^2",
+    "multer": "^1"
+  },
+  "devDependencies": {
+    "@types/express": "^5",
+    "@types/cors": "^2",
+    "@types/multer": "^1"
+  }
+}
