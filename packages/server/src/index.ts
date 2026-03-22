@@ -3,6 +3,8 @@ import cors from "cors";
 import { join } from "node:path";
 import type { EmbeddingProvider } from "@clawdrive/core";
 import { errorHandler } from "./middleware/error.js";
+import { createFileRoutes } from "./routes/files.js";
+import { createSearchRoutes } from "./routes/search.js";
 
 export interface ServerOptions {
   wsPath: string;
@@ -17,7 +19,9 @@ export function createServer(opts: ServerOptions) {
   app.use(cors());
   app.use(express.json());
 
-  // API routes placeholder — will be added in Task 2
+  // API routes
+  app.use("/api/files", createFileRoutes(opts.wsPath, opts.embedder));
+  app.use("/api/search", createSearchRoutes(opts.wsPath, opts.embedder));
 
   // Serve static web UI if provided
   if (opts.staticDir) {
