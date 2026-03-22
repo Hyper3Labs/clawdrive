@@ -82,7 +82,7 @@ export async function update(
     const db = await createDatabase(dbPath);
     const table = await getFilesTable(db);
 
-    const values: Record<string, unknown> = {
+    const values: Record<string, string | number | string[]> = {
       updated_at: Date.now(),
     };
 
