@@ -29,7 +29,7 @@ function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
     if (isText) {
       fetch(`/api/files/${file.id}/content`)
         .then((r) => r.text())
-        .then((t) => setTextSnippet(t.slice(0, 200)))
+        .then((t) => setTextSnippet(t.slice(0, 300)))
         .catch(() => {});
     }
   }, [file.id, isText]);
@@ -41,48 +41,54 @@ function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
         border: "1px solid rgba(255,255,255,0.07)",
         borderRadius: 8,
         cursor: "pointer",
-        transition: "background 0.15s, border-color 0.15s",
+        transition: "background 0.15s, border-color 0.15s, transform 0.15s",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        breakInside: "avoid",
+        marginBottom: 12,
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = "rgba(255,255,255,0.06)";
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+        e.currentTarget.style.transform = "translateY(-2px)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "rgba(255,255,255,0.03)";
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+        e.currentTarget.style.transform = "translateY(0)";
       }}
       onClick={onClick}
     >
-      {/* Preview area */}
-      <div style={{
-        height: 120, overflow: "hidden",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(0,0,0,0.2)",
-      }}>
-        {isImage ? (
-          <img
-            src={`/api/files/${file.id}/content`}
-            alt={file.original_name}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            loading="lazy"
-          />
-        ) : isText && textSnippet ? (
+      {/* Preview area — natural height for images, variable for text */}
+      {isImage ? (
+        <img
+          src={`/api/files/${file.id}/content`}
+          alt={file.original_name}
+          style={{ width: "100%", display: "block" }}
+          loading="lazy"
+        />
+      ) : isText && textSnippet ? (
+        <div style={{ background: "rgba(0,0,0,0.25)", padding: 12 }}>
           <pre style={{
-            fontSize: 9, lineHeight: 1.4, padding: 8,
-            color: "rgba(255,255,255,0.4)", margin: 0,
-            overflow: "hidden", width: "100%", height: "100%",
+            fontSize: 10, lineHeight: 1.5,
+            color: "rgba(255,255,255,0.5)", margin: 0,
+            overflow: "hidden",
             whiteSpace: "pre-wrap", wordBreak: "break-word",
             fontFamily: "'SF Mono', 'Fira Code', monospace",
+            maxHeight: 160,
           }}>
             {textSnippet}
           </pre>
-        ) : (
+        </div>
+      ) : (
+        <div style={{
+          height: 80, display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.2)",
+        }}>
           <span style={{ fontSize: 36, opacity: 0.3 }}>{contentTypeIcon(file.content_type)}</span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* File info */}
       <div style={{ padding: "10px 12px" }}>
@@ -145,9 +151,8 @@ export function FileGrid({ selectedPath, onFileClick }: FileGridProps) {
 
   return (
     <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-      gap: 12,
+      columnCount: 4,
+      columnGap: 12,
       padding: "4px 0",
     }}>
       {files.map((f) => (
