@@ -17,3 +17,4 @@ export * from "./store.js";
 export * from "./search.js";
 export * from "./read.js";
 export * from "./manage.js";
+export * from "./taxonomy.js";

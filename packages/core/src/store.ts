@@ -11,6 +11,7 @@ import { acquireLock } from "./lock.js";
 import { detectMimeType, selectChunker } from "./chunker/detect.js";
 import { chunkText } from "./chunker/text.js";
 import type { Chunk } from "./chunker/types.js";
+import { assignToTaxonomy } from "./taxonomy.js";
 
 export interface StoreOptions {
   wsPath: string;
@@ -197,6 +198,14 @@ export async function store(input: StoreInput, opts: StoreOptions): Promise<Stor
       });
     } finally {
       await release();
+    }
+
+    // 11. Best-effort taxonomy assignment
+    try {
+      await assignToTaxonomy(embeddings[0], id, basename(input.sourcePath), { wsPath: opts.wsPath });
+    } catch (taxErr) {
+      // Taxonomy failure should not fail the store operation
+      console.error("[taxonomy] assignment failed:", taxErr instanceof Error ? taxErr.message : String(taxErr));
     }
 
     return {
