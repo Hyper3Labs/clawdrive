@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { TaxonomySidebar } from "./TaxonomySidebar";
 import { FileGrid } from "./FileGrid";
+import type { SortMode } from "./FileGrid";
 import { Breadcrumb } from "./Breadcrumb";
 import { FilePreview } from "./FilePreview";
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: "recent", label: "Recent" },
+  { value: "name", label: "Name" },
+  { value: "type", label: "Type" },
+  { value: "size", label: "Size" },
+];
 
 export function TaxonomyBrowser() {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortMode>("recent");
 
   return (
     <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}>
@@ -24,11 +33,41 @@ export function TaxonomyBrowser() {
 
       {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{
+          padding: "10px 20px",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}>
           <Breadcrumb path={selectedPath} onNavigate={setSelectedPath} />
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, opacity: 0.35 }}>Sort:</span>
+            <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.04)", borderRadius: 5, padding: 2 }}>
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSort(opt.value)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: 4,
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 11,
+                    color: sort === opt.value ? "#e4e4e7" : "rgba(255,255,255,0.4)",
+                    background: sort === opt.value ? "rgba(99,102,241,0.25)" : "transparent",
+                    transition: "all 0.15s",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          <FileGrid selectedPath={selectedPath} onFileClick={setPreviewFileId} />
+          <FileGrid selectedPath={selectedPath} onFileClick={setPreviewFileId} sort={sort} />
         </div>
       </div>
 

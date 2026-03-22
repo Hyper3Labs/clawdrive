@@ -3,9 +3,12 @@ import { listFiles } from "../../api";
 import type { FileInfo } from "../../types";
 import { PdfThumbnail } from "./PdfThumbnail";
 
+export type SortMode = "recent" | "name" | "type" | "size";
+
 interface FileGridProps {
   selectedPath: string[];
   onFileClick?: (fileId: string) => void;
+  sort?: SortMode;
 }
 
 function contentTypeIcon(ct: string): string {
@@ -111,7 +114,22 @@ function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
   );
 }
 
-export function FileGrid({ selectedPath, onFileClick }: FileGridProps) {
+function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
+  const sorted = [...files];
+  switch (mode) {
+    case "name":
+      return sorted.sort((a, b) => a.original_name.localeCompare(b.original_name));
+    case "type":
+      return sorted.sort((a, b) => a.content_type.localeCompare(b.content_type) || a.original_name.localeCompare(b.original_name));
+    case "size":
+      return sorted.sort((a, b) => b.file_size - a.file_size);
+    case "recent":
+    default:
+      return sorted.sort((a, b) => b.created_at - a.created_at);
+  }
+}
+
+export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGridProps) {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -153,13 +171,15 @@ export function FileGrid({ selectedPath, onFileClick }: FileGridProps) {
     return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>No files found</div>;
   }
 
+  const sorted = sortFiles(files, sort);
+
   return (
     <div style={{
       columnCount: 4,
       columnGap: 12,
       padding: "4px 0",
     }}>
-      {files.map((f) => (
+      {sorted.map((f) => (
         <FileCard key={f.id} file={f} onClick={() => onFileClick?.(f.id)} />
       ))}
     </div>
