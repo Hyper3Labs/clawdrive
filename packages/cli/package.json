@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@clawdrive/core": "*",
+    "@clawdrive/server": "*",
     "commander": "^13",
     "chalk": "^5",
     "ora": "^8"

@@ -14,6 +14,8 @@ import { registerConfigCommand } from "./commands/config.js";
 import { registerDoctorCommand } from "./commands/doctor.js";
 import { registerGcCommand } from "./commands/gc.js";
 import { registerUsageCommand } from "./commands/usage.js";
+import { registerServeCommand } from "./commands/serve.js";
+import { registerUiCommand } from "./commands/ui.js";
 
 export const program = new Command()
   .name("clawdrive")
@@ -37,3 +39,5 @@ registerConfigCommand(program);
 registerDoctorCommand(program);
 registerGcCommand(program);
 registerUsageCommand(program);
+registerServeCommand(program);
+registerUiCommand(program);
