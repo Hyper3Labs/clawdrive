@@ -29,8 +29,10 @@ const snippetCache = new Map<string, string>();
 
 const FileCard = memo(function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
   const isImage = file.content_type.startsWith("image/");
+  const isVideo = file.content_type.startsWith("video/");
+  const isAudio = file.content_type.startsWith("audio/");
   const isPdf = file.content_type === "application/pdf";
-  const isText = file.content_type.startsWith("text/") || file.content_type === "application/json";
+  const isText = file.content_type.startsWith("text/") || file.content_type === "application/json" || file.content_type === "application/yaml";
   const [textSnippet, setTextSnippet] = useState<string | null>(
     snippetCache.get(file.id) ?? null
   );
@@ -82,6 +84,31 @@ const FileCard = memo(function FileCard({ file, onClick }: { file: FileInfo; onC
           style={{ width: "100%", display: "block" }}
           loading="lazy"
         />
+      ) : isVideo ? (
+        <video
+          src={`/api/files/${file.id}/content`}
+          muted
+          playsInline
+          preload="metadata"
+          style={{ width: "100%", display: "block", background: "#000" }}
+          onMouseEnter={(e) => (e.target as HTMLVideoElement).play().catch(() => {})}
+          onMouseLeave={(e) => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0; }}
+        />
+      ) : isAudio ? (
+        <div style={{
+          height: 80, display: "flex", alignItems: "center", justifyContent: "center",
+          background: "linear-gradient(135deg, rgba(251,191,36,0.1), rgba(251,191,36,0.05))",
+          gap: 8,
+        }}>
+          <span style={{ fontSize: 28 }}>{"\uD83C\uDFB5"}</span>
+          <audio
+            src={`/api/files/${file.id}/content`}
+            controls
+            preload="metadata"
+            style={{ width: "70%", height: 32 }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       ) : isPdf ? (
         <PdfThumbnail url={`/api/files/${file.id}/content`} />
       ) : isText && textSnippet ? (

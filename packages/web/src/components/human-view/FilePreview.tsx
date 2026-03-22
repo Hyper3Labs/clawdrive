@@ -43,7 +43,9 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   if (!file) return null;
 
   const isImage = file.content_type?.startsWith("image/");
-  const isText = file.content_type?.startsWith("text/") || file.content_type === "application/json";
+  const isVideo = file.content_type?.startsWith("video/");
+  const isAudio = file.content_type?.startsWith("audio/");
+  const isText = file.content_type?.startsWith("text/") || file.content_type === "application/json" || file.content_type === "application/yaml";
   const isPdf = file.content_type === "application/pdf";
 
   return (
@@ -95,6 +97,22 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
             {textContent}
           </pre>
         )}
+        {isVideo && (
+          <video
+            src={`/api/files/${fileId}/content`}
+            controls
+            style={{ width: "100%", borderRadius: 6, background: "#000" }}
+          />
+        )}
+        {isAudio && (
+          <div style={{ paddingTop: 20 }}>
+            <audio
+              src={`/api/files/${fileId}/content`}
+              controls
+              style={{ width: "100%" }}
+            />
+          </div>
+        )}
         {isPdf && (
           <iframe
             src={`/api/files/${fileId}/content`}
@@ -105,7 +123,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
             title={file.original_name}
           />
         )}
-        {!isImage && !isText && !isPdf && (
+        {!isImage && !isVideo && !isAudio && !isText && !isPdf && (
           <div style={{ textAlign: "center", opacity: 0.4, paddingTop: 40, fontSize: 13 }}>
             No preview available for this file type
           </div>
