@@ -33,7 +33,7 @@ export function createServer(opts: ServerOptions) {
   if (opts.staticDir) {
     app.use(express.static(opts.staticDir));
     // SPA fallback: serve index.html for non-API routes
-    app.get("*", (req, res, next) => {
+    app.get("/{*path}", (req, res, next) => {
       if (req.path.startsWith("/api/")) return next();
       res.sendFile(join(opts.staticDir!, "index.html"));
     });
