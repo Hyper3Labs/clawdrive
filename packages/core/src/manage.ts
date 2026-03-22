@@ -202,7 +202,7 @@ export async function doctor(
     }
 
     // Check for orphaned files on disk not in DB
-    const allRows = await table.query().where("deleted_at IS NULL").toArray();
+    const allRows = await table.query().where("deleted_at IS NULL").limit(1000000).toArray();
     const dbFilePaths = new Set<string>();
     for (const row of allRows) {
       const fp = (row as Record<string, unknown>).file_path as string;
@@ -276,10 +276,11 @@ export async function listFiles(
 
   const whereClause = filters.join(" AND ");
 
-  // Fetch all matching rows (LanceDB doesn't support ORDER BY in queries)
+  // Fetch all matching rows (LanceDB defaults to 10 without explicit limit)
   const allRows = await table
     .query()
     .where(whereClause)
+    .limit(1000000)
     .toArray();
 
   // Convert and sort by created_at desc, then id desc for stable ordering

@@ -138,6 +138,7 @@ export async function queryFiles(table: lancedb.Table): Promise<FileRecord[]> {
   const rows = await table
     .query()
     .where("deleted_at IS NULL")
+    .limit(1000000)
     .toArray();
 
   return rows.map((r) => toFileRecord(r as Record<string, unknown>));
