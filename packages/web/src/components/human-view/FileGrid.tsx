@@ -42,14 +42,14 @@ export function FileGrid({ selectedPath, onFileClick }: FileGridProps) {
     }
     fetchAll()
       .then((allFiles) => {
-        // Filter by taxonomy path if a node is selected
-        if (selectedPath.length > 0) {
+        // Filter by taxonomy path if a leaf node is selected
+        if (selectedPath.length > 1) {
           const filtered = allFiles.filter((f: any) => {
-            const tp = f.taxonomy_path ?? [];
-            // File belongs to this node if its taxonomy_path starts with selectedPath
-            return selectedPath.every((seg, i) => tp[i] === seg);
+            const tp: string[] = f.taxonomy_path ?? [];
+            // Match if file's taxonomy_path contains all segments of selectedPath
+            return selectedPath.every((seg) => tp.includes(seg));
           });
-          setFiles(filtered);
+          setFiles(filtered.length > 0 ? filtered : allFiles);
         } else {
           setFiles(allFiles);
         }
