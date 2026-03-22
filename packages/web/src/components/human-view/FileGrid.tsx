@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listFiles } from "../../api";
 import type { FileInfo } from "../../types";
+import { PdfThumbnail } from "./PdfThumbnail";
 
 interface FileGridProps {
   selectedPath: string[];
@@ -22,6 +23,7 @@ function formatSize(bytes: number): string {
 
 function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
   const isImage = file.content_type.startsWith("image/");
+  const isPdf = file.content_type === "application/pdf";
   const isText = file.content_type.startsWith("text/") || file.content_type === "application/json";
   const [textSnippet, setTextSnippet] = useState<string | null>(null);
 
@@ -68,6 +70,8 @@ function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
           style={{ width: "100%", display: "block" }}
           loading="lazy"
         />
+      ) : isPdf ? (
+        <PdfThumbnail url={`/api/files/${file.id}/content`} />
       ) : isText && textSnippet ? (
         <div style={{ background: "rgba(0,0,0,0.25)", padding: 12 }}>
           <pre style={{
