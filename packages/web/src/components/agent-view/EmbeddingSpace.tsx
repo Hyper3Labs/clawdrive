@@ -55,7 +55,7 @@ export function EmbeddingSpace() {
     );
 
   return (
-    <div style={{ flex: 1, position: "relative" }}>
+    <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
       <Canvas camera={{ position: [0, 0, 50], fov: 60 }}>
         <ambientLight intensity={0.5} />
         <PointCloud points={points} onHover={setHovered} />
