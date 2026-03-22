@@ -82,12 +82,21 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
   // GET /api/files/:id/content — Download file content (must be before /:id)
   router.get("/:id/content", async (req, res, next) => {
     try {
-      const filePath = await getFilePath(req.params.id, { wsPath });
-      if (!filePath) {
+      const info = await getFileInfo(req.params.id, { wsPath });
+      if (!info) {
         res.status(404).json({ error: "File not found" });
         return;
       }
-      res.sendFile(filePath);
+      const filePath = join(wsPath, "files", info.file_path);
+      const { createReadStream, statSync } = await import("node:fs");
+      try {
+        const stats = statSync(filePath);
+        res.set("Content-Type", info.content_type);
+        res.set("Content-Length", String(stats.size));
+        createReadStream(filePath).pipe(res);
+      } catch {
+        res.status(404).json({ error: "File not on disk" });
+      }
     } catch (err) {
       next(err);
     }
