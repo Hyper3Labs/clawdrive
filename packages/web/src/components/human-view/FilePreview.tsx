@@ -78,7 +78,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Content preview */}
-      <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
+      <div style={{ flex: 1, overflow: "auto", padding: isPdf ? 0 : 16, display: "flex", flexDirection: "column" }}>
         {isImage && (
           <img
             src={`/api/files/${fileId}/content`}
@@ -96,18 +96,14 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           </pre>
         )}
         {isPdf && (
-          <div style={{ textAlign: "center", opacity: 0.4, paddingTop: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>PDF</div>
-            <div style={{ fontSize: 13 }}>PDF preview not available</div>
-            <a
-              href={`/api/files/${fileId}/content`}
-              target="_blank"
-              rel="noopener"
-              style={{ color: "#7dd3fc", fontSize: 13, marginTop: 8, display: "inline-block" }}
-            >
-              Open in new tab
-            </a>
-          </div>
+          <iframe
+            src={`/api/files/${fileId}/content`}
+            style={{
+              width: "100%", height: "100%", border: "none",
+              borderRadius: 6, background: "#fff",
+            }}
+            title={file.original_name}
+          />
         )}
         {!isImage && !isText && !isPdf && (
           <div style={{ textAlign: "center", opacity: 0.4, paddingTop: 40, fontSize: 13 }}>
