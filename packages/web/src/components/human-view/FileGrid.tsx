@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { listFiles } from "../../api";
 import type { FileInfo } from "../../types";
 import { PdfThumbnail } from "./PdfThumbnail";
@@ -130,48 +130,50 @@ function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
 }
 
 export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGridProps) {
-  const [files, setFiles] = useState<FileInfo[]>([]);
+  const [allFiles, setAllFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch once on mount
   useEffect(() => {
     setLoading(true);
     async function fetchAll() {
-      const allFiles: FileInfo[] = [];
+      const files: FileInfo[] = [];
       let cursor: string | undefined;
       for (let i = 0; i < 20; i++) {
         const res: { items?: FileInfo[]; nextCursor?: string } = await listFiles({ limit: 100, cursor });
         const items = res.items ?? [];
-        allFiles.push(...items);
+        files.push(...items);
         if (!res.nextCursor || items.length === 0) break;
         cursor = res.nextCursor;
       }
-      return allFiles;
+      return files;
     }
     fetchAll()
-      .then((allFiles) => {
-        if (selectedPath.length > 1) {
-          const filtered = allFiles.filter((f: any) => {
-            const tp: string[] = f.taxonomy_path ?? [];
-            return selectedPath.every((seg) => tp.includes(seg));
-          });
-          setFiles(filtered.length > 0 ? filtered : allFiles);
-        } else {
-          setFiles(allFiles);
-        }
-      })
-      .catch(() => setFiles([]))
+      .then(setAllFiles)
+      .catch(() => setAllFiles([]))
       .finally(() => setLoading(false));
-  }, [selectedPath]);
+  }, []); // fetch once on mount
+
+  // Filter + sort in memory (no refetch)
+  const displayFiles = useMemo(() => {
+    let filtered = allFiles;
+    if (selectedPath.length > 1) {
+      const byPath = allFiles.filter((f: any) => {
+        const tp: string[] = f.taxonomy_path ?? [];
+        return selectedPath.every((seg) => tp.includes(seg));
+      });
+      if (byPath.length > 0) filtered = byPath;
+    }
+    return sortFiles(filtered, sort);
+  }, [allFiles, selectedPath, sort]);
 
   if (loading) {
     return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>Loading files...</div>;
   }
 
-  if (files.length === 0) {
+  if (displayFiles.length === 0) {
     return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>No files found</div>;
   }
-
-  const sorted = sortFiles(files, sort);
 
   return (
     <div style={{
@@ -179,7 +181,7 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
       columnGap: 12,
       padding: "4px 0",
     }}>
-      {sorted.map((f) => (
+      {displayFiles.map((f) => (
         <FileCard key={f.id} file={f} onClick={() => onFileClick?.(f.id)} />
       ))}
     </div>
