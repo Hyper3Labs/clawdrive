@@ -30,12 +30,13 @@ export function App() {
         onSearchOpen={() => setSpotlightOpen(true)}
       />
 
-      {/* Content */}
-      {view === "agent" ? (
+      {/* Content — both views stay mounted, hidden via display */}
+      <div style={{ flex: 1, minHeight: 0, display: view === "agent" ? "flex" : "none" }}>
         <EmbeddingSpace />
-      ) : (
+      </div>
+      <div style={{ flex: 1, minHeight: 0, display: view === "human" ? "flex" : "none", overflow: "hidden" }}>
         <TaxonomyBrowser />
-      )}
+      </div>
 
       {/* Spotlight Search overlay */}
       <SpotlightSearch open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
