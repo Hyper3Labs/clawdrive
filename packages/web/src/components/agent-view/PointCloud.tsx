@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import type { ProjectionPoint } from "../../types";
 
@@ -25,8 +25,8 @@ interface Props {
 export function PointCloud({ points, onHover }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  useMemo(() => {
-    if (!meshRef.current) return;
+  useEffect(() => {
+    if (!meshRef.current || points.length === 0) return;
     const mesh = meshRef.current;
     const dummy = new THREE.Object3D();
 
@@ -44,7 +44,7 @@ export function PointCloud({ points, onHover }: Props) {
   return (
     <instancedMesh
       ref={meshRef}
-      args={[undefined, undefined, points.length]}
+      args={[undefined, undefined, Math.max(points.length, 1)]}
       onPointerOver={(e) => {
         e.stopPropagation();
         const idx = e.instanceId;
