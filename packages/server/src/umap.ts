@@ -17,17 +17,28 @@ export async function getProjections(wsPath: string): Promise<ProjectionPoint[]>
   const cachePath = join(wsPath, "projections", "umap-cache.json");
   try {
     const cached = JSON.parse(await readFile(cachePath, "utf-8"));
+    // Count parent files only (same as what we cache)
     const db = await createDatabase(join(wsPath, "db"));
     const table = await getFilesTable(db);
-    const currentCount = await table.countRows();
-    // Serve cache if file count hasn't changed by more than 10%
-    if (Math.abs(currentCount - cached.fileCount) / Math.max(currentCount, 1) < 0.1) {
+    const allFiles = await queryFiles(table);
+    const parentCount = allFiles.filter(f => f.parent_id === null).length;
+    // Serve cache if parent file count hasn't changed by more than 10%
+    if (Math.abs(parentCount - cached.fileCount) / Math.max(parentCount, 1) < 0.1) {
       return cached.points;
     }
   } catch {
     // Cache miss or read error — recompute
   }
   return recomputeProjections(wsPath);
+}
+
+// Seeded random number generator for deterministic UMAP
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return s / 2147483647;
+  };
 }
 
 export async function recomputeProjections(wsPath: string): Promise<ProjectionPoint[]> {
@@ -42,9 +53,7 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
   if (parentFiles.length === 1) {
     return [{
       id: parentFiles[0].id,
-      x: 0,
-      y: 0,
-      z: 0,
+      x: 0, y: 0, z: 0,
       fileName: parentFiles[0].original_name,
       contentType: parentFiles[0].content_type,
       tags: parentFiles[0].tags,
@@ -52,7 +61,11 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
   }
 
   const vectors = parentFiles.map(f => Array.from(f.vector));
-  const umap = new UMAP({ nComponents: 3, nNeighbors: Math.min(15, parentFiles.length - 1) });
+  const umap = new UMAP({
+    nComponents: 3,
+    nNeighbors: Math.min(15, parentFiles.length - 1),
+    random: seededRandom(42), // deterministic seed
+  });
   const embedding = umap.fit(vectors);
 
   // Normalize: center at origin, scale to [-20, 20] range
@@ -66,9 +79,9 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
     Math.max(...xs) - Math.min(...xs),
     Math.max(...ys) - Math.min(...ys),
     Math.max(...zs) - Math.min(...zs),
-    0.001 // avoid division by zero
+    0.001
   );
-  const scale = 40 / maxRange; // spread points across 40 units
+  const scale = 40 / maxRange;
 
   const points: ProjectionPoint[] = parentFiles.map((f, i) => ({
     id: f.id,
