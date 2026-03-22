@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, memo, useRef } from "react";
 import { listFiles } from "../../api";
 import type { FileInfo } from "../../types";
 import { PdfThumbnail } from "./PdfThumbnail";
@@ -24,17 +24,26 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
+// Global snippet cache — survives re-renders and re-mounts
+const snippetCache = new Map<string, string>();
+
+const FileCard = memo(function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
   const isImage = file.content_type.startsWith("image/");
   const isPdf = file.content_type === "application/pdf";
   const isText = file.content_type.startsWith("text/") || file.content_type === "application/json";
-  const [textSnippet, setTextSnippet] = useState<string | null>(null);
+  const [textSnippet, setTextSnippet] = useState<string | null>(
+    snippetCache.get(file.id) ?? null
+  );
 
   useEffect(() => {
-    if (isText) {
+    if (isText && !snippetCache.has(file.id)) {
       fetch(`/api/files/${file.id}/content`)
         .then((r) => r.text())
-        .then((t) => setTextSnippet(t.slice(0, 300)))
+        .then((t) => {
+          const snippet = t.slice(0, 300);
+          snippetCache.set(file.id, snippet);
+          setTextSnippet(snippet);
+        })
         .catch(() => {});
     }
   }, [file.id, isText]);
@@ -112,7 +121,7 @@ function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
       </div>
     </div>
   );
-}
+});
 
 function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
   const sorted = [...files];
@@ -132,6 +141,8 @@ function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
 export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGridProps) {
   const [allFiles, setAllFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const onFileClickRef = useRef(onFileClick);
+  onFileClickRef.current = onFileClick;
 
   // Fetch once on mount
   useEffect(() => {
@@ -182,7 +193,7 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
       padding: "4px 0",
     }}>
       {displayFiles.map((f) => (
-        <FileCard key={f.id} file={f} onClick={() => onFileClick?.(f.id)} />
+        <FileCard key={f.id} file={f} onClick={() => onFileClickRef.current?.(f.id)} />
       ))}
     </div>
   );
