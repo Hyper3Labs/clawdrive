@@ -55,11 +55,26 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
   const umap = new UMAP({ nComponents: 3, nNeighbors: Math.min(15, parentFiles.length - 1) });
   const embedding = umap.fit(vectors);
 
+  // Normalize: center at origin, scale to [-20, 20] range
+  const xs = embedding.map(e => e[0]);
+  const ys = embedding.map(e => e[1]);
+  const zs = embedding.map(e => e[2]);
+  const cx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const cy = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const cz = zs.reduce((a, b) => a + b, 0) / zs.length;
+  const maxRange = Math.max(
+    Math.max(...xs) - Math.min(...xs),
+    Math.max(...ys) - Math.min(...ys),
+    Math.max(...zs) - Math.min(...zs),
+    0.001 // avoid division by zero
+  );
+  const scale = 40 / maxRange; // spread points across 40 units
+
   const points: ProjectionPoint[] = parentFiles.map((f, i) => ({
     id: f.id,
-    x: embedding[i][0],
-    y: embedding[i][1],
-    z: embedding[i][2],
+    x: (embedding[i][0] - cx) * scale,
+    y: (embedding[i][1] - cy) * scale,
+    z: (embedding[i][2] - cz) * scale,
     fileName: f.original_name,
     contentType: f.content_type,
     tags: f.tags,

@@ -27,8 +27,8 @@ export function FileGrid({ selectedPath: _selectedPath }: FileGridProps) {
   useEffect(() => {
     setLoading(true);
     listFiles({ limit: 100 })
-      .then((res: { files?: FileInfo[] }) => {
-        setFiles(res.files ?? []);
+      .then((res: { items?: FileInfo[] }) => {
+        setFiles(res.items ?? []);
       })
       .catch(() => setFiles([]))
       .finally(() => setLoading(false));

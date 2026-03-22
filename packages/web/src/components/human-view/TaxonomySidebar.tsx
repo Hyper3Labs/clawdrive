@@ -13,8 +13,10 @@ export function TaxonomySidebar({ selectedPath, onSelect }: TaxonomySidebarProps
 
   useEffect(() => {
     getTaxonomy()
-      .then((res: { nodes?: TaxonomyNode[] }) => {
-        setTree(res.nodes ?? (Array.isArray(res) ? res : []));
+      .then((res: TaxonomyNode | TaxonomyNode[] | null) => {
+        if (!res) setTree([]);
+        else if (Array.isArray(res)) setTree(res);
+        else setTree([res]); // single root node — wrap in array
       })
       .catch(() => setTree([]))
       .finally(() => setLoading(false));

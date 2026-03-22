@@ -52,8 +52,8 @@ export function PointCloud({ points, onHover }: Props) {
       }}
       onPointerOut={() => onHover(null)}
     >
-      <sphereGeometry args={[0.3, 16, 16]} />
-      <meshStandardMaterial />
+      <sphereGeometry args={[0.8, 16, 16]} />
+      <meshStandardMaterial emissive="#ffffff" emissiveIntensity={0.3} />
     </instancedMesh>
   );
 }
