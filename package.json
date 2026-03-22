@@ -1,0 +1,16 @@
+{
+  "name": "clawdrive",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "turbo build",
+    "test": "turbo test",
+    "dev": "turbo dev"
+  },
+  "devDependencies": {
+    "turbo": "^2",
+    "typescript": "^5.7",
+    "vitest": "^3"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "clawdrive",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "clawdrive": "dist/bin/clawdrive.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@clawdrive/core": "*",
+    "commander": "^13",
+    "chalk": "^5",
+    "ora": "^8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

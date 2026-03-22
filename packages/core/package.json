@@ -1,0 +1,27 @@
+{
+  "name": "@clawdrive/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@google/genai": "^1",
+    "@lancedb/lancedb": "^0.15",
+    "apache-arrow": "^18",
+    "proper-lockfile": "^4",
+    "uuidv7": "^1",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "vitest": "^3",
+    "@types/proper-lockfile": "^4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
