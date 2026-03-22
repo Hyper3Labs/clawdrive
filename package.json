@@ -2,7 +2,9 @@
   "name": "clawdrive",
   "private": true,
   "packageManager": "npm@11.6.2",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "turbo build",
     "test": "turbo test",
