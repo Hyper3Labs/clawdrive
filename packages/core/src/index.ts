@@ -13,3 +13,4 @@ export * from "./chunker/text.js";
 export * from "./chunker/pdf.js";
 export * from "./chunker/video.js";
 export * from "./chunker/audio.js";
+export * from "./store.js";

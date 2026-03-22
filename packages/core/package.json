@@ -13,6 +13,7 @@
     "@google/genai": "^1",
     "@lancedb/lancedb": "^0.15",
     "apache-arrow": "^18",
+    "p-limit": "^7.3.0",
     "pdf-lib": "^1.17.1",
     "proper-lockfile": "^4",
     "uuidv7": "^1",

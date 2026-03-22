@@ -120,6 +120,14 @@ function toFileRecord(raw: Record<string, unknown>): FileRecord {
     row.vector = new Float32Array(row.vector as ArrayLike<number>);
   }
 
+  // Convert Arrow List/Vector types to plain arrays for list fields
+  for (const key of ["tags", "taxonomy_path"]) {
+    const val = row[key];
+    if (val != null && !Array.isArray(val) && typeof val === "object" && "toArray" in (val as object)) {
+      row[key] = Array.from((val as { toArray(): unknown[] }).toArray());
+    }
+  }
+
   return row as unknown as FileRecord;
 }
 
