@@ -12,7 +12,8 @@
     "@clawdrive/core": "*",
     "express": "^5",
     "cors": "^2",
-    "multer": "^1"
+    "multer": "^1",
+    "umap-js": "^1"
   },
   "devDependencies": {
     "@types/express": "^5",
