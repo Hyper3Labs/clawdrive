@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { TopBar } from "./components/TopBar";
+import { EmbeddingSpace } from "./components/agent-view/EmbeddingSpace";
 import { TaxonomyBrowser } from "./components/human-view/TaxonomyBrowser";
 import { SpotlightSearch } from "./components/SpotlightSearch";
 
@@ -31,9 +32,7 @@ export function App() {
 
       {/* Content */}
       {view === "agent" ? (
-        <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ opacity: 0.3 }}>3D Embedding Space — coming soon</p>
-        </main>
+        <EmbeddingSpace />
       ) : (
         <TaxonomyBrowser />
       )}
