@@ -1,29 +1,25 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import type { ProjectionPoint } from "../../types";
-
-const COLORS: Record<string, string> = {
-  "application/pdf": "#7dd3fc",
-  "image/": "#86efac",
-  "video/": "#c084fc",
-  "audio/": "#fbbf24",
-  "text/": "#f87171",
-};
+import { getModalityColor, MAP_THEME } from "../../theme";
 
 function getColor(contentType: string): THREE.Color {
-  for (const [prefix, hex] of Object.entries(COLORS)) {
-    if (contentType.startsWith(prefix)) return new THREE.Color(hex);
-  }
-  return new THREE.Color("#e4e4e7");
+  return new THREE.Color(getModalityColor(contentType));
 }
 
 interface Props {
   points: ProjectionPoint[];
   onHover: (point: ProjectionPoint | null) => void;
+  onSelect: (point: ProjectionPoint | null) => void;
+  selectedId: string | null;
 }
 
-export function PointCloud({ points, onHover }: Props) {
+export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const selectedPoint = useMemo(
+    () => points.find((point) => point.id === selectedId) ?? null,
+    [points, selectedId],
+  );
 
   useEffect(() => {
     if (!meshRef.current || points.length === 0) return;
@@ -42,18 +38,47 @@ export function PointCloud({ points, onHover }: Props) {
   }, [points]);
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, Math.max(points.length, 1)]}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        const idx = e.instanceId;
-        if (idx !== undefined && points[idx]) onHover(points[idx]);
-      }}
-      onPointerOut={() => onHover(null)}
-    >
-      <sphereGeometry args={[0.8, 16, 16]} />
-      <meshStandardMaterial emissive="#ffffff" emissiveIntensity={0.3} />
-    </instancedMesh>
+    <>
+      <instancedMesh
+        ref={meshRef}
+        args={[undefined, undefined, Math.max(points.length, 1)]}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          const idx = e.instanceId;
+          if (idx !== undefined && points[idx]) onHover(points[idx]);
+        }}
+        onPointerOut={() => onHover(null)}
+        onClick={(e) => {
+          e.stopPropagation();
+          const idx = e.instanceId;
+          if (idx !== undefined && points[idx]) onSelect(points[idx]);
+        }}
+      >
+        <sphereGeometry args={[0.35, 12, 12]} />
+        <meshStandardMaterial
+          emissive={MAP_THEME.accentPrimary}
+          emissiveIntensity={0.18}
+          metalness={0.05}
+          roughness={0.32}
+        />
+      </instancedMesh>
+
+      {selectedPoint && (
+        <group position={[selectedPoint.x, selectedPoint.y, selectedPoint.z]}>
+          <mesh>
+            <sphereGeometry args={[1.05, 16, 16]} />
+            <meshBasicMaterial
+              color={getModalityColor(selectedPoint.contentType)}
+              transparent
+              opacity={0.22}
+            />
+          </mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[1.45, 0.05, 10, 48]} />
+            <meshBasicMaterial color={MAP_THEME.accentPrimary} transparent opacity={0.7} />
+          </mesh>
+        </group>
+      )}
+    </>
   );
 }

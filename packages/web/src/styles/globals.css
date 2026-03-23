@@ -1,20 +1,26 @@
 :root {
-  --bg: #0a0a0f;
-  --bg-secondary: rgba(255, 255, 255, 0.03);
-  --border: rgba(255, 255, 255, 0.1);
-  --text: #e4e4e7;
-  --text-dim: rgba(255, 255, 255, 0.5);
-  --accent: rgba(99, 102, 241, 0.3);
-  --blue: #7dd3fc;
-  --green: #86efac;
-  --purple: #c084fc;
-  --yellow: #fbbf24;
-  --red: #f87171;
+  --bg: #061018;
+  --bg-secondary: #0e1a24;
+  --border: #1f3647;
+  --text: #e6f0f7;
+  --text-dim: rgba(230, 240, 247, 0.58);
+  --accent-primary: #6ee7ff;
+  --accent-secondary: #7bd389;
+  --accent-warm: #ffb84d;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
+  margin: 0;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
+  font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
 }
 
-button { font-family: inherit; }
+button {
+  font-family: inherit;
+}

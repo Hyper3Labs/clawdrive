@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { searchFiles } from "../api";
 import type { SearchResult } from "../types";
+import { MAP_THEME } from "../theme";
 
 interface SpotlightSearchProps {
   open: boolean;
   onClose: () => void;
+  onSelectResult: (result: SearchResult) => void;
 }
 
 function contentTypeIcon(ct: string): string {
@@ -21,7 +23,7 @@ function scoreColor(score: number): string {
   return "rgba(255,255,255,0.4)";
 }
 
-export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
+export function SpotlightSearch({ open, onClose, onSelectResult }: SpotlightSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -80,7 +82,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
       e.preventDefault();
       setSelectedIdx((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && results[selectedIdx]) {
-      // Could open file details in the future
+      onSelectResult(results[selectedIdx]);
       onClose();
     } else if (e.key === "Escape") {
       onClose();
@@ -99,7 +101,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
         alignItems: "flex-start",
         justifyContent: "center",
         paddingTop: "15vh",
-        background: "rgba(0,0,0,0.6)",
+        background: "rgba(3, 10, 15, 0.68)",
         backdropFilter: "blur(4px)",
       }}
       onClick={(e) => {
@@ -110,13 +112,13 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
         style={{
           width: 560,
           maxHeight: "60vh",
-          background: "#16161e",
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: "#0e1a24",
+          border: `1px solid ${MAP_THEME.border}`,
           borderRadius: 12,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
         }}
         onKeyDown={handleKeyDown}
       >
@@ -127,7 +129,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
             alignItems: "center",
             gap: 10,
             padding: "14px 16px",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
+            borderBottom: `1px solid ${MAP_THEME.border}`,
           }}
         >
           <span style={{ fontSize: 16, opacity: 0.4 }}>{"\uD83D\uDD0D"}</span>
@@ -143,7 +145,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
               background: "transparent",
               border: "none",
               outline: "none",
-              color: "#e4e4e7",
+              color: MAP_THEME.text,
               fontSize: 15,
             }}
           />
@@ -168,11 +170,14 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
                 gap: 10,
                 padding: "10px 16px",
                 cursor: "pointer",
-                background: idx === selectedIdx ? "rgba(99,102,241,0.15)" : "transparent",
+                background: idx === selectedIdx ? "rgba(110, 231, 255, 0.13)" : "transparent",
                 transition: "background 0.1s",
               }}
               onMouseEnter={() => setSelectedIdx(idx)}
-              onClick={() => onClose()}
+              onClick={() => {
+                onSelectResult(r);
+                onClose();
+              }}
             >
               <span style={{ fontSize: 18, flexShrink: 0 }}>{contentTypeIcon(r.contentType)}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -180,7 +185,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
                   <span
                     style={{
                       fontSize: 14,
-                      color: "#e4e4e7",
+                      color: MAP_THEME.text,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -221,7 +226,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "8px 16px",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
+            borderTop: `1px solid ${MAP_THEME.border}`,
             fontSize: 11,
             opacity: 0.4,
           }}

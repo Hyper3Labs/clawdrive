@@ -6,6 +6,7 @@ export interface ProjectionPoint {
   fileName: string;
   contentType: string;
   tags: string[];
+  previewUrl: string;
 }
 
 export interface SearchResult {

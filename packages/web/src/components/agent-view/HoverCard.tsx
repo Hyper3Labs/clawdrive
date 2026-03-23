@@ -1,58 +1,121 @@
+import { useEffect, useState } from "react";
 import type { ProjectionPoint } from "../../types";
-
-const TYPE_COLORS: Record<string, string> = {
-  "application/pdf": "#7dd3fc",
-  "image/": "#86efac",
-  "video/": "#c084fc",
-  "audio/": "#fbbf24",
-  "text/": "#f87171",
-};
-
-function getColor(ct: string): string {
-  for (const [prefix, hex] of Object.entries(TYPE_COLORS)) {
-    if (ct.startsWith(prefix)) return hex;
-  }
-  return "#e4e4e7";
-}
+import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME } from "../../theme";
 
 export function HoverCard({ point }: { point: ProjectionPoint }) {
-  const color = getColor(point.contentType);
+  const [imageFailed, setImageFailed] = useState(false);
+  const color = getModalityColor(point.contentType);
+  const label = getModalityLabel(point.contentType);
+  const previewKind = getPreviewKind(point.contentType);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [point.id]);
+
   return (
     <div
       style={{
         position: "absolute",
         top: 20,
         right: 20,
-        background:
-          "linear-gradient(135deg, rgba(45,27,78,0.95), rgba(26,10,46,0.95))",
-        border: `1px solid ${color}50`,
-        borderRadius: 10,
-        padding: "14px 18px",
+        background: "linear-gradient(135deg, rgba(8, 22, 32, 0.92), rgba(6, 16, 24, 0.92))",
+        border: `1px solid ${MAP_THEME.border}`,
+        borderRadius: 12,
+        padding: "14px 14px 12px",
         fontSize: 13,
-        minWidth: 220,
+        width: 260,
         backdropFilter: "blur(8px)",
-        boxShadow: `0 10px 30px rgba(0,0,0,0.5), 0 0 15px ${color}20`,
+        boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
         pointerEvents: "none",
       }}
     >
       <div
         style={{
-          fontWeight: "bold",
-          color,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 8,
+        }}
+      >
+        <span
+          style={{
+            padding: "3px 8px",
+            borderRadius: 999,
+            border: `1px solid ${color}66`,
+            color,
+            letterSpacing: 0.6,
+            fontSize: 10,
+            fontWeight: 700,
+          }}
+        >
+          {label}
+        </span>
+      </div>
+
+      <div
+        style={{
+          fontWeight: 600,
+          color: MAP_THEME.text,
           marginBottom: 6,
-          fontFamily: "'SF Mono', monospace",
+          fontFamily: "'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif",
           fontSize: 14,
+          lineHeight: 1.3,
+          wordBreak: "break-word",
         }}
       >
         {point.fileName}
       </div>
-      <div style={{ opacity: 0.5, fontSize: 11, marginBottom: 2 }}>
+
+      <div
+        style={{
+          opacity: 0.6,
+          fontSize: 11,
+          marginBottom: 10,
+          color: MAP_THEME.text,
+        }}
+      >
         {point.contentType}
       </div>
+
+      <div
+        style={{
+          border: `1px solid ${MAP_THEME.border}`,
+          borderRadius: 10,
+          overflow: "hidden",
+          minHeight: 118,
+          background: "rgba(10, 19, 28, 0.7)",
+          marginBottom: 10,
+        }}
+      >
+        {previewKind === "image" && point.previewUrl && !imageFailed ? (
+          <img
+            src={point.previewUrl}
+            alt={point.fileName}
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+            style={{ width: "100%", height: 118, objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          <div
+            style={{
+              height: 118,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color,
+              fontSize: 18,
+              fontWeight: 700,
+              letterSpacing: 1,
+            }}
+          >
+            {label} PREVIEW
+          </div>
+        )}
+      </div>
+
       {point.tags.length > 0 && (
         <div
           style={{
-            marginTop: 6,
             display: "flex",
             gap: 4,
             flexWrap: "wrap",
@@ -66,7 +129,7 @@ export function HoverCard({ point }: { point: ProjectionPoint }) {
                 borderRadius: 3,
                 fontSize: 10,
                 background: `${color}20`,
-                color: `${color}`,
+                color,
               }}
             >
               {t}

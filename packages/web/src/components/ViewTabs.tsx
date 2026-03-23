@@ -1,3 +1,5 @@
+import { MAP_THEME } from "../theme";
+
 type ViewMode = "agent" | "human";
 
 interface ViewTabsProps {
@@ -11,8 +13,8 @@ export function ViewTabs({ activeView, onViewChange }: ViewTabsProps) {
     borderRadius: 5,
     border: "none",
     cursor: "pointer",
-    background: active ? "rgba(99,102,241,0.3)" : "transparent",
-    color: "#e4e4e7",
+    background: active ? "rgba(110, 231, 255, 0.22)" : "transparent",
+    color: MAP_THEME.text,
     fontSize: 13,
     fontWeight: active ? 600 : 400,
     transition: "background 0.15s",
@@ -23,7 +25,8 @@ export function ViewTabs({ activeView, onViewChange }: ViewTabsProps) {
       style={{
         display: "flex",
         gap: 2,
-        background: "rgba(255,255,255,0.05)",
+        background: "rgba(14, 26, 36, 0.8)",
+        border: `1px solid ${MAP_THEME.border}`,
         borderRadius: 6,
         padding: 2,
       }}

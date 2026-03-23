@@ -2,8 +2,9 @@ import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useState, useRef } from "react";
 import type { ProjectionPoint } from "../../types";
+import { getModalityColor, getModalityLabel, MAP_THEME } from "../../theme";
 
-const MAX_VISIBLE_LABELS = 12;
+const MAX_VISIBLE_LABELS = 26;
 
 export function PointLabels({
   points,
@@ -51,22 +52,40 @@ export function PointLabels({
           >
             <div
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "3px 8px",
+                borderRadius: 999,
+                border: `1px solid ${MAP_THEME.border}`,
+                background: "rgba(6, 16, 24, 0.78)",
                 fontSize: 10,
                 color:
                   p.id === highlightedId
-                    ? "#00ff41"
-                    : "rgba(255,255,255,0.6)",
+                    ? MAP_THEME.text
+                    : "rgba(230, 240, 247, 0.74)",
                 whiteSpace: "nowrap",
-                textShadow:
-                  p.id === highlightedId
-                    ? "0 0 8px #00ff41"
-                    : "0 0 4px rgba(0,0,0,0.8)",
-                fontFamily: "'SF Mono', 'Fira Code', monospace",
+                textShadow: "0 2px 4px rgba(0,0,0,0.6)",
+                fontFamily: "'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif",
                 userSelect: "none",
-                transition: "color 0.2s",
+                transition: "color 0.2s, border-color 0.2s",
+                boxShadow:
+                  p.id === highlightedId
+                    ? `0 0 0 1px ${MAP_THEME.accentPrimary}55`
+                    : "none",
               }}
             >
-              {p.fileName}
+              <span
+                style={{
+                  fontSize: 9,
+                  letterSpacing: 0.7,
+                  fontWeight: 700,
+                  color: getModalityColor(p.contentType),
+                }}
+              >
+                {getModalityLabel(p.contentType)}
+              </span>
+              <span>{p.fileName}</span>
             </div>
           </Html>
         ))}

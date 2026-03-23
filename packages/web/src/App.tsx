@@ -9,6 +9,7 @@ type ViewMode = "agent" | "human";
 export function App() {
   const [view, setView] = useState<ViewMode>("agent");
   const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [focusFileId, setFocusFileId] = useState<string | null>(null);
 
   // Global Cmd+K / Ctrl+K shortcut
   useEffect(() => {
@@ -32,14 +33,21 @@ export function App() {
 
       {/* Content — both views stay mounted, hidden via display */}
       <div style={{ flex: 1, minHeight: 0, display: view === "agent" ? "flex" : "none" }}>
-        <EmbeddingSpace />
+        <EmbeddingSpace focusFileId={focusFileId} />
       </div>
       <div style={{ flex: 1, minHeight: 0, display: view === "human" ? "flex" : "none", overflow: "hidden" }}>
         <TaxonomyBrowser />
       </div>
 
       {/* Spotlight Search overlay */}
-      <SpotlightSearch open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
+      <SpotlightSearch
+        open={spotlightOpen}
+        onClose={() => setSpotlightOpen(false)}
+        onSelectResult={(result) => {
+          setFocusFileId(result.id);
+          setView("agent");
+        }}
+      />
     </div>
   );
 }

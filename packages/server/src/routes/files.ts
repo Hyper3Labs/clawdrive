@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Response } from "express";
 import multer from "multer";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -6,7 +7,6 @@ import type { EmbeddingProvider } from "@clawdrive/core";
 import {
   store,
   getFileInfo,
-  getFilePath,
   listFiles,
   update,
   remove,
@@ -34,6 +34,26 @@ function parseTags(raw: unknown): string[] {
   }
   if (Array.isArray(raw)) return raw;
   return [];
+}
+
+async function streamFileById(wsPath: string, id: string, res: Response) {
+  const info = await getFileInfo(id, { wsPath });
+  if (!info) {
+    res.status(404).json({ error: "File not found" });
+    return;
+  }
+
+  const filePath = join(wsPath, "files", info.file_path);
+  const { createReadStream, statSync } = await import("node:fs");
+
+  try {
+    const stats = statSync(filePath);
+    res.set("Content-Type", info.content_type);
+    res.set("Content-Length", String(stats.size));
+    createReadStream(filePath).pipe(res);
+  } catch {
+    res.status(404).json({ error: "File not on disk" });
+  }
 }
 
 export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): Router {
@@ -82,21 +102,16 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
   // GET /api/files/:id/content — Download file content (must be before /:id)
   router.get("/:id/content", async (req, res, next) => {
     try {
-      const info = await getFileInfo(req.params.id, { wsPath });
-      if (!info) {
-        res.status(404).json({ error: "File not found" });
-        return;
-      }
-      const filePath = join(wsPath, "files", info.file_path);
-      const { createReadStream, statSync } = await import("node:fs");
-      try {
-        const stats = statSync(filePath);
-        res.set("Content-Type", info.content_type);
-        res.set("Content-Length", String(stats.size));
-        createReadStream(filePath).pipe(res);
-      } catch {
-        res.status(404).json({ error: "File not on disk" });
-      }
+      await streamFileById(wsPath, req.params.id, res);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /api/files/:id/preview — Alias used by map preview sprites
+  router.get("/:id/preview", async (req, res, next) => {
+    try {
+      await streamFileById(wsPath, req.params.id, res);
     } catch (err) {
       next(err);
     }

@@ -3,6 +3,12 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { createDatabase, getFilesTable, queryFiles } from "@clawdrive/core";
 
+const PROJECTION_CACHE_VERSION = 2;
+
+function previewUrlFor(fileId: string): string {
+  return `/api/files/${encodeURIComponent(fileId)}/preview`;
+}
+
 export interface ProjectionPoint {
   id: string;
   x: number;
@@ -11,12 +17,16 @@ export interface ProjectionPoint {
   fileName: string;
   contentType: string;
   tags: string[];
+  previewUrl: string;
 }
 
 export async function getProjections(wsPath: string): Promise<ProjectionPoint[]> {
   const cachePath = join(wsPath, "projections", "umap-cache.json");
   try {
     const cached = JSON.parse(await readFile(cachePath, "utf-8"));
+    if (cached.version !== PROJECTION_CACHE_VERSION) {
+      return recomputeProjections(wsPath);
+    }
     // Count parent files only (same as what we cache)
     const db = await createDatabase(join(wsPath, "db"));
     const table = await getFilesTable(db);
@@ -24,7 +34,10 @@ export async function getProjections(wsPath: string): Promise<ProjectionPoint[]>
     const parentCount = allFiles.filter(f => f.parent_id === null).length;
     // Serve cache if parent file count hasn't changed by more than 10%
     if (Math.abs(parentCount - cached.fileCount) / Math.max(parentCount, 1) < 0.1) {
-      return cached.points;
+      return (cached.points as ProjectionPoint[]).map((point) => ({
+        ...point,
+        previewUrl: point.previewUrl || previewUrlFor(point.id),
+      }));
     }
   } catch {
     // Cache miss or read error — recompute
@@ -57,6 +70,7 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
       fileName: parentFiles[0].original_name,
       contentType: parentFiles[0].content_type,
       tags: parentFiles[0].tags,
+      previewUrl: previewUrlFor(parentFiles[0].id),
     }];
   }
 
@@ -91,10 +105,16 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
     fileName: f.original_name,
     contentType: f.content_type,
     tags: f.tags,
+    previewUrl: previewUrlFor(f.id),
   }));
 
   const cachePath = join(wsPath, "projections", "umap-cache.json");
   await mkdir(dirname(cachePath), { recursive: true });
-  await writeFile(cachePath, JSON.stringify({ fileCount: parentFiles.length, points }));
+  await writeFile(cachePath, JSON.stringify({
+    version: PROJECTION_CACHE_VERSION,
+    fileCount: parentFiles.length,
+    generatedAt: Date.now(),
+    points,
+  }));
   return points;
 }

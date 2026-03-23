@@ -1,6 +1,7 @@
 import { Html } from "@react-three/drei";
 import { useMemo } from "react";
 import type { ProjectionPoint } from "../../types";
+import { MAP_THEME } from "../../theme";
 
 function kMeansClusters(points: ProjectionPoint[], k: number) {
   if (points.length < k) return [];
@@ -45,9 +46,14 @@ export function ClusterLabels({ points }: { points: ProjectionPoint[] }) {
       {clusters.map((c, i) => (
         <Html key={i} position={[c.x, c.y + 2, c.z]} center>
           <div style={{
-            opacity: 0.3, fontSize: 11, textTransform: "uppercase",
-            letterSpacing: 2, color: "#e4e4e7", whiteSpace: "nowrap",
+            opacity: 0.65, fontSize: 11, textTransform: "uppercase",
+            letterSpacing: 2, whiteSpace: "nowrap",
             pointerEvents: "none", userSelect: "none",
+            padding: "2px 8px",
+            borderRadius: 999,
+            border: `1px solid ${MAP_THEME.border}`,
+            background: "rgba(6, 16, 24, 0.66)",
+            color: "rgba(230, 240, 247, 0.7)",
           }}>
             {c.label}
           </div>
