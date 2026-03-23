@@ -4,6 +4,7 @@ import type { EmbeddingProvider } from "./embedding/types.js";
 import { createDatabase, getFilesTable } from "./storage/db.js";
 import { join } from "node:path";
 import { Index } from "@lancedb/lancedb";
+import { buildPotTag, slugifyPotName } from "./metadata.js";
 
 export interface SearchOptions {
   wsPath: string;
@@ -60,6 +61,7 @@ export async function search(
   const dbPath = join(wsPath, "db");
   const mode = input.mode ?? "vector";
   const limit = input.limit ?? 10;
+  const fetchLimit = input.pot ? 1_000_000 : Math.max(limit * 3, 50);
 
   // 1. Open DB and get table
   const db = await createDatabase(dbPath);
@@ -85,11 +87,11 @@ export async function search(
   let rawResults: Array<Record<string, unknown>>;
 
   if (mode === "fts") {
-    rawResults = await runFtsSearch(table, input.query, whereClause, limit);
+    rawResults = await runFtsSearch(table, input.query, whereClause, fetchLimit);
   } else if (mode === "hybrid") {
-    rawResults = await runHybridSearch(table, input.query, embedder, whereClause, limit);
+    rawResults = await runHybridSearch(table, input.query, embedder, whereClause, fetchLimit);
   } else {
-    rawResults = await runVectorSearch(table, input.query, embedder, whereClause, limit);
+    rawResults = await runVectorSearch(table, input.query, embedder, whereClause, fetchLimit);
   }
 
   // 4. Post-process: deduplicate by parent, filter tags, convert to SearchResult
@@ -104,7 +106,7 @@ async function runVectorSearch(
   query: string,
   embedder: EmbeddingProvider,
   whereClause: string,
-  limit: number,
+  fetchLimit: number,
 ): Promise<Array<Record<string, unknown>>> {
   // Embed the query
   const queryVector = await embedder.embed({
@@ -112,9 +114,6 @@ async function runVectorSearch(
     text: query,
     taskType: "RETRIEVAL_QUERY",
   });
-
-  // Fetch more than needed to allow for deduplication
-  const fetchLimit = Math.max(limit * 3, 50);
 
   const results = await table
     .vectorSearch(Array.from(queryVector))
@@ -140,7 +139,7 @@ async function runFtsSearch(
   table: import("@lancedb/lancedb").Table,
   query: string,
   whereClause: string,
-  limit: number,
+  fetchLimit: number,
 ): Promise<Array<Record<string, unknown>>> {
   const hasFts = await ensureFtsIndex(table);
   if (!hasFts) {
@@ -148,7 +147,6 @@ async function runFtsSearch(
   }
 
   try {
-    const fetchLimit = Math.max(limit * 3, 50);
     const results = await table
       .search(query, "fts")
       .where(whereClause)
@@ -177,11 +175,11 @@ async function runHybridSearch(
   query: string,
   embedder: EmbeddingProvider,
   whereClause: string,
-  limit: number,
+  fetchLimit: number,
 ): Promise<Array<Record<string, unknown>>> {
   const [vectorResults, ftsResults] = await Promise.all([
-    runVectorSearch(table, query, embedder, whereClause, limit),
-    runFtsSearch(table, query, whereClause, limit),
+    runVectorSearch(table, query, embedder, whereClause, fetchLimit),
+    runFtsSearch(table, query, whereClause, fetchLimit),
   ]);
 
   // Reciprocal rank fusion
@@ -259,6 +257,14 @@ function postProcess(
     deduplicated = deduplicated.filter((row) => {
       const rowTags = toPlainArray(row.tags);
       return rowTags.some((t) => requiredTags.has(t));
+    });
+  }
+
+  if (input.pot) {
+    const potTag = buildPotTag(slugifyPotName(input.pot));
+    deduplicated = deduplicated.filter((row) => {
+      const rowTags = toPlainArray(row.tags);
+      return rowTags.includes(potTag);
     });
   }
 

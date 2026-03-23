@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { search } from "../src/search.js";
+import { buildPotTag } from "../src/metadata.js";
+import { createPot } from "../src/pots.js";
 import { store } from "../src/store.js";
 import { createTestWorkspace } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
@@ -76,5 +78,24 @@ describe("search", () => {
     for (let i = 1; i < results.length; i++) {
       expect(results[i - 1].score).toBeGreaterThanOrEqual(results[i].score);
     }
+  });
+
+  it("filters by pot", async () => {
+    const pot = await createPot({ name: "Acme DD" }, { wsPath: ctx.wsPath });
+    const f3 = join(ctx.baseDir, "nda.md");
+    await writeFile(f3, "acme nda content");
+    await store(
+      { sourcePath: f3, tags: [buildPotTag(pot.slug)] },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const results = await search(
+      { query: "nda", pot: "Acme DD", limit: 10 },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    expect(results).toHaveLength(1);
+    expect(results[0].file).toBe("nda.md");
+    expect(results[0].tags).toContain(buildPotTag(pot.slug));
   });
 });

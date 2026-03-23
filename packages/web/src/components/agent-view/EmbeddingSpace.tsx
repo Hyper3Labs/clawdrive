@@ -50,7 +50,7 @@ export function EmbeddingSpace() {
           opacity: 0.3,
         }}
       >
-        No files stored yet. Use `clawdrive store` to add files.
+        No files added yet. Use cdrive pot add or cdrive serve --demo nasa.
       </div>
     );
 

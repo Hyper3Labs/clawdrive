@@ -112,7 +112,7 @@ export async function insertFileRecord(
  * Convert a raw LanceDB row into a FileRecord.
  * Handles Arrow vector arrays -> Float32Array conversion.
  */
-function toFileRecord(raw: Record<string, unknown>): FileRecord {
+export function toFileRecord(raw: Record<string, unknown>): FileRecord {
   const row = { ...raw } as Record<string, unknown>;
 
   // Convert vector from plain array/typed array to Float32Array

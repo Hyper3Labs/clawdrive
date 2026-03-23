@@ -2,35 +2,8 @@
 import { join } from "node:path";
 import { readFile, appendFile, stat, readdir, unlink } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
-import { createDatabase, getFilesTable } from "./storage/db.js";
+import { createDatabase, getFilesTable, toFileRecord } from "./storage/db.js";
 import { acquireLock } from "./lock.js";
-
-/**
- * Convert a raw LanceDB row into a FileRecord.
- */
-function toFileRecord(raw: Record<string, unknown>): FileRecord {
-  const row = { ...raw } as Record<string, unknown>;
-
-  if (row.vector != null && !(row.vector instanceof Float32Array)) {
-    row.vector = new Float32Array(row.vector as ArrayLike<number>);
-  }
-
-  for (const key of ["tags", "taxonomy_path"]) {
-    const val = row[key];
-    if (
-      val != null &&
-      !Array.isArray(val) &&
-      typeof val === "object" &&
-      "toArray" in (val as object)
-    ) {
-      row[key] = Array.from(
-        (val as { toArray(): unknown[] }).toArray(),
-      );
-    }
-  }
-
-  return row as unknown as FileRecord;
-}
 
 export interface ManageOptions {
   wsPath: string;

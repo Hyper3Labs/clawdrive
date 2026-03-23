@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "bin": {
+    "cdrive": "dist/bin/cdrive.js",
     "clawdrive": "dist/bin/clawdrive.js"
   },
   "scripts": {

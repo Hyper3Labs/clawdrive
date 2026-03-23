@@ -20,6 +20,7 @@ export function createSearchRoutes(wsPath: string, embedder: EmbeddingProvider):
       const minScore = req.query.minScore
         ? parseFloat(req.query.minScore as string)
         : undefined;
+      const pot = (req.query.pot as string) || undefined;
 
       const tags = req.query.tags
         ? (req.query.tags as string)
@@ -29,7 +30,7 @@ export function createSearchRoutes(wsPath: string, embedder: EmbeddingProvider):
         : undefined;
 
       const results = await search(
-        { query: q, mode, contentType, tags, limit, minScore },
+        { query: q, mode, contentType, tags, pot, limit, minScore },
         { wsPath, embedder },
       );
 

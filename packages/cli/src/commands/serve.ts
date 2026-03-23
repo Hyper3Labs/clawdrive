@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { createServer } from "@clawdrive/server";
-import { setupContext } from "../helpers.js";
+import { prepareDemoWorkspace, resolveWorkspaceForDemo } from "../demo/nasa.js";
+import { getGlobalOptions, setupContext } from "../helpers.js";
 
 export function registerServeCommand(program: Command) {
   program
@@ -8,11 +9,20 @@ export function registerServeCommand(program: Command) {
     .description("Start REST API server + web UI")
     .option("--port <port>", "Port number", "7432")
     .option("--host <host>", "Host to bind", "127.0.0.1")
+    .option("--demo <dataset>", "Prepare and launch a curated demo dataset")
     .action(async (cmdOpts, cmd) => {
-      const globalOpts = cmd.parent!.opts();
-      const ctx = await setupContext(globalOpts);
+      const rootCommand = cmd.parent ?? cmd;
+      const globalOpts = getGlobalOptions(cmd);
+      const workspaceSource = rootCommand.getOptionValueSource?.("workspace");
+      const workspace = resolveWorkspaceForDemo(
+        globalOpts.workspace,
+        cmdOpts.demo,
+        workspaceSource,
+      );
+      const ctx = await setupContext({ ...globalOpts, workspace });
+      await prepareDemoWorkspace(cmdOpts.demo, ctx);
 
-      const port = parseInt(cmdOpts.port);
+      const port = parseInt(cmdOpts.port, 10);
       const host = cmdOpts.host;
 
       // Try to find the web UI build
@@ -46,7 +56,7 @@ export function registerServeCommand(program: Command) {
         if (staticDir) {
           console.log(`Web UI available at http://${host}:${port}`);
         } else {
-          console.log("Web UI not built — run 'npm run build:web' to enable");
+          console.log("Web UI not built - run 'npm run build:web' to enable");
         }
         console.log("Press Ctrl+C to stop");
       });

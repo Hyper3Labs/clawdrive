@@ -50,6 +50,7 @@ export interface SearchInput {
   mode?: "vector" | "fts" | "hybrid";
   contentType?: string;
   tags?: string[];
+  pot?: string;
   after?: Date;
   before?: Date;
   limit?: number;
@@ -76,4 +77,38 @@ export interface TaxonomyNode {
   parentId: string | null;
   centroidVector: Float32Array;
   itemCount: number;
+}
+
+export interface PotRecord {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  created_at: number;
+  updated_at: number;
+}
+
+export type ShareKind = "link" | "principal";
+export type ShareRole = "read" | "write";
+export type ShareStatus = "pending" | "active" | "revoked" | "expired";
+
+export interface PotShare {
+  id: string;
+  pot_id: string;
+  pot_slug: string;
+  kind: ShareKind;
+  principal: string | null;
+  role: ShareRole;
+  status: ShareStatus;
+  token: string | null;
+  expires_at: number | null;
+  created_at: number;
+  approved_at: number | null;
+  revoked_at: number | null;
+}
+
+export interface ResolvedShare {
+  share: PotShare;
+  pot: PotRecord;
+  files: FileRecord[];
 }

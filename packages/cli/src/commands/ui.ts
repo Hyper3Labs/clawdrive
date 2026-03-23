@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { exec } from "node:child_process";
 import { createServer } from "@clawdrive/server";
+import { prepareDemoWorkspace, resolveWorkspaceForDemo } from "../demo/nasa.js";
 import { setupContext } from "../helpers.js";
 
 export function registerUiCommand(program: Command) {
@@ -9,9 +10,18 @@ export function registerUiCommand(program: Command) {
     .description("Start server + open browser")
     .option("--port <port>", "Port number", "7432")
     .option("--host <host>", "Host to bind", "127.0.0.1")
+    .option("--demo <dataset>", "Prepare and launch a curated demo dataset")
     .action(async (cmdOpts, cmd) => {
-      const globalOpts = cmd.parent!.opts();
-      const ctx = await setupContext(globalOpts);
+      const command = cmd.parent!;
+      const globalOpts = command.opts();
+      const workspaceSource = command.getOptionValueSource?.("workspace");
+      const workspace = resolveWorkspaceForDemo(
+        globalOpts.workspace,
+        cmdOpts.demo,
+        workspaceSource,
+      );
+      const ctx = await setupContext({ ...globalOpts, workspace });
+      await prepareDemoWorkspace(cmdOpts.demo, ctx);
 
       const port = parseInt(cmdOpts.port);
       const host = cmdOpts.host;
