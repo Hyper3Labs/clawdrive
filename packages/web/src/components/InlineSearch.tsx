@@ -105,7 +105,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
       doSearch(val);
       if (!dropdownOpen) {
         setDropdownOpen(true);
-        onActiveChange?.(true);
+        onActiveChangeRef.current?.(true);
       }
     };
 
@@ -113,7 +113,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
       if (query.trim() || results.length > 0) {
         setDropdownOpen(true);
       }
-      onActiveChange?.(true);
+      onActiveChangeRef.current?.(true);
     };
 
     const handleSelect = (result: SearchResult) => {
@@ -121,7 +121,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
       setDropdownOpen(false);
       setQuery("");
       setResults([]);
-      onActiveChange?.(false);
+      onActiveChangeRef.current?.(false);
       inputRef.current?.blur();
     };
 
@@ -136,7 +136,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
         handleSelect(results[selectedIdx]);
       } else if (e.key === "Escape") {
         setDropdownOpen(false);
-        onActiveChange?.(false);
+        onActiveChangeRef.current?.(false);
         inputRef.current?.blur();
       }
     };

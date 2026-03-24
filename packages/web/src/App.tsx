@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TopBar } from "./components/TopBar";
 import { EmbeddingSpace } from "./components/agent-view/EmbeddingSpace";
 import { TaxonomyBrowser } from "./components/human-view/TaxonomyBrowser";
-import { SpotlightSearch } from "./components/SpotlightSearch";
 import type { ViewMode } from "./types";
+import type { InlineSearchHandle } from "./components/InlineSearch";
 
 export function App() {
   const [view, setView] = useState<ViewMode>("space");
-  const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [focusFileId, setFocusFileId] = useState<string | null>(null);
+  const searchRef = useRef<InlineSearchHandle>(null);
 
-  // Global Cmd+K / Ctrl+K shortcut
+  // Global Cmd+K / Ctrl+K shortcut — focus the inline search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setSpotlightOpen((prev) => !prev);
+        searchRef.current?.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -27,7 +27,11 @@ export function App() {
       <TopBar
         activeView={view}
         onViewChange={setView}
-        onSearchOpen={() => setSpotlightOpen(true)}
+        onSelectResult={(result) => {
+          setFocusFileId(result.id);
+          setView("space");
+        }}
+        searchRef={searchRef}
       />
 
       {/* Content — both views stay mounted, hidden via display */}
@@ -37,16 +41,6 @@ export function App() {
       <div style={{ flex: 1, minHeight: 0, display: view === "files" ? "flex" : "none", overflow: "hidden" }}>
         <TaxonomyBrowser />
       </div>
-
-      {/* Spotlight Search overlay */}
-      <SpotlightSearch
-        open={spotlightOpen}
-        onClose={() => setSpotlightOpen(false)}
-        onSelectResult={(result) => {
-          setFocusFileId(result.id);
-          setView("space");
-        }}
-      />
     </div>
   );
 }
