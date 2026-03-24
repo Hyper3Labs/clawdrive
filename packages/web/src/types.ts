@@ -41,3 +41,12 @@ export interface FileInfo {
   description: string | null;
   created_at: number;
 }
+
+export interface PotRecord {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  created_at: number;
+  updated_at: number;
+}
