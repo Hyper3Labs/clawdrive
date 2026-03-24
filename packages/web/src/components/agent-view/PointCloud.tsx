@@ -1,7 +1,12 @@
 import { useRef, useEffect, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { ProjectionPoint } from "../../types";
 import { getModalityColor, MAP_THEME } from "../../theme";
+import { useVisualizationStore } from "./useVisualizationStore";
+
+const DIM_OPACITY = 0.15;
+const BG_COLOR = new THREE.Color(MAP_THEME.background);
 
 function getColor(contentType: string): THREE.Color {
   return new THREE.Color(getModalityColor(contentType));
@@ -21,6 +26,11 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
     [points, selectedId],
   );
 
+  const potFileIds = useVisualizationStore((s) => s.potFileIds);
+  const selectedPotId = useVisualizationStore((s) => s.selectedPotId);
+  const tmpColor = useMemo(() => new THREE.Color(), []);
+
+  // Set initial positions
   useEffect(() => {
     if (!meshRef.current || points.length === 0) return;
     const mesh = meshRef.current;
@@ -36,6 +46,38 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [points]);
+
+  // Apply dimming when pot is selected
+  useFrame(() => {
+    if (!meshRef.current || points.length === 0) return;
+    if (!selectedPotId) return;
+
+    const mesh = meshRef.current;
+
+    points.forEach((p, i) => {
+      const inPot = potFileIds.has(p.id);
+      const baseColor = getColor(p.contentType);
+
+      if (inPot) {
+        mesh.setColorAt(i, baseColor);
+      } else {
+        tmpColor.copy(baseColor).lerp(BG_COLOR, 1 - DIM_OPACITY);
+        mesh.setColorAt(i, tmpColor);
+      }
+    });
+
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  });
+
+  // Reset colors when pot is deselected
+  useEffect(() => {
+    if (selectedPotId || !meshRef.current || points.length === 0) return;
+    const mesh = meshRef.current;
+    points.forEach((p, i) => {
+      mesh.setColorAt(i, getColor(p.contentType));
+    });
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [selectedPotId, points]);
 
   return (
     <>
@@ -60,6 +102,7 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
           emissiveIntensity={0.18}
           metalness={0.05}
           roughness={0.32}
+          transparent
         />
       </instancedMesh>
 
