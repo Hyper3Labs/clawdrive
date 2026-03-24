@@ -171,12 +171,18 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
         ))}
         {unassignedPots.length > 0 && (
           <div style={{ position: "relative" }}>
-            <span
+            <div
               onClick={() => setShowPicker(!showPicker)}
-              style={{ color: "#6B8A9E", fontSize: 11, cursor: "pointer" }}
+              style={{
+                width: 22, height: 22, borderRadius: 6,
+                background: "rgba(110, 231, 255, 0.08)",
+                border: "1px solid rgba(110, 231, 255, 0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: MAP_THEME.accentPrimary, fontSize: 14, cursor: "pointer",
+              }}
             >
-              + assign
-            </span>
+              +
+            </div>
             {showPicker && (
               <div style={{
                 position: "absolute",
