@@ -292,11 +292,10 @@ export async function listFiles(
   const db = await createDatabase(dbPath);
   const table = await getFilesTable(db);
 
-  // Build filters — match taxonomy's filter so counts are consistent
+  // Build filters — count unique files, not chunks
   const filters: string[] = [
     "deleted_at IS NULL",
     "parent_id IS NULL",  // Only parent rows, not chunks
-    "status = 'embedded'",
   ];
 
   const whereClause = filters.join(" AND ");
