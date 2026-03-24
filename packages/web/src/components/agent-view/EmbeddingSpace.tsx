@@ -142,7 +142,14 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
       }}
     >
       <PotsSidebar />
-      <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => { setSelected(null); clickFile(null); }}>
+      <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => {
+        // Only clear if modal is not open (PreviewCard clicks trigger onPointerMissed
+        // because the HTML overlay isn't a Three.js object)
+        if (!useVisualizationStore.getState().clickedFileId) {
+          setSelected(null);
+          clickFile(null);
+        }
+      }}>
         <color attach="background" args={[MAP_THEME.background]} />
         <fog attach="fog" args={[MAP_THEME.background, 50, 120]} />
         <ambientLight intensity={0.32} />
