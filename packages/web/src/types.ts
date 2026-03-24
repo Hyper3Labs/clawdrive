@@ -50,3 +50,5 @@ export interface PotRecord {
   created_at: number;
   updated_at: number;
 }
+
+export type ViewMode = "space" | "files";

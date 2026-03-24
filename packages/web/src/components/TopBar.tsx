@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { ViewTabs } from "./ViewTabs";
 import { listFiles } from "../api";
 import { MAP_THEME } from "../theme";
-
-type ViewMode = "agent" | "human";
+import type { ViewMode } from "../types";
 
 interface TopBarProps {
   activeView: ViewMode;

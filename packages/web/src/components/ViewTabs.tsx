@@ -1,6 +1,5 @@
 import { MAP_THEME } from "../theme";
-
-type ViewMode = "agent" | "human";
+import type { ViewMode } from "../types";
 
 interface ViewTabsProps {
   activeView: ViewMode;
@@ -31,11 +30,11 @@ export function ViewTabs({ activeView, onViewChange }: ViewTabsProps) {
         padding: 2,
       }}
     >
-      <button style={tabStyle(activeView === "agent")} onClick={() => onViewChange("agent")}>
-        Agent View
+      <button style={tabStyle(activeView === "space")} onClick={() => onViewChange("space")}>
+        Space
       </button>
-      <button style={tabStyle(activeView === "human")} onClick={() => onViewChange("human")}>
-        Human View
+      <button style={tabStyle(activeView === "files")} onClick={() => onViewChange("files")}>
+        Files
       </button>
     </div>
   );

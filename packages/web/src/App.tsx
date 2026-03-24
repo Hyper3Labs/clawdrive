@@ -3,11 +3,10 @@ import { TopBar } from "./components/TopBar";
 import { EmbeddingSpace } from "./components/agent-view/EmbeddingSpace";
 import { TaxonomyBrowser } from "./components/human-view/TaxonomyBrowser";
 import { SpotlightSearch } from "./components/SpotlightSearch";
-
-type ViewMode = "agent" | "human";
+import type { ViewMode } from "./types";
 
 export function App() {
-  const [view, setView] = useState<ViewMode>("agent");
+  const [view, setView] = useState<ViewMode>("space");
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [focusFileId, setFocusFileId] = useState<string | null>(null);
 
@@ -32,10 +31,10 @@ export function App() {
       />
 
       {/* Content — both views stay mounted, hidden via display */}
-      <div style={{ flex: 1, minHeight: 0, display: view === "agent" ? "flex" : "none" }}>
+      <div style={{ flex: 1, minHeight: 0, display: view === "space" ? "flex" : "none" }}>
         <EmbeddingSpace focusFileId={focusFileId} />
       </div>
-      <div style={{ flex: 1, minHeight: 0, display: view === "human" ? "flex" : "none", overflow: "hidden" }}>
+      <div style={{ flex: 1, minHeight: 0, display: view === "files" ? "flex" : "none", overflow: "hidden" }}>
         <TaxonomyBrowser />
       </div>
 
@@ -45,7 +44,7 @@ export function App() {
         onClose={() => setSpotlightOpen(false)}
         onSelectResult={(result) => {
           setFocusFileId(result.id);
-          setView("agent");
+          setView("space");
         }}
       />
     </div>
