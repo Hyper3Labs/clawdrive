@@ -34,6 +34,65 @@ function trimName(name: string): string {
 }
 
 // Memoized card — only re-renders when point.id changes, not on hover state
+const CARD_ICONS: Record<string, string> = {
+  pdf: "\u{1F4C4}",   // 📄
+  audio: "\u{1F3B5}", // 🎵
+  video: "\u{1F3AC}", // 🎬
+  text: "\u{1F4DD}",  // 📝
+};
+
+function CardThumbnail({ point }: { point: ProjectionPoint }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const color = getModalityColor(point.contentType);
+  const label = getModalityLabel(point.contentType);
+  const kind = point.contentType.startsWith("image/") ? "image" :
+               point.contentType.startsWith("video/") ? "video" :
+               point.contentType.startsWith("audio/") ? "audio" :
+               point.contentType.startsWith("application/pdf") ? "pdf" : "text";
+
+  useEffect(() => { setImageFailed(false); }, [point.id]);
+
+  // Images and videos: use thumbnail API (real rendered image)
+  if ((kind === "image" || kind === "video") && !imageFailed) {
+    return (
+      <img
+        src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
+        alt={point.fileName}
+        loading="lazy"
+        onError={() => setImageFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    );
+  }
+
+  // PDF: try thumbnail API (qlmanage renders first page)
+  if (kind === "pdf" && !imageFailed) {
+    return (
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+        <img
+          src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
+          alt={point.fileName}
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </div>
+    );
+  }
+
+  // Audio, text, failed images: show icon + colored background
+  const icon = CARD_ICONS[kind] || CARD_ICONS.text;
+  return (
+    <div style={{
+      width: "100%", height: "100%",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: `linear-gradient(135deg, ${color}15, ${color}08)`,
+    }}>
+      <span style={{ fontSize: 22 }}>{icon}</span>
+    </div>
+  );
+}
+
 function PreviewCard({
   point,
   onHover,
@@ -45,15 +104,10 @@ function PreviewCard({
   onLeave: () => void;
   onSelect: () => void;
 }) {
-  const [imageFailed, setImageFailed] = useState(false);
   const [localHover, setLocalHover] = useState(false);
   const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const color = getModalityColor(point.contentType);
   const label = getModalityLabel(point.contentType);
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [point.id]);
 
   return (
     // Invisible padding area for forgiving hover detection
@@ -89,23 +143,8 @@ function PreviewCard({
           transition: "border-color 120ms ease, box-shadow 120ms ease",
         }}
       >
-        <div style={{ height: 52, background: "rgba(10, 20, 28, 0.92)", position: "relative" }}>
-          <img
-            src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
-            alt={point.fileName}
-            loading="lazy"
-            onError={() => setImageFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-          {imageFailed && (
-            <div style={{
-              position: "absolute", inset: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color, fontSize: 13, letterSpacing: 1, fontWeight: 700,
-            }}>
-              {label}
-            </div>
-          )}
+        <div style={{ height: 52, background: "rgba(10, 20, 28, 0.92)", overflow: "hidden" }}>
+          <CardThumbnail point={point} />
         </div>
         <div style={{ padding: "6px 8px 7px" }}>
           <div
