@@ -6,6 +6,7 @@ import type { ProjectionPoint } from "../../types";
 import {
   getModalityColor,
   getModalityLabel,
+  getPreviewKind,
   MAP_THEME,
   MINI_CARD_Z_RANGE,
 } from "../../theme";
@@ -40,15 +41,12 @@ function CardThumbnail({ point }: { point: ProjectionPoint }) {
   const [imageFailed, setImageFailed] = useState(false);
   const color = getModalityColor(point.contentType);
   const label = getModalityLabel(point.contentType);
-  const kind = point.contentType.startsWith("image/") ? "image" :
-               point.contentType.startsWith("video/") ? "video" :
-               point.contentType.startsWith("audio/") ? "audio" :
-               point.contentType.startsWith("application/pdf") ? "pdf" : "text";
+  const kind = getPreviewKind(point.contentType);
 
   useEffect(() => { setImageFailed(false); }, [point.id]);
 
-  // Images and videos: use thumbnail API (real rendered image)
-  if ((kind === "image" || kind === "video") && !imageFailed) {
+  // Image, video, PDF: use thumbnail API
+  if ((kind === "image" || kind === "video" || kind === "pdf") && !imageFailed) {
     return (
       <img
         src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
@@ -57,21 +55,6 @@ function CardThumbnail({ point }: { point: ProjectionPoint }) {
         onError={() => setImageFailed(true)}
         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
       />
-    );
-  }
-
-  // PDF: try thumbnail API (qlmanage renders first page)
-  if (kind === "pdf" && !imageFailed) {
-    return (
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <img
-          src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
-          alt={point.fileName}
-          loading="lazy"
-          onError={() => setImageFailed(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      </div>
     );
   }
 
@@ -127,8 +110,7 @@ function PreviewCard({
       <div
         title={point.fileName}
         style={{
-          width: 72,
-          height: 72,
+          width: 80,
           borderRadius: 10,
           border: `1px solid ${localHover ? color : MAP_THEME.border}`,
           overflow: "hidden",
@@ -138,18 +120,27 @@ function PreviewCard({
             ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 1px ${color}44`
             : "0 8px 20px rgba(0,0,0,0.35)",
           transition: "border-color 120ms ease, box-shadow 120ms ease",
-          position: "relative",
         }}
       >
-        <CardThumbnail point={point} />
+        <div style={{ height: 56, position: "relative" }}>
+          <CardThumbnail point={point} />
+          <div style={{
+            position: "absolute", bottom: 2, left: 2,
+            padding: "1px 4px", borderRadius: 3,
+            background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+            fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
+            color, lineHeight: 1.4,
+          }}>
+            {label}
+          </div>
+        </div>
         <div style={{
-          position: "absolute", bottom: 3, left: 3,
-          padding: "1px 5px", borderRadius: 4,
-          background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
-          fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
-          color, lineHeight: 1.4,
+          padding: "2px 0 0",
+          fontSize: 7, color: "rgba(230, 240, 247, 0.55)",
+          lineHeight: 1.1, textAlign: "center",
+          whiteSpace: "nowrap",
         }}>
-          {label}
+          {point.fileName.replace(/\.[^.]+$/, "")}
         </div>
       </div>
     </div>

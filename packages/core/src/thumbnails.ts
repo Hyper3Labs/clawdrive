@@ -1,6 +1,11 @@
 import sharp from "sharp";
 import { join } from "node:path";
-import { mkdir, access, constants } from "node:fs/promises";
+import { mkdir, access, constants, unlink } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { tmpdir } from "node:os";
+
+const execFileAsync = promisify(execFile);
 
 const THUMB_WIDTH = 200;
 const THUMB_HEIGHT = 200;
@@ -88,10 +93,6 @@ function getPreviewKind(contentType: string): string {
 }
 
 async function generateVideoThumbnail(srcPath: string, dest: string): Promise<string | null> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const execFileAsync = promisify(execFile);
-
   try {
     await execFileAsync("ffmpeg", [
       "-i", srcPath,
@@ -108,19 +109,15 @@ async function generateVideoThumbnail(srcPath: string, dest: string): Promise<st
 }
 
 async function generatePdfThumbnail(srcPath: string, dest: string): Promise<string | null> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const { unlink } = await import("node:fs/promises");
-  const execFileAsync = promisify(execFile);
-  const tmpDir = await import("node:os").then((os) => os.tmpdir());
+  const tmp = tmpdir();
 
   try {
     // macOS: use qlmanage (Quick Look) for reliable PDF thumbnail
-    await execFileAsync("qlmanage", ["-t", "-s", String(THUMB_WIDTH), "-o", tmpDir, srcPath], { timeout: 10_000 });
+    await execFileAsync("qlmanage", ["-t", "-s", String(THUMB_WIDTH), "-o", tmp, srcPath], { timeout: 10_000 });
 
     // qlmanage outputs {filename}.png in the output dir
     const basename = srcPath.split("/").pop()!;
-    const qlOutput = `${tmpDir}/${basename}.png`;
+    const qlOutput = `${tmp}/${basename}.png`;
 
     await sharp(qlOutput)
       .resize(THUMB_WIDTH, THUMB_HEIGHT, { fit: "inside", withoutEnlargement: true })
@@ -133,7 +130,7 @@ async function generatePdfThumbnail(srcPath: string, dest: string): Promise<stri
   } catch {
     // Fallback: try pdftoppm (Linux/other platforms)
     try {
-      const tmpPpm = `${tmpDir}/pdf-thumb-${Date.now()}`;
+      const tmpPpm = `${tmp}/pdf-thumb-${Date.now()}`;
       await execFileAsync("pdftoppm", ["-jpeg", "-f", "1", "-l", "1", "-scale-to", String(THUMB_WIDTH), srcPath, tmpPpm], { timeout: 10_000 });
       const ppmOutput = `${tmpPpm}-1.jpg`;
       await sharp(ppmOutput)

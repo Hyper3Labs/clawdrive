@@ -61,10 +61,6 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
     return { x: x / sumW, y: y / sumW, z: z / sumW };
   }, [focusFileId, points]);
 
-  // Only focus camera when driven by external focusFileId prop (e.g. search result),
-  // never by user clicks on points — those just open the preview modal.
-  const cameraTarget = focusTarget;
-
   if (loading)
     return (
       <div
@@ -141,7 +137,7 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
         <ClusterLabels points={points} />
 
         <MapCameraRig
-          focusTarget={cameraTarget}
+          focusTarget={focusTarget}
           controlsRef={controlsRef}
         />
         <OrbitControls

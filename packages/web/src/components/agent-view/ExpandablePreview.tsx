@@ -74,8 +74,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
 
   if (kind === "audio") {
     return (
-      <div style={{ padding: 16, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-        <div style={{ fontSize: 32, color, fontWeight: 700 }}>{label}</div>
+      <div style={{ padding: 20, display: "flex", alignItems: "center" }}>
         <audio key={point.id} src={contentUrl} controls style={{ width: "100%" }} />
       </div>
     );
