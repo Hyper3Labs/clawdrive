@@ -21,3 +21,4 @@ export * from "./metadata.js";
 export * from "./pots.js";
 export * from "./shares.js";
 export * from "./taxonomy.js";
+export * from "./thumbnails.js";
