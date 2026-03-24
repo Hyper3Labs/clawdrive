@@ -152,6 +152,9 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
   const hoveredFileId = useVisualizationStore((s) => s.hoveredFileId);
   const clickFile = useVisualizationStore((s) => s.clickFile);
+  const hoverFile = useVisualizationStore((s) => s.hoverFile);
+
+  const dismiss = () => { clickFile(null); hoverFile(null); };
 
   const isExpanded = clickedFileId !== null;
   const displayId = clickedFileId ?? hoveredFileId;
@@ -230,7 +233,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
   return (
     <div
       onClick={(e) => {
-        if (e.target === e.currentTarget) clickFile(null);
+        if (e.target === e.currentTarget) dismiss();
       }}
       style={{
         position: "absolute",
@@ -261,7 +264,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
             {point.fileName}
           </div>
           <div
-            onClick={() => clickFile(null)}
+            onClick={() => dismiss()}
             style={{ color: "#6B8A9E", fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
           >
             ×
