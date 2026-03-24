@@ -80,13 +80,13 @@ export async function renamePot(
   const newSlug = slugifyPotName(name);
   if (!newSlug) throw new Error("Pot name must contain letters or numbers");
 
-  const oldPot = await getPot(id, opts);
-  if (!oldPot) throw new Error(`Pot not found: ${id}`);
-  const oldSlug = oldPot.slug;
+  let oldSlug: string | null = null;
 
   const result = await updateWorkspaceJson(opts.wsPath, POTS_FILE, [] as PotRecord[], (pots) => {
     const index = pots.findIndex((p) => p.id === id);
     if (index === -1) throw new Error(`Pot not found: ${id}`);
+
+    oldSlug = pots[index].slug;
 
     if (pots.some((p) => p.slug === newSlug && p.id !== id)) {
       throw new Error(`Pot already exists: ${newSlug}`);
@@ -99,7 +99,7 @@ export async function renamePot(
   });
 
   // Migrate pot tags on member files
-  if (oldSlug !== newSlug) {
+  if (oldSlug && oldSlug !== newSlug) {
     const oldTag = buildPotTag(oldSlug);
     const newTag = buildPotTag(newSlug);
     const db = await createDatabase(join(opts.wsPath, "db"));
