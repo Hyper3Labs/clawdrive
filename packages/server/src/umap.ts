@@ -33,9 +33,13 @@ export async function getProjections(wsPath: string): Promise<ProjectionPoint[]>
     const allFiles = await queryFiles(table);
     const parentCount = allFiles.filter(f => f.parent_id === null).length;
     // Serve cache if parent file count hasn't changed by more than 10%
+    // Always refresh tags from DB since they can change without affecting positions
     if (Math.abs(parentCount - cached.fileCount) / Math.max(parentCount, 1) < 0.1) {
+      const parentFiles = allFiles.filter(f => f.parent_id === null);
+      const tagMap = new Map(parentFiles.map(f => [f.id, f.tags]));
       return (cached.points as ProjectionPoint[]).map((point) => ({
         ...point,
+        tags: tagMap.get(point.id) ?? point.tags,
         previewUrl: point.previewUrl || previewUrlFor(point.id),
       }));
     }

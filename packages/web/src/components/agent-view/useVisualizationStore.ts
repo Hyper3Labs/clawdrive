@@ -112,30 +112,32 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
     }
   },
 
-  assignFileToPot: async (fileId, potSlug, currentTags) => {
+  assignFileToPot: async (fileId, potSlug, _currentTags) => {
     const potTag = `pot:${potSlug}`;
-    if (currentTags.includes(potTag)) return;
     try {
-      await api.updateFile(fileId, { tags: [...currentTags, potTag] });
-      const { selectedPotId, pots } = get();
-      const selectedPot = pots.find((p) => p.id === selectedPotId);
-      if (selectedPot?.slug === potSlug) {
-        get().selectPot(selectedPotId);
-      }
+      // Fetch fresh tags from server to avoid stale projection cache
+      const file = await api.getFile(fileId);
+      const freshTags: string[] = file.tags ?? _currentTags;
+      if (freshTags.includes(potTag)) return;
+      await api.updateFile(fileId, { tags: [...freshTags, potTag] });
+      // Always refresh highlights for the selected pot
+      const { selectedPotId } = get();
+      if (selectedPotId) get().selectPot(selectedPotId);
     } catch (err) {
       console.error("Failed to assign file to pot:", err);
     }
   },
 
-  unassignFileFromPot: async (fileId, potSlug, currentTags) => {
+  unassignFileFromPot: async (fileId, potSlug, _currentTags) => {
     const potTag = `pot:${potSlug}`;
     try {
-      await api.updateFile(fileId, { tags: currentTags.filter((t) => t !== potTag) });
-      const { selectedPotId, pots } = get();
-      const selectedPot = pots.find((p) => p.id === selectedPotId);
-      if (selectedPot?.slug === potSlug) {
-        get().selectPot(selectedPotId);
-      }
+      // Fetch fresh tags from server to avoid stale projection cache
+      const file = await api.getFile(fileId);
+      const freshTags: string[] = file.tags ?? _currentTags;
+      await api.updateFile(fileId, { tags: freshTags.filter((t) => t !== potTag) });
+      // Always refresh highlights for the selected pot
+      const { selectedPotId } = get();
+      if (selectedPotId) get().selectPot(selectedPotId);
     } catch (err) {
       console.error("Failed to unassign file from pot:", err);
     }

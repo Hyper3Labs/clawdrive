@@ -66,22 +66,18 @@ export async function update(
       values.description = changes.description;
     }
 
-    // LanceDB cannot update a List column to an empty array (Arrow concat bug).
-    // Work around by reading, deleting, and re-inserting affected rows.
-    const hasEmptyList =
-      (changes.tags !== undefined && changes.tags.length === 0);
-
-    if (hasEmptyList) {
+    // LanceDB table.update() silently fails when updating List<Utf8> columns
+    // (both empty and non-empty arrays). Always use the delete+re-insert workaround
+    // when tags are being changed.
+    if (changes.tags !== undefined) {
       await updateRowsWithEmptyList(table, `id = '${id}' AND deleted_at IS NULL`, values);
       await updateRowsWithEmptyList(table, `parent_id = '${id}' AND deleted_at IS NULL`, values);
     } else {
-      // Update parent row
       await table.update({
         where: `id = '${id}' AND deleted_at IS NULL`,
         values,
       });
 
-      // Also update child chunks if they exist
       const children = await table
         .query()
         .where(`parent_id = '${id}' AND deleted_at IS NULL`)
