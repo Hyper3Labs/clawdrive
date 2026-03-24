@@ -42,7 +42,6 @@ export function getModalityLabel(contentType: string): string {
 
 export const Z_INDEX = {
   sidebar: 10,
-  hoverCard: 15,
   modal: 20,
   contextMenu: 1000,
 } as const;
