@@ -8,6 +8,7 @@ import {
   getPreviewKind,
   MAP_THEME,
 } from "../../theme";
+import { useVisualizationStore } from "./useVisualizationStore";
 
 const MAX_PREVIEWS = 14;
 const PREVIEW_DISTANCE = 17;
@@ -142,6 +143,7 @@ export function FilePreviewLayer({
   const [previewIds, setPreviewIds] = useState<string[]>([]);
   const frameCount = useRef(0);
   const { camera } = useThree();
+  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
 
   const pointById = useMemo(() => {
     return new Map(points.map((point) => [point.id, point]));
@@ -172,6 +174,9 @@ export function FilePreviewLayer({
       setPreviewIds(finalIds);
     }
   });
+
+  // Hide all preview cards when modal is open
+  if (clickedFileId) return null;
 
   return (
     <>
