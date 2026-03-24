@@ -2,7 +2,7 @@
 import { join } from "node:path";
 import { readFile, appendFile, stat, readdir, unlink } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
-import { createDatabase, getFilesTable, toFileRecord } from "./storage/db.js";
+import { createDatabase, getFilesTable, toFileRecord, insertFileRecord } from "./storage/db.js";
 import { acquireLock } from "./lock.js";
 
 export interface ManageOptions {
@@ -66,19 +66,73 @@ export async function update(
       values.description = changes.description;
     }
 
-    // Update parent row
-    await table.update({
-      where: `id = '${id}' AND deleted_at IS NULL`,
-      values,
-    });
+    // LanceDB cannot update a List column to an empty array (Arrow concat bug).
+    // Work around by reading, deleting, and re-inserting affected rows.
+    const hasEmptyList =
+      (changes.tags !== undefined && changes.tags.length === 0);
 
-    // Also update child chunks if they exist
-    await table.update({
-      where: `parent_id = '${id}' AND deleted_at IS NULL`,
-      values,
-    });
+    if (hasEmptyList) {
+      await updateRowsWithEmptyList(table, `id = '${id}' AND deleted_at IS NULL`, values);
+      await updateRowsWithEmptyList(table, `parent_id = '${id}' AND deleted_at IS NULL`, values);
+    } else {
+      // Update parent row
+      await table.update({
+        where: `id = '${id}' AND deleted_at IS NULL`,
+        values,
+      });
+
+      // Also update child chunks if they exist
+      const children = await table
+        .query()
+        .where(`parent_id = '${id}' AND deleted_at IS NULL`)
+        .limit(1)
+        .toArray();
+      if (children.length > 0) {
+        await table.update({
+          where: `parent_id = '${id}' AND deleted_at IS NULL`,
+          values,
+        });
+      }
+    }
   } finally {
     await release();
+  }
+}
+
+/**
+ * Workaround for LanceDB inability to update List columns to empty arrays.
+ * Reads matching rows, deletes them, applies changes, and re-inserts them.
+ */
+async function updateRowsWithEmptyList(
+  table: Awaited<ReturnType<typeof getFilesTable>>,
+  whereClause: string,
+  values: Record<string, string | number | string[]>,
+): Promise<void> {
+  const rows = await table.query().where(whereClause).limit(1_000_000).toArray();
+  if (rows.length === 0) return;
+
+  await table.delete(whereClause);
+
+  for (const raw of rows) {
+    const row = { ...(raw as Record<string, unknown>) };
+    // Convert Arrow types to plain JS types for reinsertion
+    if (row.vector != null && !(row.vector instanceof Float32Array) && row.vector instanceof Array === false) {
+      row.vector = Array.from(row.vector as ArrayLike<number>);
+    }
+    if (row.vector instanceof Float32Array) {
+      row.vector = Array.from(row.vector);
+    }
+    for (const key of ["tags", "taxonomy_path"]) {
+      const val = row[key];
+      if (val != null && !Array.isArray(val) && typeof val === "object" && "toArray" in (val as object)) {
+        row[key] = Array.from((val as { toArray(): unknown[] }).toArray());
+      }
+    }
+    // Apply the updated values
+    for (const [k, v] of Object.entries(values)) {
+      row[k] = v;
+    }
+    await insertFileRecord(table, row);
   }
 }
 
