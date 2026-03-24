@@ -27,11 +27,15 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
   const clickFile = useVisualizationStore((s) => s.clickFile);
   const hoverFile = useVisualizationStore((s) => s.hoverFile);
+  const lastConsumedFocusId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!focusFileId) return;
+    if (!focusFileId || focusFileId === lastConsumedFocusId.current) return;
     const match = points.find((point) => point.id === focusFileId);
-    if (match) clickFile(match.id);
+    if (match) {
+      clickFile(match.id);
+      lastConsumedFocusId.current = focusFileId;
+    }
   }, [focusFileId, points, clickFile]);
 
   const focusTarget = useMemo(() => {

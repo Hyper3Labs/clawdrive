@@ -30,6 +30,8 @@ export function App() {
         onSelectResult={(result) => {
           setFocusFileId(result.id);
           setView("space");
+          // Clear after camera animation settles so orbit controls are released
+          setTimeout(() => setFocusFileId(null), 1500);
         }}
         searchRef={searchRef}
       />
