@@ -83,12 +83,26 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
 
   if (kind === "pdf") {
     return (
-      <iframe
-        key={point.id}
-        src={contentUrl}
-        title={point.fileName}
-        style={{ width: "100%", height: 360, border: "none", background: "#fff", borderRadius: 4 }}
-      />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: 20 }}>
+        <img
+          src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
+          alt={point.fileName}
+          style={{ maxHeight: 220, borderRadius: 6, border: `1px solid ${MAP_THEME.border}`, background: "#fff" }}
+        />
+        <a
+          href={contentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: MAP_THEME.accentPrimary, fontSize: 12, textDecoration: "none",
+            padding: "6px 14px", borderRadius: 6,
+            border: `1px solid rgba(110, 231, 255, 0.25)`,
+            background: "rgba(110, 231, 255, 0.06)",
+          }}
+        >
+          Open PDF ↗
+        </a>
+      </div>
     );
   }
 

@@ -127,17 +127,13 @@ async function generatePlaceholder(dest: string, color: string, label: string): 
   const g = parseInt(color.slice(3, 5), 16);
   const b = parseInt(color.slice(5, 7), 16);
 
+  // Bright enough to be visible at small card sizes (52px)
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="bg" cx="50%" cy="40%">
-        <stop offset="0%" stop-color="rgb(${Math.round(r * 0.2)},${Math.round(g * 0.2)},${Math.round(b * 0.2)})"/>
-        <stop offset="100%" stop-color="#0a131c"/>
-      </radialGradient>
-    </defs>
-    <rect width="${width}" height="${height}" fill="url(#bg)"/>
+    <rect width="${width}" height="${height}" fill="rgb(${Math.round(r * 0.15)},${Math.round(g * 0.15)},${Math.round(b * 0.15)})"/>
+    <rect x="0" y="0" width="${width}" height="${height}" fill="${color}" opacity="0.12"/>
     <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
-      font-family="sans-serif" font-size="32" font-weight="700"
-      fill="${color}" opacity="0.8">${label}</text>
+      font-family="sans-serif" font-size="48" font-weight="800"
+      fill="${color}">${label}</text>
   </svg>`;
 
   await sharp(Buffer.from(svg))
