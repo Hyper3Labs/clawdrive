@@ -8,8 +8,7 @@ import { useVisualizationStore } from "./useVisualizationStore";
 import { FilePreviewLayer } from "./FilePreviewLayer";
 import { MapCameraRig } from "./MapCameraRig";
 import { useProjections } from "./useProjections";
-import { useMemo, useRef, useState, useEffect } from "react";
-import type { ProjectionPoint } from "../../types";
+import { useMemo, useRef, useEffect } from "react";
 import { MAP_THEME } from "../../theme";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
@@ -19,33 +18,16 @@ interface EmbeddingSpaceProps {
 
 export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   const { points, loading, error } = useProjections();
-  const [hovered, setHovered] = useState<ProjectionPoint | null>(null);
-  const [selected, setSelected] = useState<ProjectionPoint | null>(null);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
-  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
   const clickFile = useVisualizationStore((s) => s.clickFile);
   const hoverFile = useVisualizationStore((s) => s.hoverFile);
 
-  // When modal is dismissed (clickedFileId cleared), also clear local selected/hovered
-  useEffect(() => {
-    if (clickedFileId === null) {
-      setSelected(null);
-      setHovered(null);
-    }
-  }, [clickedFileId]);
-
   useEffect(() => {
     if (!focusFileId) return;
-    const match = points.find((point) => point.id === focusFileId) ?? null;
-    if (match) setSelected(match);
-  }, [focusFileId, points]);
-
-  useEffect(() => {
-    if (!selected) return;
-    const stillExists = points.find((point) => point.id === selected.id);
-    if (!stillExists) setSelected(null);
-  }, [points, selected]);
+    const match = points.find((point) => point.id === focusFileId);
+    if (match) clickFile(match.id);
+  }, [focusFileId, points, clickFile]);
 
   const focusTarget = useMemo(() => {
     if (!focusFileId) return null;
@@ -143,11 +125,9 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
     >
       <PotsSidebar />
       <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => {
-        // Only clear if modal is not open (PreviewCard clicks trigger onPointerMissed
-        // because the HTML overlay isn't a Three.js object)
+        // Guard: don't clear when modal is open — HTML overlays trigger onPointerMissed
         if (!useVisualizationStore.getState().clickedFileId) {
-          setSelected(null);
-          clickFile(null);
+          hoverFile(null);
         }
       }}>
         <color attach="background" args={[MAP_THEME.background]} />
@@ -156,17 +136,8 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
         <directionalLight position={[20, 25, 10]} intensity={0.46} color={MAP_THEME.accentPrimary} />
         <pointLight position={[-24, -16, 12]} intensity={0.34} color={MAP_THEME.accentSecondary} />
 
-        <PointCloud
-          points={points}
-          selectedId={selected?.id ?? null}
-          onHover={(p) => { setHovered(p); hoverFile(p?.id ?? null); }}
-          onSelect={(p) => { setSelected(p); clickFile(p?.id ?? null); }}
-        />
-        <FilePreviewLayer
-          points={points}
-          onHover={(p) => { setHovered(p); hoverFile(p?.id ?? null); }}
-          onSelect={(p) => { setSelected(p); clickFile(p?.id ?? null); }}
-        />
+        <PointCloud points={points} />
+        <FilePreviewLayer points={points} />
         <ClusterLabels points={points} />
 
         <MapCameraRig

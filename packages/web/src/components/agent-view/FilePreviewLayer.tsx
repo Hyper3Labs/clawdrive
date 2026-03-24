@@ -17,8 +17,6 @@ const PREVIEW_DISTANCE_SQ = PREVIEW_DISTANCE * PREVIEW_DISTANCE;
 
 interface FilePreviewLayerProps {
   points: ProjectionPoint[];
-  onHover: (point: ProjectionPoint | null) => void;
-  onSelect: (point: ProjectionPoint | null) => void;
 }
 
 function arraysEqual(a: string[], b: string[]) {
@@ -145,15 +143,13 @@ function PreviewCard({
   );
 }
 
-export function FilePreviewLayer({
-  points,
-  onHover,
-  onSelect,
-}: FilePreviewLayerProps) {
+export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
   const [previewIds, setPreviewIds] = useState<string[]>([]);
   const frameCount = useRef(0);
   const { camera } = useThree();
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
+  const hoverFile = useVisualizationStore((s) => s.hoverFile);
+  const clickFile = useVisualizationStore((s) => s.clickFile);
 
   const pointById = useMemo(() => {
     return new Map(points.map((point) => [point.id, point]));
@@ -201,9 +197,9 @@ export function FilePreviewLayer({
           >
             <PreviewCard
               point={point}
-              onHover={() => onHover(point)}
-              onLeave={() => onHover(null)}
-              onSelect={() => onSelect(point)}
+              onHover={() => hoverFile(point.id)}
+              onLeave={() => hoverFile(null)}
+              onSelect={() => clickFile(point.id)}
             />
           </Html>
         ))}

@@ -4,29 +4,22 @@ import * as THREE from "three";
 import type { ProjectionPoint } from "../../types";
 import { getModalityColor, MAP_THEME } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
+import { useClickedPoint, useHoveredPoint } from "./useVisualizationHooks";
 
 const DIM_OPACITY = 0.15;
 const BG_COLOR = new THREE.Color(MAP_THEME.background);
 
 interface Props {
   points: ProjectionPoint[];
-  onHover: (point: ProjectionPoint | null) => void;
-  onSelect: (point: ProjectionPoint | null) => void;
-  selectedId: string | null;
 }
 
-export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
+export function PointCloud({ points }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const selectedPoint = useMemo(
-    () => points.find((point) => point.id === selectedId) ?? null,
-    [points, selectedId],
-  );
-
-  const hoveredFileId = useVisualizationStore((s) => s.hoveredFileId);
-  const hoveredPoint = useMemo(
-    () => points.find((point) => point.id === hoveredFileId) ?? null,
-    [points, hoveredFileId],
-  );
+  const selectedPoint = useClickedPoint(points);
+  const hoveredPoint = useHoveredPoint(points);
+  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
+  const hoverFile = useVisualizationStore((s) => s.hoverFile);
+  const clickFile = useVisualizationStore((s) => s.clickFile);
 
   const potFileIds = useVisualizationStore((s) => s.potFileIds);
   const selectedPotId = useVisualizationStore((s) => s.selectedPotId);
@@ -109,13 +102,13 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
         onPointerOver={(e) => {
           e.stopPropagation();
           const idx = e.instanceId;
-          if (idx !== undefined && points[idx]) onHover(points[idx]);
+          if (idx !== undefined && points[idx]) hoverFile(points[idx].id);
         }}
-        onPointerOut={() => onHover(null)}
+        onPointerOut={() => hoverFile(null)}
         onClick={(e) => {
           e.stopPropagation();
           const idx = e.instanceId;
-          if (idx !== undefined && points[idx]) onSelect(points[idx]);
+          if (idx !== undefined && points[idx]) clickFile(points[idx].id);
         }}
       >
         <sphereGeometry args={[0.35, 12, 12]} />
@@ -127,7 +120,7 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
         />
       </instancedMesh>
 
-      {hoveredPoint && hoveredPoint.id !== selectedId && (
+      {hoveredPoint && hoveredPoint.id !== clickedFileId && (
         <group position={[hoveredPoint.x, hoveredPoint.y, hoveredPoint.z]}>
           <mesh>
             <sphereGeometry args={[0.7, 14, 14]} />
