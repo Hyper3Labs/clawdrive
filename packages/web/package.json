@@ -13,7 +13,8 @@
     "pdfjs-dist": "^5.5.207",
     "react": "^19",
     "react-dom": "^19",
-    "three": "^0.175"
+    "three": "^0.175",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@types/react": "^19",
