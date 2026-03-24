@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { memo, useMemo, useRef, useState, useEffect, useCallback } from "react";
 import type { ProjectionPoint } from "../../types";
 import {
   getModalityColor,
@@ -16,8 +16,6 @@ const PREVIEW_DISTANCE_SQ = PREVIEW_DISTANCE * PREVIEW_DISTANCE;
 
 interface FilePreviewLayerProps {
   points: ProjectionPoint[];
-  hoveredId: string | null;
-  selectedId: string | null;
   onHover: (point: ProjectionPoint | null) => void;
   onSelect: (point: ProjectionPoint | null) => void;
 }
@@ -35,20 +33,20 @@ function trimName(name: string): string {
   return `${name.slice(0, 25)}...`;
 }
 
-function PreviewCard({
+// Memoized card — only re-renders when point.id changes, not on hover state
+const PreviewCard = memo(function PreviewCard({
   point,
-  active,
   onHover,
   onLeave,
   onSelect,
 }: {
   point: ProjectionPoint;
-  active: boolean;
   onHover: () => void;
   onLeave: () => void;
   onSelect: () => void;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [localHover, setLocalHover] = useState(false);
   const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const color = getModalityColor(point.contentType);
   const label = getModalityLabel(point.contentType);
@@ -59,85 +57,95 @@ function PreviewCard({
   }, [point.id]);
 
   return (
+    // Invisible padding area for forgiving hover detection
     <div
-      onMouseEnter={() => { clearTimeout(leaveTimer.current); onHover(); }}
-      onMouseLeave={() => { leaveTimer.current = setTimeout(onLeave, 100); }}
+      onMouseEnter={() => {
+        clearTimeout(leaveTimer.current);
+        setLocalHover(true);
+        onHover();
+      }}
+      onMouseLeave={() => {
+        leaveTimer.current = setTimeout(() => {
+          setLocalHover(false);
+          onLeave();
+        }, 150);
+      }}
       onClick={(event) => {
         event.stopPropagation();
         onSelect();
       }}
-      style={{
-        width: 128,
-        borderRadius: 10,
-        border: `1px solid ${active ? color : MAP_THEME.border}`,
-        overflow: "hidden",
-        background: "rgba(8, 20, 29, 0.88)",
-        backdropFilter: "blur(8px)",
-        boxShadow: active
-          ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 1px ${color}44`
-          : "0 8px 20px rgba(0,0,0,0.35)",
-        cursor: "pointer",
-        transition: "transform 120ms ease, border-color 120ms ease",
-        transform: active ? "translateY(-2px) scale(1.02)" : "none",
-      }}
+      style={{ padding: 8, margin: -8, cursor: "pointer" }}
     >
-      <div style={{ height: 84, background: "rgba(10, 20, 28, 0.92)" }}>
-        {kind === "image" && point.previewUrl && !imageFailed ? (
-          <img
-            src={point.previewUrl}
-            alt={point.fileName}
-            loading="lazy"
-            onError={() => setImageFailed(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        ) : (
+      <div
+        style={{
+          width: 128,
+          borderRadius: 10,
+          border: `1px solid ${localHover ? color : MAP_THEME.border}`,
+          overflow: "hidden",
+          background: "rgba(8, 20, 29, 0.88)",
+          backdropFilter: "blur(8px)",
+          boxShadow: localHover
+            ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 1px ${color}44`
+            : "0 8px 20px rgba(0,0,0,0.35)",
+          transition: "border-color 120ms ease, box-shadow 120ms ease",
+        }}
+      >
+        <div style={{ height: 84, background: "rgba(10, 20, 28, 0.92)" }}>
+          {kind === "image" && point.previewUrl && !imageFailed ? (
+            <img
+              src={point.previewUrl}
+              alt={point.fileName}
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          ) : (
+            <div
+              style={{
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color,
+                fontSize: 18,
+                letterSpacing: 1,
+                fontWeight: 700,
+              }}
+            >
+              {label}
+            </div>
+          )}
+        </div>
+        <div style={{ padding: "6px 8px 7px" }}>
           <div
             style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              fontSize: 9,
+              letterSpacing: 0.8,
               color,
-              fontSize: 18,
-              letterSpacing: 1,
+              marginBottom: 3,
               fontWeight: 700,
             }}
           >
             {label}
           </div>
-        )}
-      </div>
-      <div style={{ padding: "6px 8px 7px" }}>
-        <div
-          style={{
-            fontSize: 9,
-            letterSpacing: 0.8,
-            color,
-            marginBottom: 3,
-            fontWeight: 700,
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: 10,
-            color: MAP_THEME.text,
-            lineHeight: 1.2,
-            wordBreak: "break-word",
-          }}
-        >
-          {trimName(point.fileName)}
+          <div
+            style={{
+              fontSize: 10,
+              color: MAP_THEME.text,
+              lineHeight: 1.2,
+              wordBreak: "break-word",
+            }}
+          >
+            {trimName(point.fileName)}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+}, (prev, next) => prev.point.id === next.point.id);
 
 export function FilePreviewLayer({
   points,
-  hoveredId,
-  selectedId,
   onHover,
   onSelect,
 }: FilePreviewLayerProps) {
@@ -167,9 +175,6 @@ export function FilePreviewLayer({
       .slice(0, MAX_PREVIEWS)
       .map((entry) => entry.id);
 
-    if (selectedId && !nearest.includes(selectedId)) nearest.unshift(selectedId);
-    if (hoveredId && !nearest.includes(hoveredId)) nearest.unshift(hoveredId);
-
     const finalIds = nearest.slice(0, MAX_PREVIEWS);
     if (!arraysEqual(previewIds, finalIds)) {
       setPreviewIds(finalIds);
@@ -184,27 +189,23 @@ export function FilePreviewLayer({
       {previewIds
         .map((id) => pointById.get(id))
         .filter((point): point is ProjectionPoint => Boolean(point))
-        .map((point) => {
-          const active = point.id === hoveredId || point.id === selectedId;
-          return (
-            <Html
-              key={point.id}
-              position={[point.x, point.y + 1.25, point.z]}
-              transform
-              sprite
-              distanceFactor={15}
-              zIndexRange={[100, 0]}
-            >
-              <PreviewCard
-                point={point}
-                active={active}
-                onHover={() => onHover(point)}
-                onLeave={() => onHover(null)}
-                onSelect={() => onSelect(point)}
-              />
-            </Html>
-          );
-        })}
+        .map((point) => (
+          <Html
+            key={point.id}
+            position={[point.x, point.y + 1.25, point.z]}
+            transform
+            sprite
+            distanceFactor={15}
+            zIndexRange={[100, 0]}
+          >
+            <PreviewCard
+              point={point}
+              onHover={() => onHover(point)}
+              onLeave={() => onHover(null)}
+              onSelect={() => onSelect(point)}
+            />
+          </Html>
+        ))}
     </>
   );
 }

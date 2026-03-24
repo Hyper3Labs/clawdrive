@@ -164,8 +164,6 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
         />
         <FilePreviewLayer
           points={points}
-          hoveredId={hovered?.id ?? null}
-          selectedId={selected?.id ?? null}
           onHover={(p) => { setHovered(p); hoverFile(p?.id ?? null); }}
           onSelect={(p) => { setSelected(p); clickFile(p?.id ?? null); }}
         />
