@@ -226,75 +226,87 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
     );
   }
 
-  // Expanded preview
+  // Expanded preview — centered modal with backdrop
   return (
     <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) clickFile(null);
+      }}
       style={{
         position: "absolute",
-        top: 20,
-        right: 20,
-        background: "linear-gradient(135deg, rgba(8, 22, 32, 0.95), rgba(6, 16, 24, 0.95))",
-        border: `1px solid ${MAP_THEME.border}`,
-        borderRadius: 12,
-        padding: 16,
-        fontSize: 13,
-        width: 320,
-        backdropFilter: "blur(16px)",
-        boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
-        maxHeight: "calc(100vh - 60px)",
-        overflowY: "auto",
+        inset: 0,
+        zIndex: 20,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(3, 10, 15, 0.6)",
+        backdropFilter: "blur(4px)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ color: MAP_THEME.text, fontSize: 14, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
-          {point.fileName}
-        </div>
-        <div
-          onClick={() => clickFile(null)}
-          style={{ color: "#6B8A9E", fontSize: 18, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
-        >
-          ×
-        </div>
-      </div>
-
-      <div style={{
-        border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
-        overflow: "hidden", marginTop: 12, background: "rgba(10, 19, 28, 0.7)",
-      }}>
-        <MediaPreview point={point} />
-      </div>
-
-      <div style={{
-        marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr",
-        gap: 8, fontSize: 12,
-      }}>
-        <div>
-          <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
-          <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
-        </div>
-        <div>
-          <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
-          <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
-        </div>
-      </div>
-
-      {point.tags.length > 0 && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
-          <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
-              <span key={t} style={{
-                padding: "2px 8px", borderRadius: 999, fontSize: 10,
-                background: `${color}20`, color,
-              }}>
-                {t}
-              </span>
-            ))}
+      <div
+        style={{
+          background: "linear-gradient(135deg, rgba(8, 22, 32, 0.97), rgba(6, 16, 24, 0.97))",
+          border: `1px solid ${MAP_THEME.border}`,
+          borderRadius: 14,
+          padding: 20,
+          fontSize: 13,
+          width: 400,
+          maxHeight: "80vh",
+          overflowY: "auto",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ color: MAP_THEME.text, fontSize: 15, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
+            {point.fileName}
+          </div>
+          <div
+            onClick={() => clickFile(null)}
+            style={{ color: "#6B8A9E", fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
+          >
+            ×
           </div>
         </div>
-      )}
 
-      <PotAssignment point={point} />
+        <div style={{
+          border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
+          overflow: "hidden", marginTop: 14, background: "rgba(10, 19, 28, 0.7)",
+        }}>
+          <MediaPreview point={point} />
+        </div>
+
+        <div style={{
+          marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr",
+          gap: 8, fontSize: 12,
+        }}>
+          <div>
+            <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
+            <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
+          </div>
+          <div>
+            <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
+            <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
+          </div>
+        </div>
+
+        {point.tags.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
+            <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+              {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
+                <span key={t} style={{
+                  padding: "2px 8px", borderRadius: 999, fontSize: 10,
+                  background: `${color}20`, color,
+                }}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <PotAssignment point={point} />
+      </div>
     </div>
   );
 }
