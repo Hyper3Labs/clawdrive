@@ -123,11 +123,13 @@ export function PointCloud({ points }: Props) {
       {hoveredPoint && hoveredPoint.id !== clickedFileId && (
         <group position={[hoveredPoint.x, hoveredPoint.y, hoveredPoint.z]}>
           <mesh>
-            <sphereGeometry args={[1.0, 16, 16]} />
-            <meshBasicMaterial
+            <sphereGeometry args={[0.55, 16, 16]} />
+            <meshStandardMaterial
               color={getModalityColor(hoveredPoint.contentType)}
+              emissive={getModalityColor(hoveredPoint.contentType)}
+              emissiveIntensity={0.6}
               transparent
-              opacity={0.32}
+              opacity={0.25}
             />
           </mesh>
         </group>
@@ -136,16 +138,14 @@ export function PointCloud({ points }: Props) {
       {selectedPoint && (
         <group position={[selectedPoint.x, selectedPoint.y, selectedPoint.z]}>
           <mesh>
-            <sphereGeometry args={[1.05, 16, 16]} />
-            <meshBasicMaterial
+            <sphereGeometry args={[0.6, 16, 16]} />
+            <meshStandardMaterial
               color={getModalityColor(selectedPoint.contentType)}
+              emissive={getModalityColor(selectedPoint.contentType)}
+              emissiveIntensity={0.8}
               transparent
-              opacity={0.22}
+              opacity={0.3}
             />
-          </mesh>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[1.45, 0.05, 10, 48]} />
-            <meshBasicMaterial color={MAP_THEME.accentPrimary} transparent opacity={0.7} />
           </mesh>
         </group>
       )}
