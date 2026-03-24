@@ -70,6 +70,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
 
   recordInteraction: () => set({ lastInteractionTime: Date.now() }),
 
+  // Polling function for useFrame — not a reactive selector. Call inside useFrame() only.
   isIdle: () => Date.now() - get().lastInteractionTime > IDLE_TIMEOUT,
 
   fetchPots: async () => {

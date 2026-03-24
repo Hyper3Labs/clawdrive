@@ -116,7 +116,7 @@ async function updateRowsWithEmptyList(
   for (const raw of rows) {
     const row = { ...(raw as Record<string, unknown>) };
     // Convert Arrow types to plain JS types for reinsertion
-    if (row.vector != null && !(row.vector instanceof Float32Array) && row.vector instanceof Array === false) {
+    if (row.vector != null && !(row.vector instanceof Float32Array) && !(row.vector instanceof Array)) {
       row.vector = Array.from(row.vector as ArrayLike<number>);
     }
     if (row.vector instanceof Float32Array) {

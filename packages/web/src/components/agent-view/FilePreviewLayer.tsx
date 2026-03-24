@@ -49,6 +49,7 @@ function PreviewCard({
   onSelect: () => void;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const color = getModalityColor(point.contentType);
   const label = getModalityLabel(point.contentType);
   const kind = getPreviewKind(point.contentType);
@@ -59,8 +60,8 @@ function PreviewCard({
 
   return (
     <div
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
+      onMouseEnter={() => { clearTimeout(leaveTimer.current); onHover(); }}
+      onMouseLeave={() => { leaveTimer.current = setTimeout(onLeave, 100); }}
       onClick={(event) => {
         event.stopPropagation();
         onSelect();
