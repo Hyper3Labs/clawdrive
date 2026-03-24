@@ -6,7 +6,8 @@ import { getModalityColor, MAP_THEME } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 import { useClickedPoint, useHoveredPoint } from "./useVisualizationHooks";
 
-const DIM_OPACITY = 0.15;
+const DIM_FACTOR = 0.92; // how much non-pot points fade toward background
+const BOOST_FACTOR = 1.6; // how much in-pot points brighten
 const BG_COLOR = new THREE.Color(MAP_THEME.background);
 
 interface Props {
@@ -72,9 +73,12 @@ export function PointCloud({ points }: Props) {
       const baseColor = colorMap.get(p.contentType)!;
 
       if (inPot) {
-        mesh.setColorAt(i, baseColor);
+        // Brighten in-pot points so they pop
+        tmpColor.copy(baseColor).multiplyScalar(BOOST_FACTOR).clampScalar(0, 1);
+        mesh.setColorAt(i, tmpColor);
       } else {
-        tmpColor.copy(baseColor).lerp(BG_COLOR, 1 - DIM_OPACITY);
+        // Heavily fade non-pot points toward background
+        tmpColor.copy(baseColor).lerp(BG_COLOR, DIM_FACTOR);
         mesh.setColorAt(i, tmpColor);
       }
     });
