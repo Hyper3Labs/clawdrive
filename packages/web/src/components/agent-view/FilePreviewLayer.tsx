@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { memo, useMemo, useRef, useState, useEffect, useCallback } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import type { ProjectionPoint } from "../../types";
 import {
   getModalityColor,
@@ -142,7 +142,7 @@ const PreviewCard = memo(function PreviewCard({
       </div>
     </div>
   );
-}, (prev, next) => prev.point.id === next.point.id);
+});
 
 export function FilePreviewLayer({
   points,

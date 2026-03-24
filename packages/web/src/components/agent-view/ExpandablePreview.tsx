@@ -173,6 +173,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           position: "absolute",
           top: 20,
           right: 20,
+          zIndex: 15,
           background: "linear-gradient(135deg, rgba(8, 22, 32, 0.92), rgba(6, 16, 24, 0.92))",
           border: `1px solid ${MAP_THEME.border}`,
           borderRadius: 12,
