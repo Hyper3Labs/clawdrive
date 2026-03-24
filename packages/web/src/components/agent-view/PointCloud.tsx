@@ -6,9 +6,9 @@ import { getModalityColor, MAP_THEME } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 import { useClickedPoint, useHoveredPoint } from "./useVisualizationHooks";
 
-const DIM_FACTOR = 0.92;
+const DIM_FACTOR = 0.96; // nearly invisible
 const BG_COLOR = new THREE.Color(MAP_THEME.background);
-const POT_HIGHLIGHT_COLOR = new THREE.Color("#FFD54F"); // warm yellow for pot members
+const POT_HIGHLIGHT_COLOR = new THREE.Color("#FFEB3B"); // bright yellow for pot members
 
 interface Props {
   points: ProjectionPoint[];
@@ -114,12 +114,7 @@ export function PointCloud({ points }: Props) {
         }}
       >
         <sphereGeometry args={[0.35, 12, 12]} />
-        <meshStandardMaterial
-          emissive={MAP_THEME.accentPrimary}
-          emissiveIntensity={0.18}
-          metalness={0.05}
-          roughness={0.32}
-        />
+        <meshBasicMaterial />
       </instancedMesh>
 
       {hoveredPoint && hoveredPoint.id !== clickedFileId && (
