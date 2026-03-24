@@ -2,8 +2,9 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { PointCloud } from "./PointCloud";
 import { ClusterLabels } from "./ClusterLabels";
-import { HoverCard } from "./HoverCard";
-import { PointLabels } from "./PointLabels";
+import { ExpandablePreview } from "./ExpandablePreview";
+import { PotsSidebar } from "./PotsSidebar";
+import { useVisualizationStore } from "./useVisualizationStore";
 import { FilePreviewLayer } from "./FilePreviewLayer";
 import { MapCameraRig } from "./MapCameraRig";
 import { useProjections } from "./useProjections";
@@ -20,8 +21,10 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   const { points, loading, error } = useProjections();
   const [hovered, setHovered] = useState<ProjectionPoint | null>(null);
   const [selected, setSelected] = useState<ProjectionPoint | null>(null);
-  const [userInteracting, setUserInteracting] = useState(false);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
+  const clickFile = useVisualizationStore((s) => s.clickFile);
+  const hoverFile = useVisualizationStore((s) => s.hoverFile);
 
   useEffect(() => {
     if (!focusFileId) return;
@@ -69,8 +72,6 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
 
   const cameraTarget =
     focusTarget ?? (selected ? { x: selected.x, y: selected.y, z: selected.z } : null);
-  const highlightedId = selected?.id ?? hovered?.id ?? null;
-  const detailsPoint = selected ?? hovered;
 
   if (loading)
     return (
@@ -130,7 +131,8 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
           "radial-gradient(circle at 20% 10%, rgba(32, 70, 90, 0.45) 0%, rgba(6, 16, 24, 0.96) 45%, rgba(3, 9, 14, 1) 100%)",
       }}
     >
-      <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => setSelected(null)}>
+      <PotsSidebar />
+      <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => { setSelected(null); clickFile(null); }}>
         <color attach="background" args={[MAP_THEME.background]} />
         <fog attach="fog" args={[MAP_THEME.background, 50, 120]} />
         <ambientLight intensity={0.32} />
@@ -140,23 +142,21 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
         <PointCloud
           points={points}
           selectedId={selected?.id ?? null}
-          onHover={setHovered}
-          onSelect={setSelected}
+          onHover={(p) => { setHovered(p); hoverFile(p?.id ?? null); }}
+          onSelect={(p) => { setSelected(p); clickFile(p?.id ?? null); }}
         />
-        <PointLabels points={points} highlightedId={highlightedId} />
         <FilePreviewLayer
           points={points}
           hoveredId={hovered?.id ?? null}
           selectedId={selected?.id ?? null}
-          onHover={setHovered}
-          onSelect={setSelected}
+          onHover={(p) => { setHovered(p); hoverFile(p?.id ?? null); }}
+          onSelect={(p) => { setSelected(p); clickFile(p?.id ?? null); }}
         />
         <ClusterLabels points={points} />
 
         <MapCameraRig
           focusTarget={cameraTarget}
           controlsRef={controlsRef}
-          userInteracting={userInteracting}
         />
         <OrbitControls
           ref={controlsRef}
@@ -164,11 +164,11 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
           dampingFactor={0.05}
           minDistance={8}
           maxDistance={140}
-          onStart={() => setUserInteracting(true)}
-          onEnd={() => setUserInteracting(false)}
+          onStart={() => recordInteraction()}
+          onEnd={() => recordInteraction()}
         />
       </Canvas>
-      {detailsPoint && <HoverCard point={detailsPoint} />}
+      <ExpandablePreview points={points} />
     </div>
   );
 }
