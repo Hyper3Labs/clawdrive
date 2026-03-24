@@ -198,8 +198,15 @@ export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
     }
   });
 
+  const hoveredFileId = useVisualizationStore((s) => s.hoveredFileId);
+
   // Hide all preview cards when modal is open
   if (clickedFileId) return null;
+
+  // Show a hover card for any point not already in the visible set
+  const hoveredPoint = hoveredFileId && !previewIds.includes(hoveredFileId)
+    ? pointById.get(hoveredFileId) ?? null
+    : null;
 
   return (
     <>
@@ -223,6 +230,23 @@ export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
             />
           </Html>
         ))}
+      {hoveredPoint && (
+        <Html
+          key={`hover-${hoveredPoint.id}`}
+          position={[hoveredPoint.x, hoveredPoint.y + 1.25, hoveredPoint.z]}
+          transform
+          sprite
+          distanceFactor={15}
+          zIndexRange={MINI_CARD_Z_RANGE}
+        >
+          <PreviewCard
+            point={hoveredPoint}
+            onHover={() => hoverFile(hoveredPoint.id)}
+            onLeave={() => hoverFile(null)}
+            onSelect={() => clickFile(hoveredPoint.id)}
+          />
+        </Html>
+      )}
     </>
   );
 }
