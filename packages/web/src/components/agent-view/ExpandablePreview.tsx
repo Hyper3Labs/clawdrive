@@ -83,25 +83,32 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
 
   if (kind === "pdf") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: 20 }}>
-        <img
-          src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
-          alt={point.fileName}
-          style={{ maxHeight: 220, borderRadius: 6, border: `1px solid ${MAP_THEME.border}`, background: "#fff" }}
-        />
-        <a
-          href={contentUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: MAP_THEME.accentPrimary, fontSize: 12, textDecoration: "none",
-            padding: "6px 14px", borderRadius: 6,
-            border: `1px solid rgba(110, 231, 255, 0.25)`,
-            background: "rgba(110, 231, 255, 0.06)",
-          }}
+      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        <object
+          key={point.id}
+          data={`${contentUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+          type="application/pdf"
+          style={{ width: "100%", height: 360, borderRadius: 4, background: "#fff" }}
         >
-          Open PDF ↗
-        </a>
+          <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B8A9E" }}>
+            PDF preview unavailable
+          </div>
+        </object>
+        <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8 }}>
+          <a
+            href={contentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: MAP_THEME.accentPrimary, fontSize: 11, textDecoration: "none",
+              padding: "4px 10px", borderRadius: 4,
+              border: `1px solid rgba(110, 231, 255, 0.2)`,
+              background: "rgba(110, 231, 255, 0.05)",
+            }}
+          >
+            Open in new tab ↗
+          </a>
+        </div>
       </div>
     );
   }

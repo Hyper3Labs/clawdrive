@@ -109,12 +109,36 @@ async function generateVideoThumbnail(srcPath: string, dest: string): Promise<st
 
 async function generatePdfThumbnail(srcPath: string, dest: string): Promise<string | null> {
   try {
-    await sharp(srcPath, { page: 0 })
-      .resize(THUMB_WIDTH, THUMB_HEIGHT, { fit: "inside" })
-      .jpeg({ quality: 80 })
+    const { readFile: readFileNode } = await import("node:fs/promises");
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const { createCanvas } = await import("canvas");
+
+    const data = new Uint8Array(await readFileNode(srcPath));
+    const doc = await pdfjs.getDocument({ data, useSystemFonts: true }).promise;
+    const page = await doc.getPage(1);
+
+    // Render at a scale that fits THUMB_WIDTH
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = THUMB_WIDTH / viewport.width;
+    const scaledViewport = page.getViewport({ scale });
+
+    const canvas = createCanvas(scaledViewport.width, scaledViewport.height);
+    const ctx = canvas.getContext("2d");
+
+    // @ts-expect-error — node-canvas context is compatible but types differ
+    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+
+    // Convert canvas to buffer and resize via sharp
+    const pngBuffer = canvas.toBuffer("image/png");
+    await sharp(pngBuffer)
+      .resize(THUMB_WIDTH, THUMB_HEIGHT, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 85 })
       .toFile(dest);
+
+    doc.destroy();
     return dest;
-  } catch {
+  } catch (err) {
+    console.error("PDF thumbnail failed, using placeholder:", err);
     return generatePlaceholder(dest, "#8AB4FF", "PDF");
   }
 }
