@@ -51,7 +51,7 @@ Seven targeted fixes to the 3D embedding space visualization, focused on elimina
 
 **Store changes:**
 - `clickFile(id)` and `hoverFile(id)` remain the sole write path
-- Add `clickedPoint` and `hoveredPoint` derived selectors that resolve the full `ProjectionPoint` from ID + points array, so consumers don't need to do their own `points.find()`
+- Add `useClickedPoint(points)` and `useHoveredPoint(points)` hooks (thin wrappers that read the ID from the store and resolve against the `points` array), so consumers don't need to do their own `points.find()`
 
 ### 2. Mini Cards (`FilePreviewLayer.tsx`)
 
@@ -186,7 +186,7 @@ All components import these instead of hardcoding z-index values.
 | `packages/web/src/theme.ts` | **MODIFY** — add Z_INDEX and MINI_CARD_Z_RANGE constants |
 | `packages/server/src/routes/thumbnails.ts` | **NEW** — thumbnail endpoint |
 | `packages/core/src/thumbnails.ts` | **NEW** — thumbnail generation logic |
-| `packages/server/src/routes/index.ts` | **MODIFY** — register thumbnail route |
+| `packages/server/src/index.ts` | **MODIFY** — register thumbnail route |
 
 ## Dependencies
 
