@@ -22,6 +22,12 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
     [points, selectedId],
   );
 
+  const hoveredFileId = useVisualizationStore((s) => s.hoveredFileId);
+  const hoveredPoint = useMemo(
+    () => points.find((point) => point.id === hoveredFileId) ?? null,
+    [points, hoveredFileId],
+  );
+
   const potFileIds = useVisualizationStore((s) => s.potFileIds);
   const selectedPotId = useVisualizationStore((s) => s.selectedPotId);
   const tmpColor = useMemo(() => new THREE.Color(), []);
@@ -120,6 +126,19 @@ export function PointCloud({ points, onHover, onSelect, selectedId }: Props) {
           roughness={0.32}
         />
       </instancedMesh>
+
+      {hoveredPoint && hoveredPoint.id !== selectedId && (
+        <group position={[hoveredPoint.x, hoveredPoint.y, hoveredPoint.z]}>
+          <mesh>
+            <sphereGeometry args={[0.7, 14, 14]} />
+            <meshBasicMaterial
+              color={getModalityColor(hoveredPoint.contentType)}
+              transparent
+              opacity={0.18}
+            />
+          </mesh>
+        </group>
+      )}
 
       {selectedPoint && (
         <group position={[selectedPoint.x, selectedPoint.y, selectedPoint.z]}>
