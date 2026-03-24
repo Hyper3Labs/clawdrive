@@ -70,8 +70,9 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
     return { x: x / sumW, y: y / sumW, z: z / sumW };
   }, [focusFileId, points]);
 
-  const cameraTarget =
-    focusTarget ?? (selected ? { x: selected.x, y: selected.y, z: selected.z } : null);
+  // Only focus camera when driven by external focusFileId prop (e.g. search result),
+  // never by user clicks on points — those just open the preview modal.
+  const cameraTarget = focusTarget;
 
   if (loading)
     return (
