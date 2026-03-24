@@ -123,11 +123,11 @@ export function PointCloud({ points }: Props) {
       {hoveredPoint && hoveredPoint.id !== clickedFileId && (
         <group position={[hoveredPoint.x, hoveredPoint.y, hoveredPoint.z]}>
           <mesh>
-            <sphereGeometry args={[0.7, 14, 14]} />
+            <sphereGeometry args={[1.0, 16, 16]} />
             <meshBasicMaterial
               color={getModalityColor(hoveredPoint.contentType)}
               transparent
-              opacity={0.18}
+              opacity={0.32}
             />
           </mesh>
         </group>

@@ -2,6 +2,7 @@ import { Html } from "@react-three/drei";
 import { useMemo } from "react";
 import type { ProjectionPoint } from "../../types";
 import { MAP_THEME } from "../../theme";
+import { useVisualizationStore } from "./useVisualizationStore";
 
 function kMeansClusters(points: ProjectionPoint[], k: number) {
   if (points.length < k) return [];
@@ -40,11 +41,15 @@ function kMeansClusters(points: ProjectionPoint[], k: number) {
 
 export function ClusterLabels({ points }: { points: ProjectionPoint[] }) {
   const clusters = useMemo(() => kMeansClusters(points, Math.min(5, points.length)), [points]);
+  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
+
+  // Hide labels when modal is open to prevent them rendering on top
+  if (clickedFileId) return null;
 
   return (
     <>
       {clusters.map((c, i) => (
-        <Html key={i} position={[c.x, c.y + 2, c.z]} center>
+        <Html key={i} position={[c.x, c.y + 2, c.z]} center zIndexRange={[5, 0]}>
           <div style={{
             opacity: 0.65, fontSize: 11, textTransform: "uppercase",
             letterSpacing: 2, whiteSpace: "nowrap",
