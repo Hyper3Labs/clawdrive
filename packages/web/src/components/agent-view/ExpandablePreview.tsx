@@ -1,0 +1,300 @@
+import { useEffect, useRef, useState } from "react";
+import type { ProjectionPoint } from "../../types";
+import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME } from "../../theme";
+import { useVisualizationStore } from "./useVisualizationStore";
+
+function MediaPreview({ point }: { point: ProjectionPoint }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const kind = getPreviewKind(point.contentType);
+  const color = getModalityColor(point.contentType);
+  const label = getModalityLabel(point.contentType);
+  const contentUrl = `/api/files/${encodeURIComponent(point.id)}/content`;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [point.id]);
+
+  if (kind === "image" && point.previewUrl && !imageFailed) {
+    return (
+      <img
+        src={point.previewUrl}
+        alt={point.fileName}
+        loading="lazy"
+        onError={() => setImageFailed(true)}
+        style={{ width: "100%", height: 200, objectFit: "contain", display: "block", background: "#0a131c" }}
+      />
+    );
+  }
+
+  if (kind === "video") {
+    return (
+      <video
+        key={point.id}
+        src={contentUrl}
+        controls
+        autoPlay
+        muted
+        style={{ width: "100%", height: 200, objectFit: "contain", display: "block", background: "#000" }}
+      />
+    );
+  }
+
+  if (kind === "audio") {
+    return (
+      <div style={{ padding: 16, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+        <div style={{ fontSize: 32, color, fontWeight: 700 }}>{label}</div>
+        <audio key={point.id} src={contentUrl} controls style={{ width: "100%" }} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      height: 120,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color,
+      fontSize: 18,
+      fontWeight: 700,
+      letterSpacing: 1,
+    }}>
+      {label} PREVIEW
+    </div>
+  );
+}
+
+function PotAssignment({ point }: { point: ProjectionPoint }) {
+  const pots = useVisualizationStore((s) => s.pots);
+  const assignFileToPot = useVisualizationStore((s) => s.assignFileToPot);
+  const unassignFileFromPot = useVisualizationStore((s) => s.unassignFileFromPot);
+  const [showPicker, setShowPicker] = useState(false);
+
+  const assignedSlugs = point.tags
+    .filter((t) => t.startsWith("pot:"))
+    .map((t) => t.slice(4));
+
+  const assignedPots = pots.filter((p) => assignedSlugs.includes(p.slug));
+  const unassignedPots = pots.filter((p) => !assignedSlugs.includes(p.slug));
+
+  return (
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${MAP_THEME.border}` }}>
+      <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Pot</div>
+      <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+        {assignedPots.map((p) => (
+          <span
+            key={p.id}
+            onClick={() => unassignFileFromPot(point.id, p.slug, point.tags)}
+            style={{
+              background: "rgba(110, 231, 255, 0.08)",
+              border: "1px solid rgba(110, 231, 255, 0.25)",
+              color: MAP_THEME.accentPrimary,
+              fontSize: 11,
+              padding: "3px 10px",
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
+          >
+            {p.name} ×
+          </span>
+        ))}
+        {unassignedPots.length > 0 && (
+          <div style={{ position: "relative" }}>
+            <span
+              onClick={() => setShowPicker(!showPicker)}
+              style={{ color: "#6B8A9E", fontSize: 11, cursor: "pointer" }}
+            >
+              + assign
+            </span>
+            {showPicker && (
+              <div style={{
+                position: "absolute",
+                bottom: "100%",
+                left: 0,
+                marginBottom: 4,
+                background: MAP_THEME.panel,
+                border: `1px solid ${MAP_THEME.border}`,
+                borderRadius: 8,
+                padding: 4,
+                minWidth: 140,
+                zIndex: 10,
+              }}>
+                {unassignedPots.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => {
+                      assignFileToPot(point.id, p.slug, point.tags);
+                      setShowPicker(false);
+                    }}
+                    style={{
+                      padding: "6px 10px",
+                      fontSize: 12,
+                      color: MAP_THEME.text,
+                      cursor: "pointer",
+                      borderRadius: 4,
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "rgba(110, 231, 255, 0.08)"; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "transparent"; }}
+                  >
+                    {p.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
+  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
+  const hoveredFileId = useVisualizationStore((s) => s.hoveredFileId);
+  const clickFile = useVisualizationStore((s) => s.clickFile);
+
+  const isExpanded = clickedFileId !== null;
+  const displayId = clickedFileId ?? hoveredFileId;
+  const point = points.find((p) => p.id === displayId);
+
+  if (!point) return null;
+
+  const color = getModalityColor(point.contentType);
+  const label = getModalityLabel(point.contentType);
+
+  if (!isExpanded) {
+    // Compact hover card
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: 20,
+          right: 20,
+          background: "linear-gradient(135deg, rgba(8, 22, 32, 0.92), rgba(6, 16, 24, 0.92))",
+          border: `1px solid ${MAP_THEME.border}`,
+          borderRadius: 12,
+          padding: "14px 14px 12px",
+          fontSize: 13,
+          width: 240,
+          backdropFilter: "blur(8px)",
+          boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+          pointerEvents: "none",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+          <span style={{
+            padding: "3px 8px", borderRadius: 999,
+            border: `1px solid ${color}66`, color,
+            letterSpacing: 0.6, fontSize: 10, fontWeight: 700,
+          }}>
+            {label}
+          </span>
+        </div>
+        <div style={{
+          fontWeight: 600, color: MAP_THEME.text, marginBottom: 6,
+          fontFamily: "'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif",
+          fontSize: 14, lineHeight: 1.3, wordBreak: "break-word",
+        }}>
+          {point.fileName}
+        </div>
+        {point.previewUrl && getPreviewKind(point.contentType) === "image" && (
+          <div style={{
+            border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
+            overflow: "hidden", marginBottom: 10,
+          }}>
+            <img
+              src={point.previewUrl}
+              alt={point.fileName}
+              loading="lazy"
+              style={{ width: "100%", height: 80, objectFit: "cover", display: "block" }}
+            />
+          </div>
+        )}
+        {point.tags.length > 0 && (
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
+              <span key={t} style={{
+                padding: "2px 6px", borderRadius: 3,
+                fontSize: 10, background: `${color}20`, color,
+              }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Expanded preview
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 20,
+        right: 20,
+        background: "linear-gradient(135deg, rgba(8, 22, 32, 0.95), rgba(6, 16, 24, 0.95))",
+        border: `1px solid ${MAP_THEME.border}`,
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 13,
+        width: 320,
+        backdropFilter: "blur(16px)",
+        boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
+        maxHeight: "calc(100vh - 60px)",
+        overflowY: "auto",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ color: MAP_THEME.text, fontSize: 14, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
+          {point.fileName}
+        </div>
+        <div
+          onClick={() => clickFile(null)}
+          style={{ color: "#6B8A9E", fontSize: 18, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
+        >
+          ×
+        </div>
+      </div>
+
+      <div style={{
+        border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
+        overflow: "hidden", marginTop: 12, background: "rgba(10, 19, 28, 0.7)",
+      }}>
+        <MediaPreview point={point} />
+      </div>
+
+      <div style={{
+        marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr",
+        gap: 8, fontSize: 12,
+      }}>
+        <div>
+          <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
+          <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
+        </div>
+        <div>
+          <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
+          <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
+        </div>
+      </div>
+
+      {point.tags.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
+          <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
+              <span key={t} style={{
+                padding: "2px 8px", borderRadius: 999, fontSize: 10,
+                background: `${color}20`, color,
+              }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <PotAssignment point={point} />
+    </div>
+  );
+}
