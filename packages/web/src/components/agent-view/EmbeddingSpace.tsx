@@ -23,8 +23,17 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   const [selected, setSelected] = useState<ProjectionPoint | null>(null);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
+  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
   const clickFile = useVisualizationStore((s) => s.clickFile);
   const hoverFile = useVisualizationStore((s) => s.hoverFile);
+
+  // When modal is dismissed (clickedFileId cleared), also clear local selected/hovered
+  useEffect(() => {
+    if (clickedFileId === null) {
+      setSelected(null);
+      setHovered(null);
+    }
+  }, [clickedFileId]);
 
   useEffect(() => {
     if (!focusFileId) return;
