@@ -3,6 +3,7 @@ export const MAP_THEME = {
   panel: "#0E1A24",
   border: "#1F3647",
   text: "#E6F0F7",
+  textMuted: "#6B8A9E",
   accentPrimary: "#6EE7FF",
   accentSecondary: "#7BD389",
   accentWarm: "#FFB84D",

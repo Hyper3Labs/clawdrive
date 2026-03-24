@@ -1,15 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import type { ProjectionPoint } from "../../types";
 import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
+import { fileContentUrl, fileThumbnailUrl } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
 
 function TextPreview({ point }: { point: ProjectionPoint }) {
   const [text, setText] = useState<string | null>(null);
-  const contentUrl = `/api/files/${encodeURIComponent(point.id)}/content`;
+  const contentUrl = fileContentUrl(point.id);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(contentUrl)
+    fetch(contentUrl, { headers: { Range: "bytes=0-6000" } })
       .then((res) => res.text())
       .then((t) => { if (!cancelled) setText(t); })
       .catch(() => { if (!cancelled) setText(null); });
@@ -18,7 +19,7 @@ function TextPreview({ point }: { point: ProjectionPoint }) {
 
   if (text === null) {
     return (
-      <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B8A9E", fontSize: 13 }}>
+      <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: MAP_THEME.textMuted, fontSize: 13 }}>
         Loading...
       </div>
     );
@@ -41,7 +42,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   const kind = getPreviewKind(point.contentType);
   const color = getModalityColor(point.contentType);
   const label = getModalityLabel(point.contentType);
-  const contentUrl = `/api/files/${encodeURIComponent(point.id)}/content`;
+  const contentUrl = fileContentUrl(point.id);
 
   useEffect(() => {
     setImageFailed(false);
@@ -89,7 +90,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
           type="application/pdf"
           style={{ width: "100%", height: 360, borderRadius: 4, background: "#fff" }}
         >
-          <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B8A9E" }}>
+          <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: MAP_THEME.textMuted }}>
             PDF preview unavailable
           </div>
         </object>
@@ -120,7 +121,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <img
-        src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
+        src={fileThumbnailUrl(point.id)}
         alt={label}
         style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8 }}
       />
@@ -136,7 +137,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
   const [localTags, setLocalTags] = useState<string[]>(point.tags);
 
   // Reset local tags when a different file is displayed
-  useEffect(() => { setLocalTags(point.tags); }, [point.id]);
+  useEffect(() => { setLocalTags(point.tags); }, [point.id, point.tags]);
 
   const assignedSlugs = localTags
     .filter((t) => t.startsWith("pot:"))
@@ -147,7 +148,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
 
   return (
     <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${MAP_THEME.border}` }}>
-      <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Pot</div>
+      <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Pot</div>
       <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
         {assignedPots.map((p) => (
           <span
@@ -269,7 +270,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
 
   if (!clickedFileId) return null;
 
-  const color = point ? getModalityColor(point.contentType) : "#6B8A9E";
+  const color = point ? getModalityColor(point.contentType) : MAP_THEME.textMuted;
 
   // Expanded preview — centered modal with backdrop
   return (
@@ -311,7 +312,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
               </div>
               <div
                 onClick={() => dismiss()}
-                style={{ color: "#6B8A9E", fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
+                style={{ color: MAP_THEME.textMuted, fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
               >
                 ×
               </div>
@@ -329,18 +330,18 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
               gap: 8, fontSize: 12,
             }}>
               <div>
-                <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
+                <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
                 <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
               </div>
               <div>
-                <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
+                <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
                 <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
               </div>
             </div>
 
             {point.tags.length > 0 && (
               <div style={{ marginTop: 14 }}>
-                <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
+                <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
                 <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
                   {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
                     <span key={t} style={{

@@ -96,6 +96,9 @@ export function PointCloud({ points }: Props) {
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [selectedPotId, points, colorMap]);
 
+  const hoverGlowColor = hoveredPoint ? colorMap.get(hoveredPoint.contentType) : undefined;
+  const selectGlowColor = selectedPoint ? colorMap.get(selectedPoint.contentType) : undefined;
+
   return (
     <>
       <instancedMesh
@@ -105,10 +108,6 @@ export function PointCloud({ points }: Props) {
           e.stopPropagation();
           const idx = e.instanceId;
           if (idx !== undefined && points[idx]) hoverFile(points[idx].id);
-        }}
-        onPointerOut={() => {
-          // Don't clear here — the glow sphere causes re-entry flicker.
-          // Hover is cleared by onPointerMissed on the canvas or by card leave timers.
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -125,8 +124,8 @@ export function PointCloud({ points }: Props) {
           <mesh raycast={() => null}>
             <sphereGeometry args={[0.55, 16, 16]} />
             <meshStandardMaterial
-              color={getModalityColor(hoveredPoint.contentType)}
-              emissive={getModalityColor(hoveredPoint.contentType)}
+              color={hoverGlowColor}
+              emissive={hoverGlowColor}
               emissiveIntensity={0.6}
               transparent
               opacity={0.25}
@@ -140,8 +139,8 @@ export function PointCloud({ points }: Props) {
           <mesh raycast={() => null}>
             <sphereGeometry args={[0.6, 16, 16]} />
             <meshStandardMaterial
-              color={getModalityColor(selectedPoint.contentType)}
-              emissive={getModalityColor(selectedPoint.contentType)}
+              color={selectGlowColor}
+              emissive={selectGlowColor}
               emissiveIntensity={0.8}
               transparent
               opacity={0.3}

@@ -78,6 +78,9 @@ export async function listPotFiles(potSlug: string) {
   return res.json();
 }
 
+export const fileContentUrl = (id: string) => `/api/files/${encodeURIComponent(id)}/content`;
+export const fileThumbnailUrl = (id: string) => `/api/files/${encodeURIComponent(id)}/thumbnail`;
+
 export async function updateFile(id: string, changes: { tags?: string[]; description?: string }) {
   const res = await fetch(`${BASE}/files/${encodeURIComponent(id)}`, {
     method: "PATCH",

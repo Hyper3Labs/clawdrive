@@ -119,7 +119,7 @@ export function PotsSidebar() {
           cursor: "pointer", zIndex: Z_INDEX.sidebar,
         }}
       >
-        <span style={{ color: "#6B8A9E", fontSize: 14 }}>▶</span>
+        <span style={{ color: MAP_THEME.textMuted, fontSize: 14 }}>▶</span>
       </div>
     );
   }
@@ -230,7 +230,7 @@ export function PotsSidebar() {
           );
         })}
         {pots.length === 0 && !creating && (
-          <div style={{ padding: "16px 12px", color: "#6B8A9E", fontSize: 12, textAlign: "center" }}>
+          <div style={{ padding: "16px 12px", color: MAP_THEME.textMuted, fontSize: 12, textAlign: "center" }}>
             No pots yet
           </div>
         )}
@@ -240,7 +240,7 @@ export function PotsSidebar() {
       <div style={{ padding: "8px 16px", borderTop: `1px solid ${MAP_THEME.border}` }}>
         <div
           onClick={() => setCollapsed(true)}
-          style={{ color: "#6B8A9E", fontSize: 11, cursor: "pointer", textAlign: "center" }}
+          style={{ color: MAP_THEME.textMuted, fontSize: 11, cursor: "pointer", textAlign: "center" }}
         >
           ◀ Collapse
         </div>

@@ -23,7 +23,6 @@ export function MapCameraRig({ focusTarget, controlsRef }: MapCameraRigProps) {
   const targetVec = useMemo(() => new THREE.Vector3(), []);
   const desiredVec = useMemo(() => new THREE.Vector3(), []);
   const idleStartTime = useRef<number | null>(null);
-  const isIdle = useVisualizationStore((s) => s.isIdle);
 
   useFrame((_, delta) => {
     // Focus mode: smoothly move to target
@@ -42,7 +41,7 @@ export function MapCameraRig({ focusTarget, controlsRef }: MapCameraRigProps) {
     }
 
     // Check idle state
-    const idle = isIdle();
+    const idle = useVisualizationStore.getState().isIdle();
     if (!idle) {
       idleStartTime.current = null;
       return; // Free camera — OrbitControls fully in charge

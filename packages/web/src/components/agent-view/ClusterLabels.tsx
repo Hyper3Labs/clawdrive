@@ -1,5 +1,5 @@
 import { Html } from "@react-three/drei";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import type { ProjectionPoint } from "../../types";
 import { MAP_THEME } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
@@ -39,6 +39,16 @@ function kMeansClusters(points: ProjectionPoint[], k: number) {
   });
 }
 
+const LABEL_STYLE: React.CSSProperties = {
+  opacity: 0.65, fontSize: 11, textTransform: "uppercase",
+  letterSpacing: 2, whiteSpace: "nowrap",
+  pointerEvents: "none", userSelect: "none",
+  padding: "2px 8px", borderRadius: 999,
+  border: `1px solid ${MAP_THEME.border}`,
+  background: "rgba(6, 16, 24, 0.66)",
+  color: "rgba(230, 240, 247, 0.7)",
+};
+
 export function ClusterLabels({ points }: { points: ProjectionPoint[] }) {
   const clusters = useMemo(() => kMeansClusters(points, Math.min(5, points.length)), [points]);
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
@@ -48,18 +58,9 @@ export function ClusterLabels({ points }: { points: ProjectionPoint[] }) {
 
   return (
     <>
-      {clusters.map((c, i) => (
-        <Html key={i} position={[c.x, c.y + 2, c.z]} center zIndexRange={[5, 0]}>
-          <div style={{
-            opacity: 0.65, fontSize: 11, textTransform: "uppercase",
-            letterSpacing: 2, whiteSpace: "nowrap",
-            pointerEvents: "none", userSelect: "none",
-            padding: "2px 8px",
-            borderRadius: 999,
-            border: `1px solid ${MAP_THEME.border}`,
-            background: "rgba(6, 16, 24, 0.66)",
-            color: "rgba(230, 240, 247, 0.7)",
-          }}>
+      {clusters.map((c) => (
+        <Html key={c.label} position={[c.x, c.y + 2, c.z]} center zIndexRange={[5, 0]}>
+          <div style={LABEL_STYLE}>
             {c.label}
           </div>
         </Html>

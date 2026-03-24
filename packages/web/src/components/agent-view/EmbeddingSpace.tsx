@@ -8,9 +8,14 @@ import { useVisualizationStore } from "./useVisualizationStore";
 import { FilePreviewLayer } from "./FilePreviewLayer";
 import { MapCameraRig } from "./MapCameraRig";
 import { useProjections } from "./useProjections";
-import { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import { MAP_THEME } from "../../theme";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+
+const STATUS_STYLE: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "center",
+  flex: 1, background: "radial-gradient(circle at top, #0b1d2a 0%, #061018 60%)",
+};
 
 interface EmbeddingSpaceProps {
   focusFileId: string | null;
@@ -63,48 +68,19 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
 
   if (loading)
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
-          opacity: 0.7,
-          color: MAP_THEME.text,
-          background: "radial-gradient(circle at top, #0b1d2a 0%, #061018 60%)",
-        }}
-      >
+      <div style={{ ...STATUS_STYLE, opacity: 0.7, color: MAP_THEME.text }}>
         Loading projections...
       </div>
     );
   if (error)
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
-          color: "#ff8d8d",
-          background: "radial-gradient(circle at top, #0b1d2a 0%, #061018 60%)",
-        }}
-      >
+      <div style={{ ...STATUS_STYLE, color: "#ff8d8d" }}>
         Error: {error}
       </div>
     );
   if (points.length === 0)
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
-          opacity: 0.72,
-          color: MAP_THEME.text,
-          background: "radial-gradient(circle at top, #0b1d2a 0%, #061018 60%)",
-        }}
-      >
+      <div style={{ ...STATUS_STYLE, opacity: 0.72, color: MAP_THEME.text }}>
         No files added yet. Use cdrive pot add or cdrive serve --demo nasa.
       </div>
     );

@@ -10,6 +10,7 @@ import {
   MAP_THEME,
   MINI_CARD_Z_RANGE,
 } from "../../theme";
+import { fileThumbnailUrl } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
 
 const MAX_PREVIEWS = 14;
@@ -39,8 +40,6 @@ const CARD_ICONS: Record<string, string> = {
 
 function CardThumbnail({ point }: { point: ProjectionPoint }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const color = getModalityColor(point.contentType);
-  const label = getModalityLabel(point.contentType);
   const kind = getPreviewKind(point.contentType);
 
   useEffect(() => { setImageFailed(false); }, [point.id]);
@@ -49,7 +48,7 @@ function CardThumbnail({ point }: { point: ProjectionPoint }) {
   if ((kind === "image" || kind === "video" || kind === "pdf") && !imageFailed) {
     return (
       <img
-        src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
+        src={fileThumbnailUrl(point.id)}
         alt={point.fileName}
         loading="lazy"
         onError={() => setImageFailed(true)}
@@ -60,6 +59,7 @@ function CardThumbnail({ point }: { point: ProjectionPoint }) {
 
   // Audio, text, failed images: show icon + colored background
   const icon = CARD_ICONS[kind] || CARD_ICONS.text;
+  const color = getModalityColor(point.contentType);
   return (
     <div style={{
       width: "100%", height: "100%",
