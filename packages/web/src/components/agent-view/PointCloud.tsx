@@ -106,7 +106,10 @@ export function PointCloud({ points }: Props) {
           const idx = e.instanceId;
           if (idx !== undefined && points[idx]) hoverFile(points[idx].id);
         }}
-        onPointerOut={() => hoverFile(null)}
+        onPointerOut={() => {
+          // Don't clear here — the glow sphere causes re-entry flicker.
+          // Hover is cleared by onPointerMissed on the canvas or by card leave timers.
+        }}
         onClick={(e) => {
           e.stopPropagation();
           const idx = e.instanceId;
@@ -118,8 +121,8 @@ export function PointCloud({ points }: Props) {
       </instancedMesh>
 
       {hoveredPoint && hoveredPoint.id !== clickedFileId && (
-        <group position={[hoveredPoint.x, hoveredPoint.y, hoveredPoint.z]}>
-          <mesh>
+        <group position={[hoveredPoint.x, hoveredPoint.y, hoveredPoint.z]} raycast={() => null}>
+          <mesh raycast={() => null}>
             <sphereGeometry args={[0.55, 16, 16]} />
             <meshStandardMaterial
               color={getModalityColor(hoveredPoint.contentType)}
@@ -133,8 +136,8 @@ export function PointCloud({ points }: Props) {
       )}
 
       {selectedPoint && (
-        <group position={[selectedPoint.x, selectedPoint.y, selectedPoint.z]}>
-          <mesh>
+        <group position={[selectedPoint.x, selectedPoint.y, selectedPoint.z]} raycast={() => null}>
+          <mesh raycast={() => null}>
             <sphereGeometry args={[0.6, 16, 16]} />
             <meshStandardMaterial
               color={getModalityColor(selectedPoint.contentType)}
