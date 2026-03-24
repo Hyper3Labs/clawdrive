@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { ProjectionPoint } from "../../types";
 import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
@@ -21,7 +21,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
         alt={point.fileName}
         loading="lazy"
         onError={() => setImageFailed(true)}
-        style={{ width: "100%", height: 200, objectFit: "contain", display: "block", background: "#0a131c" }}
+        style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: "#0a131c" }}
       />
     );
   }
@@ -34,7 +34,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
         controls
         autoPlay
         muted
-        style={{ width: "100%", height: 200, objectFit: "contain", display: "block", background: "#000" }}
+        style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: "#000" }}
       />
     );
   }
@@ -152,14 +152,46 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
   const clickFile = useVisualizationStore((s) => s.clickFile);
 
+  const [displayedId, setDisplayedId] = useState<string | null>(null);
+  const [opacity, setOpacity] = useState(1);
+  const prevClickedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (clickedFileId === null) {
+      // Closing modal — instant
+      setDisplayedId(null);
+      setOpacity(1);
+      prevClickedId.current = null;
+      return;
+    }
+
+    if (prevClickedId.current === null) {
+      // Fresh open — instant
+      setDisplayedId(clickedFileId);
+      setOpacity(1);
+      prevClickedId.current = clickedFileId;
+      return;
+    }
+
+    if (prevClickedId.current !== clickedFileId) {
+      // Switching files — crossfade
+      setOpacity(0);
+      const timer = setTimeout(() => {
+        setDisplayedId(clickedFileId);
+        setOpacity(1);
+        prevClickedId.current = clickedFileId;
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [clickedFileId]);
+
   const dismiss = () => { clickFile(null); };
 
-  const displayId = clickedFileId;
-  const point = points.find((p) => p.id === displayId);
+  const point = points.find((p) => p.id === displayedId);
 
-  if (!point) return null;
+  if (!clickedFileId) return null;
 
-  const color = getModalityColor(point.contentType);
+  const color = point ? getModalityColor(point.contentType) : "#6B8A9E";
 
   // Expanded preview — centered modal with backdrop
   return (
@@ -185,62 +217,68 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           borderRadius: 14,
           padding: 20,
           fontSize: 13,
-          width: 400,
+          width: 560,
           maxHeight: "80vh",
           overflowY: "auto",
           boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+          opacity,
+          transition: "opacity 100ms ease",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ color: MAP_THEME.text, fontSize: 15, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
-            {point.fileName}
-          </div>
-          <div
-            onClick={() => dismiss()}
-            style={{ color: "#6B8A9E", fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
-          >
-            ×
-          </div>
-        </div>
-
-        <div style={{
-          border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
-          overflow: "hidden", marginTop: 14, background: "rgba(10, 19, 28, 0.7)",
-        }}>
-          <MediaPreview point={point} />
-        </div>
-
-        <div style={{
-          marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr",
-          gap: 8, fontSize: 12,
-        }}>
-          <div>
-            <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
-            <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
-          </div>
-          <div>
-            <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
-            <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
-          </div>
-        </div>
-
-        {point.tags.length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
-            <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
-                <span key={t} style={{
-                  padding: "2px 8px", borderRadius: 999, fontSize: 10,
-                  background: `${color}20`, color,
-                }}>
-                  {t}
-                </span>
-              ))}
+        {point && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ color: MAP_THEME.text, fontSize: 15, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
+                {point.fileName}
+              </div>
+              <div
+                onClick={() => dismiss()}
+                style={{ color: "#6B8A9E", fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
+              >
+                ×
+              </div>
             </div>
-          </div>
-        )}
 
-        <PotAssignment point={point} />
+            <div style={{
+              border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
+              overflow: "hidden", marginTop: 14, background: "rgba(10, 19, 28, 0.7)",
+            }}>
+              <MediaPreview point={point} />
+            </div>
+
+            <div style={{
+              marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr",
+              gap: 8, fontSize: 12,
+            }}>
+              <div>
+                <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
+                <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
+              </div>
+              <div>
+                <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
+                <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
+              </div>
+            </div>
+
+            {point.tags.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ color: "#6B8A9E", textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
+                <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
+                    <span key={t} style={{
+                      padding: "2px 8px", borderRadius: 999, fontSize: 10,
+                      background: `${color}20`, color,
+                    }}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <PotAssignment point={point} />
+          </>
+        )}
       </div>
     </div>
   );
