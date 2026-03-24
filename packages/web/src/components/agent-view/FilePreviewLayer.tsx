@@ -28,11 +28,6 @@ function arraysEqual(a: string[], b: string[]) {
   return true;
 }
 
-function trimName(name: string): string {
-  if (name.length <= 20) return name;
-  return `${name.slice(0, 17)}...`;
-}
-
 // Memoized card — only re-renders when point.id changes, not on hover state
 const CARD_ICONS: Record<string, string> = {
   pdf: "\u{1F4C4}",   // 📄
@@ -130,8 +125,10 @@ function PreviewCard({
       style={{ padding: 8, margin: -8, cursor: "pointer" }}
     >
       <div
+        title={point.fileName}
         style={{
-          width: 88,
+          width: 72,
+          height: 72,
           borderRadius: 10,
           border: `1px solid ${localHover ? color : MAP_THEME.border}`,
           overflow: "hidden",
@@ -141,33 +138,18 @@ function PreviewCard({
             ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 1px ${color}44`
             : "0 8px 20px rgba(0,0,0,0.35)",
           transition: "border-color 120ms ease, box-shadow 120ms ease",
+          position: "relative",
         }}
       >
-        <div style={{ height: 52, background: "rgba(10, 20, 28, 0.92)", overflow: "hidden" }}>
-          <CardThumbnail point={point} />
-        </div>
-        <div style={{ padding: "6px 8px 7px" }}>
-          <div
-            style={{
-              fontSize: 8,
-              letterSpacing: 0.8,
-              color,
-              marginBottom: 3,
-              fontWeight: 700,
-            }}
-          >
-            {label}
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              color: MAP_THEME.text,
-              lineHeight: 1.2,
-              wordBreak: "break-word",
-            }}
-          >
-            {trimName(point.fileName)}
-          </div>
+        <CardThumbnail point={point} />
+        <div style={{
+          position: "absolute", bottom: 3, left: 3,
+          padding: "1px 5px", borderRadius: 4,
+          background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+          fontSize: 7, fontWeight: 700, letterSpacing: 0.5,
+          color, lineHeight: 1.4,
+        }}>
+          {label}
         </div>
       </div>
     </div>
