@@ -3,6 +3,39 @@ import type { ProjectionPoint } from "../../types";
 import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 
+function TextPreview({ point }: { point: ProjectionPoint }) {
+  const [text, setText] = useState<string | null>(null);
+  const contentUrl = `/api/files/${encodeURIComponent(point.id)}/content`;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(contentUrl)
+      .then((res) => res.text())
+      .then((t) => { if (!cancelled) setText(t); })
+      .catch(() => { if (!cancelled) setText(null); });
+    return () => { cancelled = true; };
+  }, [contentUrl]);
+
+  if (text === null) {
+    return (
+      <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#6B8A9E", fontSize: 13 }}>
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <pre style={{
+      margin: 0, padding: 14, fontSize: 11, lineHeight: 1.5,
+      color: MAP_THEME.text, fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+      whiteSpace: "pre-wrap", wordBreak: "break-word",
+      maxHeight: 280, overflowY: "auto", background: "transparent",
+    }}>
+      {text.slice(0, 3000)}
+    </pre>
+  );
+}
+
 function MediaPreview({ point }: { point: ProjectionPoint }) {
   const [imageFailed, setImageFailed] = useState(false);
   const kind = getPreviewKind(point.contentType);
@@ -48,18 +81,29 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
     );
   }
 
+  if (kind === "pdf") {
+    return (
+      <iframe
+        key={point.id}
+        src={contentUrl}
+        title={point.fileName}
+        style={{ width: "100%", height: 360, border: "none", background: "#fff", borderRadius: 4 }}
+      />
+    );
+  }
+
+  if (kind === "text") {
+    return <TextPreview point={point} />;
+  }
+
+  // Unknown type — show thumbnail placeholder
   return (
-    <div style={{
-      height: 120,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color,
-      fontSize: 18,
-      fontWeight: 700,
-      letterSpacing: 1,
-    }}>
-      {label} PREVIEW
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <img
+        src={`/api/files/${encodeURIComponent(point.id)}/thumbnail`}
+        alt={label}
+        style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8 }}
+      />
     </div>
   );
 }
