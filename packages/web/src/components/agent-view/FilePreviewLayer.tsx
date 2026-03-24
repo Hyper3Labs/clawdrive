@@ -34,7 +34,7 @@ function trimName(name: string): string {
 }
 
 // Memoized card — only re-renders when point.id changes, not on hover state
-const PreviewCard = memo(function PreviewCard({
+function PreviewCard({
   point,
   onHover,
   onLeave,
@@ -142,7 +142,7 @@ const PreviewCard = memo(function PreviewCard({
       </div>
     </div>
   );
-});
+}
 
 export function FilePreviewLayer({
   points,
