@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { EmbeddingProvider } from "@clawdrive/core";
 import { errorHandler } from "./middleware/error.js";
 import { createFileRoutes } from "./routes/files.js";
+import { createThumbnailRoutes } from "./routes/thumbnails.js";
 import { createPotRoutes } from "./routes/pots.js";
 import { createSearchRoutes } from "./routes/search.js";
 import { createShareRoutes } from "./routes/shares.js";
@@ -25,6 +26,7 @@ export function createServer(opts: ServerOptions) {
   app.use(express.json());
 
   // API routes
+  app.use("/api/files", createThumbnailRoutes(opts.wsPath));
   app.use("/api/files", createFileRoutes(opts.wsPath, opts.embedder));
   app.use("/api/pots", createPotRoutes(opts.wsPath));
   app.use("/api/search", createSearchRoutes(opts.wsPath, opts.embedder));
