@@ -137,6 +137,7 @@ function PreviewCard({
 
 export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
   const [previewIds, setPreviewIds] = useState<string[]>([]);
+  const previewIdsRef = useRef<string[]>([]);
   const frameCount = useRef(0);
   const { camera, size } = useThree();
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
@@ -175,7 +176,8 @@ export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
     });
 
     const finalIds = filtered.slice(0, MAX_PREVIEWS).map((entry) => entry.id);
-    if (!arraysEqual(previewIds, finalIds)) {
+    if (!arraysEqual(previewIdsRef.current, finalIds)) {
+      previewIdsRef.current = finalIds;
       setPreviewIds(finalIds);
     }
   });
