@@ -273,6 +273,7 @@ export interface ListFilesInput {
 export interface ListFilesResult {
   items: FileRecord[];
   nextCursor?: string;
+  total: number;
 }
 
 /**
@@ -328,7 +329,7 @@ export async function listFiles(
   const pageItems = items.slice(0, limit);
   const nextCursor = hasMore ? pageItems[pageItems.length - 1]?.id : undefined;
 
-  return { items: pageItems, nextCursor };
+  return { items: pageItems, nextCursor, total: allRows.length };
 }
 
 export interface UsageEntry {

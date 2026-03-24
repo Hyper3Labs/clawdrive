@@ -93,7 +93,7 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
 
       const result = await listFiles({ limit, cursor }, { wsPath });
 
-      res.json({ items: result.items, nextCursor: result.nextCursor });
+      res.json({ items: result.items, nextCursor: result.nextCursor, total: result.total });
     } catch (err) {
       next(err);
     }
