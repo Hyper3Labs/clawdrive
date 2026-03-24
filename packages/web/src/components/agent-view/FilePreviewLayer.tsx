@@ -7,6 +7,7 @@ import {
   getModalityLabel,
   getPreviewKind,
   MAP_THEME,
+  MINI_CARD_Z_RANGE,
 } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 
@@ -196,7 +197,7 @@ export function FilePreviewLayer({
             transform
             sprite
             distanceFactor={15}
-            zIndexRange={[100, 0]}
+            zIndexRange={MINI_CARD_Z_RANGE}
           >
             <PreviewCard
               point={point}

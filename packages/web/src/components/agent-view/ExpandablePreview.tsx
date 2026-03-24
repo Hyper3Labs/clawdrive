@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ProjectionPoint } from "../../types";
-import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME } from "../../theme";
+import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 
 function MediaPreview({ point }: { point: ProjectionPoint }) {
@@ -173,7 +173,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           position: "absolute",
           top: 20,
           right: 20,
-          zIndex: 15,
+          zIndex: Z_INDEX.hoverCard,
           background: "linear-gradient(135deg, rgba(8, 22, 32, 0.92), rgba(6, 16, 24, 0.92))",
           border: `1px solid ${MAP_THEME.border}`,
           borderRadius: 12,
@@ -239,7 +239,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       style={{
         position: "absolute",
         inset: 0,
-        zIndex: 20,
+        zIndex: Z_INDEX.modal,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

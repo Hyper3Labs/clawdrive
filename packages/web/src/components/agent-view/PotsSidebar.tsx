@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { MAP_THEME } from "../../theme";
+import { MAP_THEME, Z_INDEX } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 
 function ContextMenu({
@@ -27,7 +27,7 @@ function ContextMenu({
   if (renaming) {
     return (
       <div ref={menuRef} style={{
-        position: "fixed", left: x, top: y, zIndex: 1000,
+        position: "fixed", left: x, top: y, zIndex: Z_INDEX.contextMenu,
         background: MAP_THEME.panel, border: `1px solid ${MAP_THEME.border}`,
         borderRadius: 8, padding: 8, minWidth: 160,
       }}>
@@ -55,7 +55,7 @@ function ContextMenu({
 
   return (
     <div ref={menuRef} style={{
-      position: "fixed", left: x, top: y, zIndex: 1000,
+      position: "fixed", left: x, top: y, zIndex: Z_INDEX.contextMenu,
       background: MAP_THEME.panel, border: `1px solid ${MAP_THEME.border}`,
       borderRadius: 8, padding: 4, minWidth: 120,
     }}>
@@ -116,7 +116,7 @@ export function PotsSidebar() {
           background: "rgba(14, 26, 36, 0.85)", backdropFilter: "blur(12px)",
           borderRight: `1px solid ${MAP_THEME.border}`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", zIndex: 10,
+          cursor: "pointer", zIndex: Z_INDEX.sidebar,
         }}
       >
         <span style={{ color: "#6B8A9E", fontSize: 14 }}>▶</span>
@@ -129,7 +129,7 @@ export function PotsSidebar() {
       position: "absolute", left: 0, top: 0, bottom: 0, width: 220,
       background: "rgba(14, 26, 36, 0.92)", backdropFilter: "blur(12px)",
       borderRight: `1px solid ${MAP_THEME.border}`,
-      display: "flex", flexDirection: "column", zIndex: 10,
+      display: "flex", flexDirection: "column", zIndex: Z_INDEX.sidebar,
     }}>
       {/* Header */}
       <div style={{

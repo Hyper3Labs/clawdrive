@@ -39,3 +39,12 @@ export function getModalityLabel(contentType: string): string {
   if (kind === "audio") return "AUD";
   return "TXT";
 }
+
+export const Z_INDEX = {
+  sidebar: 10,
+  hoverCard: 15,
+  modal: 20,
+  contextMenu: 1000,
+} as const;
+
+export const MINI_CARD_Z_RANGE: [number, number] = [100, 0];
