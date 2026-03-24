@@ -108,38 +108,43 @@ async function generateVideoThumbnail(srcPath: string, dest: string): Promise<st
 }
 
 async function generatePdfThumbnail(srcPath: string, dest: string): Promise<string | null> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { unlink } = await import("node:fs/promises");
+  const execFileAsync = promisify(execFile);
+  const tmpDir = await import("node:os").then((os) => os.tmpdir());
+
   try {
-    const { readFile: readFileNode } = await import("node:fs/promises");
-    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    const { createCanvas } = await import("canvas");
+    // macOS: use qlmanage (Quick Look) for reliable PDF thumbnail
+    await execFileAsync("qlmanage", ["-t", "-s", String(THUMB_WIDTH), "-o", tmpDir, srcPath], { timeout: 10_000 });
 
-    const data = new Uint8Array(await readFileNode(srcPath));
-    const doc = await pdfjs.getDocument({ data, useSystemFonts: true }).promise;
-    const page = await doc.getPage(1);
+    // qlmanage outputs {filename}.png in the output dir
+    const basename = srcPath.split("/").pop()!;
+    const qlOutput = `${tmpDir}/${basename}.png`;
 
-    // Render at a scale that fits THUMB_WIDTH
-    const viewport = page.getViewport({ scale: 1 });
-    const scale = THUMB_WIDTH / viewport.width;
-    const scaledViewport = page.getViewport({ scale });
-
-    const canvas = createCanvas(scaledViewport.width, scaledViewport.height);
-    const ctx = canvas.getContext("2d");
-
-    // @ts-expect-error — node-canvas context is compatible but types differ
-    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
-
-    // Convert canvas to buffer and resize via sharp
-    const pngBuffer = canvas.toBuffer("image/png");
-    await sharp(pngBuffer)
+    await sharp(qlOutput)
       .resize(THUMB_WIDTH, THUMB_HEIGHT, { fit: "inside", withoutEnlargement: true })
       .jpeg({ quality: 85 })
       .toFile(dest);
 
-    doc.destroy();
+    // Clean up qlmanage output
+    await unlink(qlOutput).catch(() => {});
     return dest;
-  } catch (err) {
-    console.error("PDF thumbnail failed, using placeholder:", err);
-    return generatePlaceholder(dest, "#8AB4FF", "PDF");
+  } catch {
+    // Fallback: try pdftoppm (Linux/other platforms)
+    try {
+      const tmpPpm = `${tmpDir}/pdf-thumb-${Date.now()}`;
+      await execFileAsync("pdftoppm", ["-jpeg", "-f", "1", "-l", "1", "-scale-to", String(THUMB_WIDTH), srcPath, tmpPpm], { timeout: 10_000 });
+      const ppmOutput = `${tmpPpm}-1.jpg`;
+      await sharp(ppmOutput)
+        .resize(THUMB_WIDTH, THUMB_HEIGHT, { fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toFile(dest);
+      await unlink(ppmOutput).catch(() => {});
+      return dest;
+    } catch {
+      return generatePlaceholder(dest, "#8AB4FF", "PDF");
+    }
   }
 }
 
