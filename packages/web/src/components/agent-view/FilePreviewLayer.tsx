@@ -107,22 +107,23 @@ function PreviewCard({
       }}
       style={{ padding: 8, margin: -8, cursor: "pointer" }}
     >
-      <div
-        title={point.fileName}
-        style={{
-          width: 80,
-          borderRadius: 10,
-          border: `1px solid ${localHover ? color : MAP_THEME.border}`,
-          overflow: "hidden",
-          background: "rgba(8, 20, 29, 0.88)",
-          backdropFilter: "blur(8px)",
-          boxShadow: localHover
-            ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 1px ${color}44`
-            : "0 8px 20px rgba(0,0,0,0.35)",
-          transition: "border-color 120ms ease, box-shadow 120ms ease",
-        }}
-      >
-        <div style={{ height: 56, position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+        <div
+          style={{
+            width: 72,
+            height: 56,
+            borderRadius: 8,
+            border: `1px solid ${localHover ? color : MAP_THEME.border}`,
+            overflow: "hidden",
+            background: "rgba(8, 20, 29, 0.88)",
+            backdropFilter: "blur(8px)",
+            boxShadow: localHover
+              ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 1px ${color}44`
+              : "0 8px 20px rgba(0,0,0,0.35)",
+            transition: "border-color 120ms ease, box-shadow 120ms ease",
+            position: "relative",
+          }}
+        >
           <CardThumbnail point={point} />
           <div style={{
             position: "absolute", bottom: 2, left: 2,
@@ -135,10 +136,13 @@ function PreviewCard({
           </div>
         </div>
         <div style={{
-          padding: "2px 0 0",
-          fontSize: 7, color: "rgba(230, 240, 247, 0.55)",
-          lineHeight: 1.1, textAlign: "center",
-          whiteSpace: "nowrap",
+          padding: "1px 6px",
+          borderRadius: 3,
+          background: "rgba(6, 16, 24, 0.75)",
+          backdropFilter: "blur(4px)",
+          fontSize: 8, color: "rgba(230, 240, 247, 0.7)",
+          lineHeight: 1.2, whiteSpace: "nowrap",
+          maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis",
         }}>
           {point.fileName.replace(/\.[^.]+$/, "")}
         </div>
