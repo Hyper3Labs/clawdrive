@@ -30,7 +30,7 @@ export function SpotlightSearch({ open, onClose, onSelectResult }: SpotlightSear
   const [loading, setLoading] = useState(false);
   const [queryTime, setQueryTime] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Focus input when opened
   useEffect(() => {
