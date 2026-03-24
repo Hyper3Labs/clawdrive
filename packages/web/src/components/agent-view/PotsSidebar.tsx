@@ -226,11 +226,6 @@ export function PotsSidebar() {
                   </span>
                 )}
               </div>
-              {isSelected && (
-                <div style={{ color: "#6B8A9E", fontSize: 11, marginTop: 2 }}>
-                  Files highlighted
-                </div>
-              )}
             </div>
           );
         })}

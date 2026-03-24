@@ -133,8 +133,12 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
   const assignFileToPot = useVisualizationStore((s) => s.assignFileToPot);
   const unassignFileFromPot = useVisualizationStore((s) => s.unassignFileFromPot);
   const [showPicker, setShowPicker] = useState(false);
+  const [localTags, setLocalTags] = useState<string[]>(point.tags);
 
-  const assignedSlugs = point.tags
+  // Reset local tags when a different file is displayed
+  useEffect(() => { setLocalTags(point.tags); }, [point.id]);
+
+  const assignedSlugs = localTags
     .filter((t) => t.startsWith("pot:"))
     .map((t) => t.slice(4));
 
@@ -148,7 +152,10 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
         {assignedPots.map((p) => (
           <span
             key={p.id}
-            onClick={() => unassignFileFromPot(point.id, p.slug, point.tags)}
+            onClick={async () => {
+              await unassignFileFromPot(point.id, p.slug, localTags);
+              setLocalTags((prev) => prev.filter((t) => t !== `pot:${p.slug}`));
+            }}
             style={{
               background: "rgba(110, 231, 255, 0.08)",
               border: "1px solid rgba(110, 231, 255, 0.25)",
@@ -186,8 +193,9 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
                 {unassignedPots.map((p) => (
                   <div
                     key={p.id}
-                    onClick={() => {
-                      assignFileToPot(point.id, p.slug, point.tags);
+                    onClick={async () => {
+                      await assignFileToPot(point.id, p.slug, localTags);
+                      setLocalTags((prev) => [...prev, `pot:${p.slug}`]);
                       setShowPicker(false);
                     }}
                     style={{
