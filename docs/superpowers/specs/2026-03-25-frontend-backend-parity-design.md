@@ -37,7 +37,7 @@ The frontend is missing several backend capabilities — file upload, delete, do
 
 **Files view state:** The existing `useVisualizationStore` (Zustand) already manages pots and file interaction. Extend it with:
 - `selectedPotSlugForFilesView: string | null` — pot filter for Files view
-- `pendingDeletes: Map<string, { timer: number, file: FileRecord }>` — deferred delete tracking
+- `pendingDeletes: Map<string, { timer: ReturnType<typeof setTimeout>, file: FileInfo }>` — deferred delete tracking (use `window.setTimeout` to ensure browser return type if `@types/node` is in scope)
 
 **Pending delete lifecycle:**
 - On delete action: remove file from local display state, start 8s timer, store file data in `pendingDeletes`
@@ -112,12 +112,11 @@ A `<DropZone>` component wrapping any area.
 export async function uploadFile(
   file: File,
   opts?: { tags?: string[]; potSlug?: string }
-): Promise<{ id: string; fileHash: string; status: string }>
+): Promise<{ id: string; fileHash: string; status: "stored" | "duplicate"; duplicateId?: string; chunks: number; tokensUsed: number }>
 ```
 
 - Uses `FormData` with `multipart/form-data` to `POST /api/files/store`
 - If `potSlug` provided, client-side appends `pot:<slug>` to the tags array before sending in FormData (not a separate form field)
-- Full return type from backend: `{ id, fileHash, status: "stored" | "duplicate", duplicateId?, chunks, tokensUsed }`
 
 ### 2.2 Global Upload (Files View)
 
@@ -189,6 +188,7 @@ Calls `DELETE /api/files/:id` (soft-delete).
 - "+" chip at the end: opens small text input, Enter to add tag
 - Tags starting with `pot:` styled with `MAP_THEME.accentSecondary`, not removable here (managed via pot assignment)
 - On change: calls existing `updateFile(id, { tags })` (already in `api.ts`), success toast
+- **Prerequisite:** The `FileInfo` type in `packages/web/src/types.ts` must be extended with `tags: string[]`. The backend's `toFileMetadataRecord` already includes tags in the response — only the frontend type is missing the field. Alternatively, fetch tags on-demand via `GET /api/files/:id/tags` when the preview panel opens. Decision: extend `FileInfo` with `tags` since multiple features need it (tag editing, pot chips, search filter display).
 
 ### 4.2 Inline TL;DR / Description (Preview Panel)
 
@@ -302,7 +302,7 @@ export async function revokeShare(ref: string): Promise<PotShare>
 - **Tags filter**: text input with autocomplete from known tags, maps to `tags` param
 - Active filters shown as removable chips below the search input
 - All filters passed to `GET /api/search?q=...&type=...&tags=...&pot=...`
-- **Filter-only mode (no query text):** The backend requires `q` param. When filters are set but no text query, fall back to `GET /api/files` with client-side filtering by type/tags. Alternatively, send a broad query like `q=*` — needs backend testing. Decision: use `GET /api/files` fallback for filter-only, `GET /api/search` when text is present.
+- **Filter-only mode (no query text):** The backend `GET /api/search` requires `q` param. When filters are set but no text query, fall back to `GET /api/files`. **Known limitation:** `GET /api/files` doesn't support `type` or `tags` filtering — client-side filtering on paginated results is unreliable for large datasets. **Backend change needed:** add optional `type` and `tags` query params to `GET /api/files` endpoint (simple WHERE clause additions in `listFiles`).
 
 ### 7.2 API Change
 
@@ -345,5 +345,13 @@ export async function searchFiles(
 
 ### Backend Changes Needed
 
-One new endpoint required:
+Two changes required:
 - `GET /api/pots/:pot/shares` — list all shares for a specific pot (needed for Section 6.1 share popover). Returns `{ items: PotShare[], total: number }`. Requires a new `listPotShares(potRef)` function in `@clawdrive/core/shares.ts`.
+- `GET /api/files` — add optional `type` and `tags` query params for filter-only search mode (Section 7.1).
+
+### Existing API Functions (already in `api.ts`)
+
+These functions already exist and are referenced by this spec — no need to create them:
+- `updateFile(id, changes)` — used by Sections 4.1–4.5
+- `listPotFiles(potSlug)` — used by Section 5.4
+- `getFileTags(id)` — available as fallback for tag fetching
