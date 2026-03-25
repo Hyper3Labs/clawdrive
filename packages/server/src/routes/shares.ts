@@ -1,10 +1,13 @@
 import { Router } from "express";
-import { approveShare, createPotShare, getShare, listShareInbox, resolveShare, revokeShare } from "@clawdrive/core";
-
-function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vector"> {
-  const { vector: _vector, ...rest } = record;
-  return rest;
-}
+import { toFileMetadataRecord } from "../lib/file-metadata.js";
+import {
+  approveShare,
+  createPotShare,
+  getShare,
+  listShareInbox,
+  resolveShare,
+  revokeShare,
+} from "@clawdrive/core";
 
 export function createShareRoutes(wsPath: string): Router {
   const router = Router();
@@ -72,7 +75,7 @@ export function createShareRoutes(wsPath: string): Router {
       const resolved = await resolveShare(req.params.ref, { wsPath });
       res.json({
         ...resolved,
-        files: resolved?.files.map(withoutVector) ?? [],
+        files: resolved?.files.map((file) => toFileMetadataRecord(file)) ?? [],
       });
     } catch (err) {
       next(err);

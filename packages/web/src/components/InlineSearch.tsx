@@ -253,7 +253,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
                   </div>
                 )}
 
-                {(r.matchedChunk || r.description) && (
+                {(r.matchedChunk || r.tldr || r.description) && (
                   <div
                     style={{
                       fontSize: 12,
@@ -267,7 +267,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {r.matchedChunk ? r.matchedChunk.label : r.description}
+                    {r.matchedChunk ? r.matchedChunk.label : (r.tldr ?? r.description)}
                   </div>
                 )}
               </div>

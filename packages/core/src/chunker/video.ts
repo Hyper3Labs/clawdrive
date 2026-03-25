@@ -23,8 +23,9 @@ function detectVideoMime(filePath: string): string {
   const ext = filePath.split(".").pop()?.toLowerCase();
   switch (ext) {
     case "mp4":
-    case "mpeg":
       return "video/mp4";
+    case "mpeg":
+      return "video/mpeg";
     case "mov":
       return "video/quicktime";
     case "webm":

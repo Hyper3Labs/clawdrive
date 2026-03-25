@@ -1,10 +1,22 @@
 import { randomBytes } from "node:crypto";
 import { uuidv7 } from "uuidv7";
-import type { PotShare, ResolvedShare, ShareKind, ShareRole } from "./types.js";
-import { readWorkspaceJson, updateWorkspaceJson } from "./metadata.js";
+import type {
+  FileRecord,
+  PotShare,
+  ResolvedPublicShare,
+  ResolvedPublicShareItem,
+  ResolvedShare,
+  ShareItemRecord,
+  ShareKind,
+  ShareRole,
+} from "./types.js";
+import { acquireLock } from "./lock.js";
+import { readWorkspaceJson, updateWorkspaceJson, writeWorkspaceJson } from "./metadata.js";
 import { listPotFiles, requirePot } from "./pots.js";
+import { getFileInfo } from "./read.js";
 
 const SHARES_FILE = "shares.json";
+const SHARE_ITEMS_FILE = "share-items.json";
 
 export interface ShareOptions {
   wsPath: string;
@@ -37,6 +49,38 @@ function normalizeShare(share: PotShare): PotShare {
   return share;
 }
 
+function createShareItemRecord(
+  shareId: string,
+  file: FileRecord,
+  sharedAt: number,
+): ShareItemRecord {
+  const tldr = file.tldr ?? file.abstract ?? file.description ?? null;
+
+  return {
+    id: uuidv7(),
+    share_id: shareId,
+    file_id: file.id,
+    original_name: file.original_name,
+    content_type: file.content_type,
+    file_size: file.file_size,
+    tldr,
+    abstract: tldr,
+    created_at: file.created_at,
+    updated_at: file.updated_at,
+    source_url: file.source_url,
+    shared_at: sharedAt,
+  };
+}
+
+function normalizeShareItemRecord(item: ShareItemRecord): ShareItemRecord {
+  const tldr = item.tldr ?? item.abstract ?? null;
+  return {
+    ...item,
+    tldr,
+    abstract: tldr,
+  };
+}
+
 function findShareIndex(shares: PotShare[], ref: string): number {
   const directIndex = shares.findIndex((share) => share.id === ref || share.token === ref);
   if (directIndex >= 0) {
@@ -52,6 +96,49 @@ function findShareIndex(shares: PotShare[], ref: string): number {
   }
 
   return prefixMatches[0]?.index ?? -1;
+}
+
+function findPublicShareByToken(shares: PotShare[], token: string): PotShare | null {
+  return shares
+    .map(normalizeShare)
+    .find((share) => share.kind === "link" && share.token === token) ?? null;
+}
+
+async function readShareItems(wsPath: string): Promise<ShareItemRecord[]> {
+  const items = await readWorkspaceJson(wsPath, SHARE_ITEMS_FILE, [] as ShareItemRecord[]);
+  return items.map(normalizeShareItemRecord);
+}
+
+async function listShareItemsByShareId(shareId: string, opts: ShareOptions): Promise<ShareItemRecord[]> {
+  const items = await readShareItems(opts.wsPath);
+  return items.filter((item) => item.share_id === shareId);
+}
+
+async function ensureShareItems(share: PotShare, opts: ShareOptions): Promise<ShareItemRecord[]> {
+  const existing = await listShareItemsByShareId(share.id, opts);
+  if (existing.length > 0) {
+    return existing;
+  }
+
+  const files = await listPotFiles(share.pot_slug, opts);
+  const snapshot = files.map((file) => createShareItemRecord(share.id, file, share.created_at));
+  if (snapshot.length === 0) {
+    return snapshot;
+  }
+
+  const release = await acquireLock(opts.wsPath);
+  try {
+    const shareItems = await readShareItems(opts.wsPath);
+    const current = shareItems.filter((item) => item.share_id === share.id);
+    if (current.length > 0) {
+      return current;
+    }
+
+    await writeWorkspaceJson(opts.wsPath, SHARE_ITEMS_FILE, [...shareItems, ...snapshot]);
+    return snapshot;
+  } finally {
+    await release();
+  }
 }
 
 export async function listShares(opts: ShareOptions): Promise<PotShare[]> {
@@ -80,6 +167,7 @@ export async function createPotShare(
   opts: ShareOptions,
 ): Promise<PotShare> {
   const pot = await requirePot(input.pot, opts);
+  const files = await listPotFiles(pot.slug, opts);
   if (input.kind === "principal" && !input.principal?.trim()) {
     throw new Error("Principal is required for direct shares");
   }
@@ -87,28 +175,33 @@ export async function createPotShare(
     throw new Error("Share expiry must be in the future");
   }
 
-  return updateWorkspaceJson(opts.wsPath, SHARES_FILE, [] as PotShare[], (shares) => {
-    const now = Date.now();
-    const share: PotShare = {
-      id: uuidv7(),
-      pot_id: pot.id,
-      pot_slug: pot.slug,
-      kind: input.kind,
-      principal: input.kind === "principal" ? input.principal!.trim() : null,
-      role: input.role ?? "read",
-      status: input.kind === "link" ? "pending" : "active",
-      token: input.kind === "link" ? createShareToken() : null,
-      expires_at: input.expiresAt ?? null,
-      created_at: now,
-      approved_at: input.kind === "principal" ? now : null,
-      revoked_at: null,
-    };
+  const now = Date.now();
+  const share: PotShare = {
+    id: uuidv7(),
+    pot_id: pot.id,
+    pot_slug: pot.slug,
+    kind: input.kind,
+    principal: input.kind === "principal" ? input.principal!.trim() : null,
+    role: input.role ?? "read",
+    status: input.kind === "link" ? "pending" : "active",
+    token: input.kind === "link" ? createShareToken() : null,
+    expires_at: input.expiresAt ?? null,
+    created_at: now,
+    approved_at: input.kind === "principal" ? now : null,
+    revoked_at: null,
+  };
+  const shareItems = files.map((file) => createShareItemRecord(share.id, file, now));
 
-    return {
-      next: [...shares, share],
-      result: normalizeShare(share),
-    };
-  });
+  const release = await acquireLock(opts.wsPath);
+  try {
+    const shares = await readWorkspaceJson(opts.wsPath, SHARES_FILE, [] as PotShare[]);
+    const existingItems = await readShareItems(opts.wsPath);
+    await writeWorkspaceJson(opts.wsPath, SHARES_FILE, [...shares, share]);
+    await writeWorkspaceJson(opts.wsPath, SHARE_ITEMS_FILE, [...existingItems, ...shareItems]);
+    return normalizeShare(share);
+  } finally {
+    await release();
+  }
 }
 
 export async function approveShare(ref: string, opts: ShareOptions): Promise<PotShare> {
@@ -186,5 +279,54 @@ export async function resolveShare(ref: string, opts: ShareOptions): Promise<Res
     share,
     pot,
     files,
+  };
+}
+
+export async function getPublicShare(token: string, opts: ShareOptions): Promise<PotShare | null> {
+  const shares = await readWorkspaceJson(opts.wsPath, SHARES_FILE, [] as PotShare[]);
+  return findPublicShareByToken(shares, token);
+}
+
+export async function resolvePublicShare(token: string, opts: ShareOptions): Promise<ResolvedPublicShare | null> {
+  const share = await getPublicShare(token, opts);
+  if (!share || share.status !== "active") {
+    return null;
+  }
+
+  const pot = await requirePot(share.pot_slug, opts);
+  const items = await ensureShareItems(share, opts);
+
+  return {
+    share,
+    pot,
+    items,
+  };
+}
+
+export async function resolvePublicShareItem(
+  token: string,
+  shareItemId: string,
+  opts: ShareOptions,
+): Promise<ResolvedPublicShareItem | null> {
+  const resolved = await resolvePublicShare(token, opts);
+  if (!resolved) {
+    return null;
+  }
+
+  const item = resolved.items.find((candidate) => candidate.id === shareItemId);
+  if (!item) {
+    return null;
+  }
+
+  const file = await getFileInfo(item.file_id, opts);
+  if (!file) {
+    return null;
+  }
+
+  return {
+    share: resolved.share,
+    pot: resolved.pot,
+    item,
+    file,
   };
 }

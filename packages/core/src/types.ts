@@ -10,6 +10,9 @@ export interface FileRecord {
   file_path: string;
   file_hash: string;
   file_size: number;
+  tldr: string | null;
+  digest: string | null;
+  abstract?: string | null;
   description: string | null;
   tags: string[];
   taxonomy_path: string[];
@@ -29,7 +32,11 @@ export interface FileRecord {
 
 export interface StoreInput {
   sourcePath: string;
+  originalName?: string;
   tags?: string[];
+  tldr?: string;
+  digest?: string;
+  abstract?: string;
   description?: string;
   workspaceId?: string;
   sourceUrl?: string;
@@ -45,9 +52,8 @@ export interface StoreResult {
 }
 
 export interface SearchInput {
-  query: string;
+  query?: string;
   queryImage?: string;
-  mode?: "vector" | "fts" | "hybrid";
   contentType?: string;
   tags?: string[];
   pot?: string;
@@ -68,6 +74,8 @@ export interface SearchResult {
   matchedChunk?: { index: number; label: string; };
   totalChunks: number;
   filePath: string;
+  tldr: string | null;
+  abstract?: string | null;
   description: string | null;
 }
 
@@ -107,8 +115,36 @@ export interface PotShare {
   revoked_at: number | null;
 }
 
+export interface ShareItemRecord {
+  id: string;
+  share_id: string;
+  file_id: string;
+  original_name: string;
+  content_type: string;
+  file_size: number;
+  tldr: string | null;
+  abstract?: string | null;
+  created_at: number;
+  updated_at: number;
+  source_url: string | null;
+  shared_at: number;
+}
+
 export interface ResolvedShare {
   share: PotShare;
   pot: PotRecord;
   files: FileRecord[];
+}
+
+export interface ResolvedPublicShare {
+  share: PotShare;
+  pot: PotRecord;
+  items: ShareItemRecord[];
+}
+
+export interface ResolvedPublicShareItem {
+  share: PotShare;
+  pot: PotRecord;
+  item: ShareItemRecord;
+  file: FileRecord;
 }

@@ -12,7 +12,7 @@ const EXTENSION_MAP: Record<string, string> = {
 
   // Video
   ".mp4": "video/mp4",
-  ".mpeg": "video/mp4",
+  ".mpeg": "video/mpeg",
   ".mov": "video/quicktime",
   ".webm": "video/webm",
 

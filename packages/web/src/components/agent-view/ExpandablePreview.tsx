@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { ProjectionPoint } from "../../types";
 import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
-import { fileContentUrl, fileThumbnailUrl } from "../../api";
+import { fileContentUrl } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
 
 function TextPreview({ point }: { point: ProjectionPoint }) {
@@ -38,23 +38,17 @@ function TextPreview({ point }: { point: ProjectionPoint }) {
 }
 
 function MediaPreview({ point }: { point: ProjectionPoint }) {
-  const [imageFailed, setImageFailed] = useState(false);
   const kind = getPreviewKind(point.contentType);
   const color = getModalityColor(point.contentType);
   const label = getModalityLabel(point.contentType);
   const contentUrl = fileContentUrl(point.id);
 
-  useEffect(() => {
-    setImageFailed(false);
-  }, [point.id]);
-
-  if (kind === "image" && point.previewUrl && !imageFailed) {
+  if (kind === "image") {
     return (
       <img
-        src={point.previewUrl}
+        src={contentUrl}
         alt={point.fileName}
         loading="lazy"
-        onError={() => setImageFailed(true)}
         style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: "#0a131c" }}
       />
     );
@@ -117,14 +111,21 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
     return <TextPreview point={point} />;
   }
 
-  // Unknown type — show thumbnail placeholder
+  // Unknown type — show a lightweight placeholder instead of issuing another fetch.
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <img
-        src={fileThumbnailUrl(point.id)}
-        alt={label}
-        style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8 }}
-      />
+    <div
+      style={{
+        height: 200,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color,
+        fontSize: 13,
+        letterSpacing: 0.6,
+        textTransform: "uppercase",
+      }}
+    >
+      {label} preview unavailable
     </div>
   );
 }

@@ -15,7 +15,7 @@ ClawDrive is a CLI-first file storage and retrieval system built for AI agents. 
 ### In scope (v1)
 - CLI tool: store, search, read, list, remove, import, export, manage
 - Multimodal file ingestion with native chunking (no text conversion for non-text files)
-- Semantic search with vector similarity + hybrid (full-text) search
+- Semantic search with vector similarity
 - Web UI with 3D embedding visualization, taxonomy browser, and spotlight search
 - Single-agent, local-first operation
 - Workspace support (multiple isolated drives)
@@ -33,7 +33,7 @@ ClawDrive is a CLI-first file storage and retrieval system built for AI agents. 
 | Component | Choice | Reason |
 |---|---|---|
 | Language | TypeScript | Full-stack (CLI + UI), strong typing, LanceDB/Gemini SDKs available |
-| Storage | LanceDB embedded (`@lancedb/lancedb`) | In-process, no server, multimodal, hybrid search, Lance columnar format |
+| Storage | LanceDB embedded (`@lancedb/lancedb`) | In-process, no server, multimodal vector search, Lance columnar format |
 | Embeddings | Gemini Embedding 2 (`gemini-embedding-2-preview`) | 3072-dim, native multimodal (text/image/video/audio/PDF), best-in-class benchmarks |
 | CLI | commander or oclif | `--json` flag support, exit codes, subcommands |
 | Web framework | React + Vite | Fast dev, static build served by Express |
@@ -61,7 +61,7 @@ All business logic lives here. No `process.exit()`, no `console.log()`, no hardc
 ```
 core/src/
   ├── store.ts          — ingestion pipeline
-  ├── search.ts         — vector + hybrid search
+  ├── search.ts         — vector search
   ├── read.ts           — file retrieval
   ├── taxonomy.ts       — auto-organize hierarchy
   ├── chunker/
@@ -226,16 +226,14 @@ On failure at any step: parent row stays as `status: "failed"` with error messag
 | Mode | Flag | Description |
 |---|---|---|
 | Vector (default) | none | Embed query → cosine similarity. Works for all modalities. |
-| Full-text | `--mode fts` | BM25 keyword match on `searchable_text` field. Good for exact strings. |
-| Hybrid | `--mode hybrid` | Vector + full-text combined via reciprocal rank fusion. Best for text-heavy queries. |
 
-### Full-Text Search Index
+### Searchable Text
 
 The `searchable_text` field is populated on store:
 - **Text/code files:** full text content (up to first 10K chars)
 - **Non-text files:** `original_name + description + tags.join(" ") + chunk_label`
 
-A BM25 FTS index is created on this field. The index is rebuilt after batch inserts (LanceDB FTS is not incrementally updated).
+This fallback text supports ingestion metadata and future retrieval improvements, but v1 search executes through vector similarity only.
 
 ### Image Query Search
 
@@ -323,7 +321,7 @@ A BM25 FTS index is created on this field. The index is rebuilt after batch inse
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/api/store` | Upload and store a file (multipart form) |
-| `GET` | `/api/search?q=...&mode=...&type=...` | Semantic/hybrid search |
+| `GET` | `/api/search?q=...&type=...` | Semantic vector search |
 | `GET` | `/api/files/:id` | Get file metadata |
 | `GET` | `/api/files/:id/content` | Download file content |
 | `PATCH` | `/api/files/:id` | Update tags/description |

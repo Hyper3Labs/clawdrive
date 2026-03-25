@@ -1,5 +1,5 @@
 import { Router } from "express";
-import type { EmbeddingProvider, SearchInput } from "@clawdrive/core";
+import type { EmbeddingProvider } from "@clawdrive/core";
 import { search } from "@clawdrive/core";
 
 export function createSearchRoutes(wsPath: string, embedder: EmbeddingProvider): Router {
@@ -14,7 +14,6 @@ export function createSearchRoutes(wsPath: string, embedder: EmbeddingProvider):
         return;
       }
 
-      const mode = (req.query.mode as SearchInput["mode"]) || undefined;
       const contentType = (req.query.type as string) || undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
       const minScore = req.query.minScore
@@ -30,7 +29,7 @@ export function createSearchRoutes(wsPath: string, embedder: EmbeddingProvider):
         : undefined;
 
       const results = await search(
-        { query: q, mode, contentType, tags, pot, limit, minScore },
+        { query: q, contentType, tags, pot, limit, minScore },
         { wsPath, embedder },
       );
 

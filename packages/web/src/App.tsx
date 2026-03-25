@@ -36,13 +36,16 @@ export function App() {
         searchRef={searchRef}
       />
 
-      {/* Content — both views stay mounted, hidden via display */}
-      <div style={{ flex: 1, minHeight: 0, display: view === "space" ? "flex" : "none" }}>
-        <EmbeddingSpace focusFileId={focusFileId} />
-      </div>
-      <div style={{ flex: 1, minHeight: 0, display: view === "files" ? "flex" : "none", overflow: "hidden" }}>
-        <TaxonomyBrowser />
-      </div>
+      {/* Mount only the active view so the hidden media grid does not preload in space mode. */}
+      {view === "space" ? (
+        <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
+          <EmbeddingSpace focusFileId={focusFileId} />
+        </div>
+      ) : (
+        <div style={{ flex: 1, minHeight: 0, display: "flex", overflow: "hidden" }}>
+          <TaxonomyBrowser />
+        </div>
+      )}
     </div>
   );
 }

@@ -9,18 +9,24 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 interface PdfThumbnailProps {
   url: string;
+  desiredWidth?: number;
 }
 
-export function PdfThumbnail({ url }: PdfThumbnailProps) {
+export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let pdfDocument: { destroy(): Promise<void> } | null = null;
+    let renderTask: { cancel(): void; promise: Promise<unknown> } | null = null;
 
     async function render() {
       try {
-        const pdf = await pdfjsLib.getDocument(url).promise;
+        setError(false);
+        const loadingTask = pdfjsLib.getDocument(url);
+        const pdf = await loadingTask.promise;
+        pdfDocument = pdf;
         if (cancelled) return;
         const page = await pdf.getPage(1);
         if (cancelled) return;
@@ -28,8 +34,6 @@ export function PdfThumbnail({ url }: PdfThumbnailProps) {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Scale to fit the card width (~250px)
-        const desiredWidth = 300;
         const unscaledViewport = page.getViewport({ scale: 1 });
         const scale = desiredWidth / unscaledViewport.width;
         const viewport = page.getViewport({ scale });
@@ -40,15 +44,20 @@ export function PdfThumbnail({ url }: PdfThumbnailProps) {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+        renderTask = page.render({ canvas, canvasContext: ctx, viewport });
+        await renderTask.promise;
       } catch {
         if (!cancelled) setError(true);
       }
     }
 
     render();
-    return () => { cancelled = true; };
-  }, [url]);
+    return () => {
+      cancelled = true;
+      renderTask?.cancel();
+      void pdfDocument?.destroy();
+    };
+  }, [desiredWidth, url]);
 
   if (error) {
     return (

@@ -116,7 +116,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
     const potTag = `pot:${potSlug}`;
     try {
       // Fetch fresh tags from server to avoid stale projection cache
-      const file = await api.getFile(fileId);
+      const file = await api.getFileTags(fileId);
       const freshTags: string[] = file.tags ?? _currentTags;
       if (freshTags.includes(potTag)) return;
       await api.updateFile(fileId, { tags: [...freshTags, potTag] });
@@ -132,7 +132,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
     const potTag = `pot:${potSlug}`;
     try {
       // Fetch fresh tags from server to avoid stale projection cache
-      const file = await api.getFile(fileId);
+      const file = await api.getFileTags(fileId);
       const freshTags: string[] = file.tags ?? _currentTags;
       await api.updateFile(fileId, { tags: freshTags.filter((t) => t !== potTag) });
       // Always refresh highlights for the selected pot

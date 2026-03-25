@@ -3,6 +3,7 @@ import { remove, update, gc, doctor, listFiles } from "../src/manage.js";
 import { store } from "../src/store.js";
 import { search } from "../src/search.js";
 import { getFileInfo } from "../src/read.js";
+import { createDatabase, getFilesTable, insertFileRecord } from "../src/storage/db.js";
 import { createTestWorkspace } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 import { writeFile } from "node:fs/promises";
@@ -37,6 +38,34 @@ describe("manage", () => {
     expect(info!.description).toBe("updated desc");
   });
 
+  it("updates tldr using the tldr field", async () => {
+    const src = join(ctx.baseDir, "abstract.md");
+    await writeFile(src, "content to summarize");
+    const r = await store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder });
+    await update(r.id, { tldr: "Short TL;DR for quick relevance checks." }, { wsPath: ctx.wsPath });
+    const info = await getFileInfo(r.id, { wsPath: ctx.wsPath });
+    expect(info!.tldr).toBe("Short TL;DR for quick relevance checks.");
+    expect(info!.description).toBe("Short TL;DR for quick relevance checks.");
+  });
+
+  it("updates digest without changing the stored tldr", async () => {
+    const src = join(ctx.baseDir, "digest-update.md");
+    await writeFile(src, "content to orient");
+    const r = await store({ sourcePath: src, tldr: "Short summary." }, { wsPath: ctx.wsPath, embedder });
+
+    await update(
+      r.id,
+      {
+        digest: "# Digest\n\nOpening paragraph.\n\n## Quick Navigation\n- One\n\n## Detailed Description\nMore detail.",
+      },
+      { wsPath: ctx.wsPath },
+    );
+
+    const info = await getFileInfo(r.id, { wsPath: ctx.wsPath, includeDigest: true });
+    expect(info!.tldr).toBe("Short summary.");
+    expect(info!.digest).toContain("## Detailed Description");
+  });
+
   it("lists files with pagination", async () => {
     const src1 = join(ctx.baseDir, "a.md");
     const src2 = join(ctx.baseDir, "b.md");
@@ -55,6 +84,35 @@ describe("manage", () => {
     const page2 = await listFiles({ limit: 2, cursor: page1.nextCursor }, { wsPath: ctx.wsPath });
     expect(page2.items).toHaveLength(1);
     expect(page2.nextCursor).toBeUndefined();
+  });
+
+  it("filters files by taxonomy path before pagination", async () => {
+    const src1 = join(ctx.baseDir, "alpha.bin");
+    const src2 = join(ctx.baseDir, "beta.bin");
+    await writeFile(src1, Buffer.from([1, 2, 3]));
+    await writeFile(src2, Buffer.from([4, 5, 6]));
+
+    const first = await store({ sourcePath: src1 }, { wsPath: ctx.wsPath, embedder });
+    const second = await store({ sourcePath: src2 }, { wsPath: ctx.wsPath, embedder });
+
+    const db = await createDatabase(join(ctx.wsPath, "db"));
+    const table = await getFilesTable(db);
+
+    for (const [id, taxonomyPath] of [
+      [first.id, ["All", "Alpha"]],
+      [second.id, ["All", "Beta"]],
+    ] as const) {
+      const rows = await table.query().where(`id = '${id}'`).toArray();
+      const row = { ...(rows[0] as Record<string, unknown>), taxonomy_path: taxonomyPath };
+      await table.delete(`id = '${id}'`);
+      await insertFileRecord(table, row);
+    }
+
+    const filtered = await listFiles({ limit: 10, taxonomyPath: ["All", "Alpha"] }, { wsPath: ctx.wsPath });
+
+    expect(filtered.total).toBe(1);
+    expect(filtered.items).toHaveLength(1);
+    expect(filtered.items[0]?.id).toBe(first.id);
   });
 
   it("gc permanently removes soft-deleted files", async () => {

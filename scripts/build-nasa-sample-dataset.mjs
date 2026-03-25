@@ -230,12 +230,8 @@ async function collectImages(theme, seenIds, seenTitles) {
         results.push({
           kind: 'image',
           theme: theme.slug,
-          query,
-          nasaId,
           title,
-          description: data.description ?? '',
-          sourceUrl: toHttps(item.href ?? variant.href),
-          downloadUrl: toHttps(variant.href),
+          sourceUrl: toHttps(variant.href),
           ext: path.extname(new URL(variant.href).pathname).replace('.', '') || 'jpg',
         });
 
@@ -281,12 +277,8 @@ async function collectVideo(theme, seenIds, seenTitles) {
       return {
         kind: 'video',
         theme: theme.slug,
-        query: theme.videoQuery,
-        nasaId,
         title,
-        description: data.description ?? '',
-        sourceUrl: toHttps(item.href ?? variant),
-        downloadUrl: variant,
+        sourceUrl: variant,
         ext: 'mp4',
       };
     }
@@ -323,51 +315,14 @@ async function collectAudio(config, seenIds, seenTitles) {
       return {
         kind: 'audio',
         theme: 'audio',
-        query: config.query,
-        nasaId,
         title,
-        description: data.description ?? '',
-        sourceUrl: toHttps(item.href ?? variant),
-        downloadUrl: variant,
+        sourceUrl: variant,
         ext: path.extname(new URL(variant).pathname).replace('.', '') || 'mp3',
       };
     }
   }
 
   throw new Error(`No audio found for query ${config.query}`);
-}
-
-function buildThemeNote(theme, entries, pdfEntries) {
-  const lines = [
-    `# ${theme.label}`,
-    '',
-    theme.summary,
-    '',
-    'This note was generated from NASA metadata for the CDRIVE demo bundle.',
-    '',
-    '## Included assets',
-    '',
-  ];
-
-  for (const entry of entries) {
-    lines.push(`- ${entry.kind}: ${entry.title}`);
-    if (entry.description) {
-      lines.push(`  ${entry.description.replace(/\s+/g, ' ').trim().slice(0, 240)}`);
-    }
-    lines.push(`  Query: ${entry.query}`);
-    lines.push(`  NASA ID: ${entry.nasaId}`);
-  }
-
-  if (pdfEntries.length > 0) {
-    lines.push('', '## Related PDFs', '');
-    for (const entry of pdfEntries) {
-      lines.push(`- ${entry.title}`);
-      lines.push(`  Source: ${entry.sourceUrl}`);
-    }
-  }
-
-  lines.push('');
-  return lines.join('\n');
 }
 
 async function main() {
@@ -405,7 +360,7 @@ async function main() {
     counters.set(counterKey, index);
     const fileName = `${entry.theme}-${entry.kind}-${String(index).padStart(2, '0')}-${slugify(entry.title)}.${entry.ext}`;
     const filePath = path.join(targetDir, fileName);
-    const bytes = await downloadFile(entry.downloadUrl, filePath);
+    const bytes = await downloadFile(entry.sourceUrl, filePath);
     allEntries.push({
       ...entry,
       fileName,
@@ -428,87 +383,54 @@ async function main() {
     });
   }
 
-  const noteEntries = [];
-  for (const theme of themeConfigs) {
-    const themeAssets = allEntries.filter((entry) => entry.theme === theme.slug);
-    const themePdfs = pdfEntries.filter((entry) => entry.theme === theme.slug);
-    const fileName = `${theme.slug}-note.md`;
-    const filePath = path.join(targetDir, fileName);
-    const content = buildThemeNote(theme, themeAssets, themePdfs);
-    await fs.writeFile(filePath, content, 'utf8');
-    noteEntries.push({
-      kind: 'note',
-      theme: theme.slug,
-      title: `${theme.label} note`,
-      fileName,
-      bytes: Buffer.byteLength(content, 'utf8'),
-    });
-  }
+  const counts = {
+    images: imageEntries.length,
+    videos: videoEntries.length,
+    audios: audioEntries.length,
+    pdfs: pdfEntries.length,
+    totalFiles: allEntries.length + pdfEntries.length,
+  };
 
-  const datasetEntries = [...allEntries, ...pdfEntries, ...noteEntries];
+  const datasetEntries = [...allEntries, ...pdfEntries];
   const totalBytes = datasetEntries.reduce((sum, entry) => sum + entry.bytes, 0);
 
   const manifest = {
-    generatedAt: new Date().toISOString(),
-    source: {
-      summary: 'Curated subset from NASA Image and Video Library plus official NASA PDF documents.',
-      libraryScale: 'NASA states the Image and Video Library includes more than 140,000 images, videos, and audio files from across the agency.',
-      libraryReference: 'https://www.nasa.gov/news-release/nasa-unveils-new-searchable-video-audio-and-imagery-library-for-the-public/',
-      usageGuidelines: 'https://www.nasa.gov/nasa-brand-center/images-and-media/',
-    },
-    counts: {
-      images: imageEntries.length,
-      videos: videoEntries.length,
-      audios: audioEntries.length,
-      pdfs: pdfEntries.length,
-      notes: noteEntries.length,
-      totalFiles: datasetEntries.length,
-    },
+    datasetId: 'nasa-demo-v2',
     totalBytes,
     totalMegabytes: Number((totalBytes / (1024 * 1024)).toFixed(1)),
     entries: datasetEntries.map((entry) => ({
-      kind: entry.kind,
-      theme: entry.theme,
-      title: entry.title,
       fileName: entry.fileName,
       bytes: entry.bytes,
-      nasaId: entry.nasaId ?? null,
-      query: entry.query ?? null,
       sourceUrl: entry.sourceUrl ?? null,
-      downloadUrl: entry.downloadUrl ?? null,
     })),
   };
 
   const readmeLines = [
     '# NASA Sample Dataset',
     '',
-    'This folder replaces the previous mixed synthetic sample bundle with a curated NASA-only demo dataset for CDRIVE.',
+    'This folder tracks the generic import manifest for the NASA demo bundle.',
     '',
-    '## Why this size',
-    '',
-    'The full NASA Image and Video Library is not a single packaged dataset. NASA describes it as a searchable library with more than 140,000 images, videos, and audio files from more than 60 collections.',
-    '',
-    'For the demo, this repo uses a curated subset instead of mirroring the full library. The chosen size aims to keep the repo lightweight while still producing a visually interesting embedding space and enough cross-modal variety for search demos.',
+    'The heavyweight NASA media is no longer committed to the repo. When you run `cdrive serve --demo nasa`, the CLI downloads the referenced assets into the gitignored cache at `context/demo-datasets/nasa` and seeds a dedicated `nasa-demo` workspace by default.',
     '',
     '## Bundle counts',
     '',
-    `- Images: ${imageEntries.length}`,
-    `- Videos: ${videoEntries.length}`,
-    `- Audio files: ${audioEntries.length}`,
-    `- PDFs: ${pdfEntries.length}`,
-    `- Theme notes: ${noteEntries.length}`,
-    `- Total demo assets: ${manifest.counts.totalFiles}`,
-    `- Total size: ${manifest.totalMegabytes} MB`,
+    `- Images: ${counts.images}`,
+    `- Videos: ${counts.videos}`,
+    `- Audio files: ${counts.audios}`,
+    `- PDFs: ${counts.pdfs}`,
+    `- Total demo assets: ${counts.totalFiles}`,
+    `- Download size: ${manifest.totalMegabytes} MB`,
     '',
-    '## Themes',
+    '## Metadata scope',
     '',
-    ...themeConfigs.map((theme) => `- ${theme.label}: ${theme.summary}`),
+    '- `sources.json` only carries generic import fields needed to fetch the demo files: `fileName`, `bytes`, and `sourceUrl`.',
+    '- The manifest does not include generated notes, theme labels, query text, NASA IDs, descriptions, or tags.',
+    '- Product and share surfaces should treat the demo as ordinary files plus optional source URLs, not as hand-authored annotations.',
     '',
     '## Sources',
     '',
     '- NASA library scale statement: https://www.nasa.gov/news-release/nasa-unveils-new-searchable-video-audio-and-imagery-library-for-the-public/',
     '- NASA media usage guidelines: https://www.nasa.gov/nasa-brand-center/images-and-media/',
-    '- Detailed file-level provenance is in sources.json.',
     '',
   ];
 
@@ -518,9 +440,9 @@ async function main() {
   console.log(
     JSON.stringify(
       {
-        totalFiles: manifest.counts.totalFiles,
+        totalFiles: counts.totalFiles,
         totalMegabytes: manifest.totalMegabytes,
-        counts: manifest.counts,
+        counts,
       },
       null,
       2,

@@ -6,15 +6,16 @@ import type { EmbedInput, EmbeddingProvider } from "./types.js";
  * Generates reproducible vectors from input content using SHA-256 hashing.
  */
 export class MockEmbeddingProvider implements EmbeddingProvider {
-  readonly modelId = "mock";
+  readonly modelId: string;
   readonly dimensions: number;
 
-  constructor(dimensions: number) {
+  constructor(dimensions: number, modelId: string = "mock") {
     this.dimensions = dimensions;
+    this.modelId = modelId;
   }
 
   async embed(input: EmbedInput): Promise<Float32Array> {
-    const content = input.kind === "text" ? input.text : input.data;
+    const content = await serializeInput(input);
     const seed = createHash("sha256").update(content).digest();
 
     const vector = new Float32Array(this.dimensions);
@@ -44,4 +45,30 @@ export class MockEmbeddingProvider implements EmbeddingProvider {
 
     return vector;
   }
+}
+
+async function serializeInput(input: EmbedInput): Promise<Buffer> {
+  const serializedParts = await Promise.all(
+    input.parts.map(async (part) => {
+      if (part.kind === "text") {
+        return `text:${part.text}`;
+      }
+
+      if (part.kind === "file-uri") {
+        return `file-uri:${part.mimeType}:${part.uri}`;
+      }
+
+      return Buffer.concat([
+        Buffer.from(`inline-data:${part.mimeType}:`, "utf8"),
+        part.data,
+      ]);
+    }),
+  );
+
+  return Buffer.concat([
+    Buffer.from(`task:${input.taskType}:title:${input.title ?? ""}:`, "utf8"),
+    ...serializedParts.map((part) =>
+      typeof part === "string" ? Buffer.from(`${part}|`, "utf8") : Buffer.concat([part, Buffer.from("|", "utf8")]),
+    ),
+  ]);
 }

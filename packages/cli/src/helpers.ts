@@ -13,7 +13,7 @@ export function getBaseDir(): string {
 
 export function getGlobalOptions(cmd: {
   optsWithGlobals?: () => Record<string, unknown>;
-  parent?: { opts?: () => Record<string, unknown> };
+  parent?: { opts?: () => Record<string, unknown> } | null;
 }): GlobalCliOptions {
   if (typeof cmd.optsWithGlobals === "function") {
     return cmd.optsWithGlobals() as unknown as GlobalCliOptions;

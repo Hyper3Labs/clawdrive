@@ -1,7 +1,10 @@
 import { Command } from "commander";
+import { registerDigestCommand } from "./commands/digest.js";
+import { registerTldrCommand } from "./commands/tldr.js";
 import { registerGetCommand } from "./commands/get.js";
 import { registerPotCommand } from "./commands/pot.js";
 import { registerSearchCommand } from "./commands/search.js";
+import { registerTodoCommand } from "./commands/todo.js";
 import { registerServeCommand } from "./commands/serve.js";
 import { registerShareCommand } from "./commands/share.js";
 import { registerUiCommand } from "./commands/ui.js";
@@ -15,6 +18,9 @@ export const program = new Command()
 
 registerPotCommand(program);
 registerSearchCommand(program);
+registerTodoCommand(program);
+registerTldrCommand(program);
+registerDigestCommand(program);
 registerGetCommand(program);
 registerShareCommand(program);
 registerServeCommand(program);

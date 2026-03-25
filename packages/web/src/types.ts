@@ -6,7 +6,7 @@ export interface ProjectionPoint {
   fileName: string;
   contentType: string;
   tags: string[];
-  previewUrl: string;
+  previewUrl?: string;
 }
 
 export interface SearchResult {
@@ -20,6 +20,8 @@ export interface SearchResult {
   matchedChunk?: { index: number; label: string };
   totalChunks: number;
   filePath: string;
+  tldr: string | null;
+  abstract?: string | null;
   description: string | null;
 }
 
@@ -36,10 +38,18 @@ export interface FileInfo {
   original_name: string;
   content_type: string;
   file_size: number;
-  tags: string[];
-  taxonomy_path: string[];
-  description: string | null;
+  tldr?: string | null;
+  abstract?: string | null;
+  digest?: string | null;
+  description?: string | null;
   created_at: number;
+  updated_at: number;
+  source_url?: string | null;
+}
+
+export interface FileTagInfo {
+  id: string;
+  tags: string[];
 }
 
 export interface PotRecord {

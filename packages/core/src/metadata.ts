@@ -2,6 +2,9 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { acquireLock } from "./lock.js";
 
+export const TLDR_RECOMMENDED_MIN_WORDS = 20;
+export const TLDR_RECOMMENDED_MAX_WORDS = 45;
+
 export function slugifyPotName(name: string): string {
   return name
     .trim()
@@ -24,6 +27,33 @@ export function extractPotSlugs(tags: string[]): string[] {
 export function dedupeTags(tags: string[]): string[] {
   return Array.from(new Set(tags.filter(Boolean)));
 }
+
+export function normalizeTldr(value: string | null | undefined): string | null {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = value
+    .trim()
+    .replace(/\s+/g, " ");
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+export function countWords(value: string | null | undefined): number {
+  if (!value) {
+    return 0;
+  }
+
+  return value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+  export const ABSTRACT_RECOMMENDED_MIN_WORDS = TLDR_RECOMMENDED_MIN_WORDS;
+  export const ABSTRACT_RECOMMENDED_MAX_WORDS = TLDR_RECOMMENDED_MAX_WORDS;
+  export const normalizeAbstract = normalizeTldr;
 
 export async function readWorkspaceJson<T>(
   wsPath: string,

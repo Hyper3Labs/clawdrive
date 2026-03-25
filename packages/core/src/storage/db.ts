@@ -128,6 +128,11 @@ export function toFileRecord(raw: Record<string, unknown>): FileRecord {
     }
   }
 
+  row.description = (row.description as string | null) ?? null;
+  row.tldr = row.description;
+  row.digest = null;
+  row.abstract = row.description;
+
   return row as unknown as FileRecord;
 }
 

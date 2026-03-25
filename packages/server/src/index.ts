@@ -1,16 +1,18 @@
 import express from "express";
-import cors from "cors";
 import { join } from "node:path";
 import type { EmbeddingProvider } from "@clawdrive/core";
+import { createAppShell } from "./app.js";
 import { errorHandler } from "./middleware/error.js";
 import { createFileRoutes } from "./routes/files.js";
 import { createThumbnailRoutes } from "./routes/thumbnails.js";
 import { createPotRoutes } from "./routes/pots.js";
 import { createSearchRoutes } from "./routes/search.js";
 import { createShareRoutes } from "./routes/shares.js";
+import { createPublicShareRoutes } from "./routes/public-shares.js";
 import { createTaxonomyRoutes } from "./routes/taxonomy.js";
 import { createProjectionRoutes } from "./routes/projections.js";
 import { createUsageRoutes } from "./routes/usage.js";
+import { createPublicShareServer } from "./public.js";
 
 export interface ServerOptions {
   wsPath: string;
@@ -21,9 +23,9 @@ export interface ServerOptions {
 }
 
 export function createServer(opts: ServerOptions) {
-  const app = express();
-  app.use(cors());
-  app.use(express.json());
+  const app = createAppShell();
+
+  app.use("/s", createPublicShareRoutes(opts.wsPath));
 
   // API routes
   app.use("/api/files", createThumbnailRoutes(opts.wsPath));
@@ -48,3 +50,6 @@ export function createServer(opts: ServerOptions) {
   app.use(errorHandler);
   return app;
 }
+
+export { createPublicShareServer };
+export type { PublicShareServerOptions } from "./public.js";

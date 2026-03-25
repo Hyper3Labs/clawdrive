@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getFile } from "../../api";
+import type { FileInfo } from "../../types";
 
 interface FilePreviewProps {
   fileId: string;
@@ -7,9 +8,10 @@ interface FilePreviewProps {
 }
 
 export function FilePreview({ fileId, onClose }: FilePreviewProps) {
-  const [file, setFile] = useState<any>(null);
+  const [file, setFile] = useState<FileInfo | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const summary = file?.tldr ?? file?.abstract ?? file?.description ?? null;
 
   useEffect(() => {
     setLoading(true);
@@ -64,23 +66,55 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           <span>{formatSize(file.file_size)}</span>
           <span>{new Date(file.created_at).toLocaleDateString()}</span>
         </div>
-        {file.description && (
-          <div style={{ marginTop: 8, opacity: 0.7 }}>{file.description}</div>
+        {summary && (
+          <div style={{ marginTop: 8, opacity: 0.7 }}>{summary}</div>
         )}
-        {file.tags?.length > 0 && (
-          <div style={{ marginTop: 8, display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {file.tags.map((t: string) => (
-              <span key={t} style={{
-                padding: "2px 8px", borderRadius: 4, fontSize: 11,
-                background: "rgba(99,102,241,0.15)", color: "#a5b4fc",
-              }}>{t}</span>
-            ))}
+        {file.source_url && (
+          <div style={{ marginTop: 8 }}>
+            <a
+              href={file.source_url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: 12, color: "#93c5fd", textDecoration: "none" }}
+            >
+              Open source
+            </a>
           </div>
         )}
       </div>
 
       {/* Content preview */}
       <div style={{ flex: 1, overflow: "auto", padding: isPdf ? 0 : 16, display: "flex", flexDirection: "column" }}>
+        {file.digest && (
+          <div style={{
+            marginBottom: 16,
+            padding: 12,
+            borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.03)",
+          }}>
+            <div style={{
+              marginBottom: 8,
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              opacity: 0.55,
+            }}>
+              Digest
+            </div>
+            <pre style={{
+              margin: 0,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              fontFamily: "inherit",
+              fontSize: 12,
+              lineHeight: 1.6,
+              color: "rgba(255,255,255,0.85)",
+            }}>
+              {file.digest}
+            </pre>
+          </div>
+        )}
         {isImage && (
           <img
             src={`/api/files/${fileId}/content`}

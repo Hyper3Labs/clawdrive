@@ -65,7 +65,7 @@ export function registerGetCommand(program: Command) {
           return;
         }
 
-        const info = await getFileInfo(ref, { wsPath: ctx.wsPath });
+        const info = await getFileInfo(ref, { wsPath: ctx.wsPath, includeDigest: true });
         if (!info) {
           console.error(`Ref not found: ${ref}`);
           process.exit(1);

@@ -1,9 +1,7 @@
-import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { RefObject } from "react";
-import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { useVisualizationStore } from "./useVisualizationStore";
+import type CameraControlsImpl from "camera-controls";
 
 interface FocusTarget {
   x: number;
@@ -13,70 +11,62 @@ interface FocusTarget {
 
 interface MapCameraRigProps {
   focusTarget: FocusTarget | null;
-  controlsRef: RefObject<OrbitControlsImpl | null>;
+  focusKey: string;
+  controlsRef: RefObject<CameraControlsImpl | null>;
 }
 
-const RAMP_DURATION = 3; // seconds to ramp up auto-rotation
+const OVERVIEW_POSITION = new THREE.Vector3(0, 0, 50);
+const OVERVIEW_TARGET = new THREE.Vector3(0, 0, 0);
+const FOCUS_OFFSET = new THREE.Vector3(9, 5.5, 13);
 
-export function MapCameraRig({ focusTarget, controlsRef }: MapCameraRigProps) {
-  const { camera, clock } = useThree();
+export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRigProps) {
+  const hasInitialized = useRef(false);
   const targetVec = useMemo(() => new THREE.Vector3(), []);
   const desiredVec = useMemo(() => new THREE.Vector3(), []);
-  const idleStartTime = useRef<number | null>(null);
 
-  useFrame((_, delta) => {
-    // Focus mode: smoothly move to target
-    if (focusTarget) {
-      targetVec.set(focusTarget.x, focusTarget.y, focusTarget.z);
-      desiredVec.set(focusTarget.x + 8, focusTarget.y + 5, focusTarget.z + 12);
-      const settle = 1 - Math.exp(-delta * 3.2);
-      camera.position.lerp(desiredVec, settle);
-      if (controlsRef.current) {
-        controlsRef.current.target.lerp(targetVec, settle);
-        controlsRef.current.update();
-      } else {
-        camera.lookAt(targetVec);
-      }
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    controls.minDistance = 8;
+    controls.maxDistance = 140;
+    controls.minPolarAngle = 0.35;
+    controls.maxPolarAngle = Math.PI * 0.78;
+    controls.smoothTime = 0.65;
+    controls.draggingSmoothTime = 0.12;
+    controls.dollyToCursor = true;
+
+    const shouldTransition = hasInitialized.current;
+    hasInitialized.current = true;
+
+    controls.stop();
+
+    if (!focusTarget) {
+      void controls.setLookAt(
+        OVERVIEW_POSITION.x,
+        OVERVIEW_POSITION.y,
+        OVERVIEW_POSITION.z,
+        OVERVIEW_TARGET.x,
+        OVERVIEW_TARGET.y,
+        OVERVIEW_TARGET.z,
+        shouldTransition,
+      );
       return;
     }
 
-    // Check idle state
-    const idle = useVisualizationStore.getState().isIdle();
-    if (!idle) {
-      idleStartTime.current = null;
-      return; // Free camera — OrbitControls fully in charge
-    }
+    targetVec.set(focusTarget.x, focusTarget.y, focusTarget.z);
+    desiredVec.copy(targetVec).add(FOCUS_OFFSET);
 
-    // Track when idle started for ramp-up
-    if (idleStartTime.current === null) {
-      idleStartTime.current = clock.getElapsedTime();
-    }
-
-    // Ramp factor: 0 → 1 over RAMP_DURATION seconds
-    const idleDuration = clock.getElapsedTime() - idleStartTime.current;
-    const ramp = Math.min(idleDuration / RAMP_DURATION, 1);
-
-    const t = clock.getElapsedTime();
-    targetVec.set(
-      Math.sin(t * 0.11) * 2.4,
-      Math.cos(t * 0.07) * 1.5,
-      Math.cos(t * 0.09) * 2.2,
+    void controls.setLookAt(
+      desiredVec.x,
+      desiredVec.y,
+      desiredVec.z,
+      targetVec.x,
+      targetVec.y,
+      targetVec.z,
+      shouldTransition,
     );
-    desiredVec.set(
-      Math.cos(t * 0.05) * 52,
-      11 + Math.sin(t * 0.13) * 4,
-      Math.sin(t * 0.05) * 52,
-    );
-
-    const drift = (1 - Math.exp(-delta * 0.65)) * ramp;
-    camera.position.lerp(desiredVec, drift);
-    if (controlsRef.current) {
-      controlsRef.current.target.lerp(targetVec, drift);
-      controlsRef.current.update();
-    } else {
-      camera.lookAt(targetVec);
-    }
-  });
+  }, [controlsRef, desiredVec, focusKey, focusTarget, targetVec]);
 
   return null;
 }

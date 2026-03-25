@@ -3,7 +3,15 @@ import { access, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/pr
 import { dirname, join, resolve } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { store, type EmbeddingProvider } from "@clawdrive/core";
+import {
+  acquireLock,
+  createDatabase,
+  getFilesTable,
+  store,
+  toFileRecord,
+  update,
+  type EmbeddingProvider,
+} from "@clawdrive/core";
 
 const NASA_DEMO_NAME = "nasa";
 const NASA_DEMO_WORKSPACE = "nasa-demo";
@@ -11,17 +19,38 @@ const NASA_CACHE_DIR = join("context", "demo-datasets", "nasa");
 const NASA_MANIFEST_PATH = join("sample-files", "sources.json");
 const NASA_SAMPLE_DIR = "sample-files";
 const NASA_SEED_MARKER = join(".demo-seeds", "nasa.json");
+const LEGACY_NASA_NOTE_FILES = new Set([
+  "apollo-note.md",
+  "artemis-note.md",
+  "earth-note.md",
+  "hubble-note.md",
+  "mars-note.md",
+  "webb-note.md",
+]);
+const LEGACY_NASA_TAGS = new Set([
+  "demo",
+  "nasa",
+  "image",
+  "video",
+  "audio",
+  "pdf",
+  "note",
+  "apollo",
+  "artemis",
+  "earth",
+  "hubble",
+  "mars",
+  "webb",
+]);
+const LEGACY_NASA_WORKSPACE_METADATA_FILES = new Set([
+  "README.md",
+  "sources.json",
+]);
 
 interface NasaManifestEntry {
-  kind: string;
-  theme: string;
-  title: string;
   fileName: string;
   bytes: number;
-  nasaId: string | null;
-  query: string | null;
   sourceUrl: string | null;
-  downloadUrl: string | null;
 }
 
 interface NasaManifest {
@@ -130,6 +159,8 @@ async function ensureSeeded(
   cacheDir: string,
   ctx: DemoContext,
 ): Promise<void> {
+  await cleanupLegacySeedData(manifest, ctx);
+
   const markerPath = join(ctx.wsPath, NASA_SEED_MARKER);
   const marker = await readJsonFileOrNull<NasaSeedMarker>(markerPath);
   if (
@@ -154,9 +185,7 @@ async function ensureSeeded(
     const result = await store(
       {
         sourcePath,
-        tags: buildTags(entry),
-        description: buildDescription(entry),
-        sourceUrl: entry.sourceUrl ?? entry.downloadUrl ?? undefined,
+        sourceUrl: entry.sourceUrl ?? undefined,
       },
       { wsPath: ctx.wsPath, embedder: ctx.embedder },
     );
@@ -189,6 +218,64 @@ async function ensureSeeded(
   );
 }
 
+async function cleanupLegacySeedData(
+  manifest: NasaManifest,
+  ctx: DemoContext,
+): Promise<void> {
+  const db = await createDatabase(join(ctx.wsPath, "db"));
+  const table = await getFilesTable(db);
+  const rows = await table
+    .query()
+    .where("deleted_at IS NULL AND parent_id IS NULL")
+    .limit(1_000_000)
+    .toArray();
+
+  const files = rows.map((row) => toFileRecord(row as Record<string, unknown>));
+  const manifestNames = new Set(manifest.entries.map((entry) => entry.fileName));
+  const legacyWorkspaceMetadata = ctx.wsPath.endsWith(join("workspaces", NASA_DEMO_WORKSPACE))
+    ? LEGACY_NASA_WORKSPACE_METADATA_FILES
+    : new Set<string>();
+  const filesToPurge = new Set([
+    ...LEGACY_NASA_NOTE_FILES,
+    ...legacyWorkspaceMetadata,
+  ]);
+
+  const purgeFiles = files.filter((file) => filesToPurge.has(file.original_name));
+  if (purgeFiles.length > 0) {
+    const release = await acquireLock(ctx.wsPath);
+    try {
+      const lockedDb = await createDatabase(join(ctx.wsPath, "db"));
+      const lockedTable = await getFilesTable(lockedDb);
+      for (const file of purgeFiles) {
+        await rm(join(ctx.wsPath, "files", file.file_path), { force: true });
+        await lockedTable.delete(`id = '${file.id}' OR parent_id = '${file.id}'`);
+      }
+    } finally {
+      await release();
+    }
+  }
+
+  const managedFiles = files.filter((file) => manifestNames.has(file.original_name));
+  for (const file of managedFiles) {
+    const nextTags = file.tags.filter((tag) => !LEGACY_NASA_TAGS.has(tag));
+    const shouldClearDescription = file.description !== null;
+    const shouldUpdateTags = nextTags.length !== file.tags.length;
+
+    if (!shouldClearDescription && !shouldUpdateTags) {
+      continue;
+    }
+
+    await update(
+      file.id,
+      {
+        description: null,
+        ...(shouldUpdateTags ? { tags: nextTags } : {}),
+      },
+      { wsPath: ctx.wsPath },
+    );
+  }
+}
+
 async function resolveEntryPath(
   entry: NasaManifestEntry,
   sampleDir: string,
@@ -206,22 +293,7 @@ async function resolveEntryPath(
 }
 
 function getRemoteUrl(entry: NasaManifestEntry): string | null {
-  return entry.downloadUrl ?? entry.sourceUrl;
-}
-
-function buildTags(entry: NasaManifestEntry): string[] {
-  return [...new Set(["demo", "nasa", entry.theme, entry.kind].filter(Boolean))];
-}
-
-function buildDescription(entry: NasaManifestEntry): string {
-  const fragments = [entry.title];
-  if (entry.query) {
-    fragments.push(`NASA query: ${entry.query}`);
-  }
-  if (entry.nasaId) {
-    fragments.push(`NASA ID: ${entry.nasaId}`);
-  }
-  return fragments.join(". ");
+  return entry.sourceUrl;
 }
 
 async function findRepoRoot(startDir: string): Promise<string> {

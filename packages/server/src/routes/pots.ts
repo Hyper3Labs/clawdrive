@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { createPot, listPotFiles, listPots, renamePot, deletePot } from "@clawdrive/core";
-
-function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vector"> {
-  const { vector: _vector, ...rest } = record;
-  return rest;
-}
+import { toFileMetadataRecord } from "../lib/file-metadata.js";
+import {
+  createPot,
+  listPotFiles,
+  listPots,
+  renamePot,
+  deletePot,
+} from "@clawdrive/core";
 
 export function createPotRoutes(wsPath: string): Router {
   const router = Router();
@@ -64,7 +66,7 @@ export function createPotRoutes(wsPath: string): Router {
   router.get("/:pot/files", async (req, res, next) => {
     try {
       const items = await listPotFiles(req.params.pot, { wsPath });
-      res.json({ items: items.map(withoutVector), total: items.length });
+      res.json({ items: items.map((item) => toFileMetadataRecord(item)), total: items.length });
     } catch (err) {
       next(err);
     }

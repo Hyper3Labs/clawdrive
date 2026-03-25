@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import { createServer } from "@clawdrive/server";
-import { prepareDemoWorkspace, resolveWorkspaceForDemo } from "../demo/nasa.js";
-import { getGlobalOptions, setupContext } from "../helpers.js";
+import { parseServerBindings, resolveStaticWebDir, setupServerContext, startPublicShareSurface } from "../server-runtime.js";
 
 export function registerServeCommand(program: Command) {
   program
@@ -9,56 +8,32 @@ export function registerServeCommand(program: Command) {
     .description("Start REST API server + web UI")
     .option("--port <port>", "Port number", "7432")
     .option("--host <host>", "Host to bind", "127.0.0.1")
+    .option("--public-port <port>", "Optional share-only public surface port")
+    .option("--public-host <host>", "Host to bind the share-only public surface")
     .option("--demo <dataset>", "Prepare and launch a curated demo dataset")
     .action(async (cmdOpts, cmd) => {
-      const rootCommand = cmd.parent ?? cmd;
-      const globalOpts = getGlobalOptions(cmd);
-      const workspaceSource = rootCommand.getOptionValueSource?.("workspace");
-      const workspace = resolveWorkspaceForDemo(
-        globalOpts.workspace,
-        cmdOpts.demo,
-        workspaceSource,
-      );
-      const ctx = await setupContext({ ...globalOpts, workspace });
-      await prepareDemoWorkspace(cmdOpts.demo, ctx);
-
-      const port = parseInt(cmdOpts.port, 10);
-      const host = cmdOpts.host;
-
-      // Try to find the web UI build
-      // It would be at packages/web/dist relative to the package, or bundled
-      // For now, staticDir is optional
-      let staticDir: string | undefined;
-      try {
-        // Attempt to resolve @clawdrive/web dist path
-        const { createRequire } = await import("node:module");
-        const require = createRequire(import.meta.url);
-        const webPkg = require.resolve("@clawdrive/web/package.json");
-        const { dirname, join } = await import("node:path");
-        const webDist = join(dirname(webPkg), "dist");
-        const { stat } = await import("node:fs/promises");
-        await stat(webDist);
-        staticDir = webDist;
-      } catch {
-        // Web UI not built or not available — serve API only
-      }
+      const ctx = await setupServerContext(cmd, cmdOpts.demo);
+      const bindings = parseServerBindings(cmdOpts);
+      const staticDir = await resolveStaticWebDir();
 
       const app = createServer({
         wsPath: ctx.wsPath,
         embedder: ctx.embedder,
-        port,
-        host,
+        port: bindings.port,
+        host: bindings.host,
         staticDir,
       });
 
-      app.listen(port, host, () => {
-        console.log(`ClawDrive server running at http://${host}:${port}`);
+      app.listen(bindings.port, bindings.host, () => {
+        console.log(`ClawDrive server running at http://${bindings.host}:${bindings.port}`);
         if (staticDir) {
-          console.log(`Web UI available at http://${host}:${port}`);
+          console.log(`Web UI available at http://${bindings.host}:${bindings.port}`);
         } else {
           console.log("Web UI not built - run 'npm run build:web' to enable");
         }
         console.log("Press Ctrl+C to stop");
       });
+
+      startPublicShareSurface(ctx.wsPath, bindings);
     });
 }

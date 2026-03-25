@@ -4,6 +4,8 @@ import { readFile, appendFile, stat, readdir, unlink } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
 import { createDatabase, getFilesTable, toFileRecord, insertFileRecord } from "./storage/db.js";
 import { acquireLock } from "./lock.js";
+import { normalizeTldr } from "./metadata.js";
+import { setDigest } from "./digests.js";
 
 export interface ManageOptions {
   wsPath: string;
@@ -41,11 +43,11 @@ export async function remove(
 }
 
 /**
- * Update tags and/or description on a file record.
+ * Update tags and/or short-summary-compatible metadata on a file record.
  */
 export async function update(
   id: string,
-  changes: { tags?: string[]; description?: string },
+  changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; abstract?: string | null },
   opts: ManageOptions,
 ): Promise<void> {
   const { wsPath } = opts;
@@ -55,15 +57,19 @@ export async function update(
     const db = await createDatabase(dbPath);
     const table = await getFilesTable(db);
 
-    const values: Record<string, string | number | string[]> = {
+    const values: Record<string, string | number | string[] | null> = {
       updated_at: Date.now(),
     };
 
     if (changes.tags !== undefined) {
       values.tags = changes.tags;
     }
-    if (changes.description !== undefined) {
-      values.description = changes.description;
+    if (changes.tldr !== undefined) {
+      values.description = normalizeTldr(changes.tldr);
+    } else if (changes.abstract !== undefined) {
+      values.description = normalizeTldr(changes.abstract);
+    } else if (changes.description !== undefined) {
+      values.description = normalizeTldr(changes.description);
     }
 
     // LanceDB table.update() silently fails when updating List<Utf8> columns
@@ -93,6 +99,10 @@ export async function update(
   } finally {
     await release();
   }
+
+  if (changes.digest !== undefined) {
+    await setDigest(id, changes.digest, { wsPath });
+  }
 }
 
 /**
@@ -102,7 +112,7 @@ export async function update(
 async function updateRowsWithEmptyList(
   table: Awaited<ReturnType<typeof getFilesTable>>,
   whereClause: string,
-  values: Record<string, string | number | string[]>,
+  values: Record<string, string | number | string[] | null>,
 ): Promise<void> {
   const rows = await table.query().where(whereClause).limit(1_000_000).toArray();
   if (rows.length === 0) return;
@@ -316,6 +326,14 @@ export async function listFiles(
       return b.id > a.id ? 1 : b.id < a.id ? -1 : 0;
     });
 
+  if (input.taxonomyPath && input.taxonomyPath.length > 0) {
+    items = items.filter((item) =>
+      input.taxonomyPath!.every((segment) => item.taxonomy_path.includes(segment)),
+    );
+  }
+
+  const total = items.length;
+
   // Apply cursor: skip items until we pass the cursor id
   if (input.cursor) {
     const cursorIdx = items.findIndex((item) => item.id === input.cursor);
@@ -329,7 +347,7 @@ export async function listFiles(
   const pageItems = items.slice(0, limit);
   const nextCursor = hasMore ? pageItems[pageItems.length - 1]?.id : undefined;
 
-  return { items: pageItems, nextCursor, total: allRows.length };
+  return { items: pageItems, nextCursor, total };
 }
 
 export interface UsageEntry {

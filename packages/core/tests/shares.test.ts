@@ -4,7 +4,15 @@ import { join } from "node:path";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 import { buildPotTag } from "../src/metadata.js";
 import { createPot } from "../src/pots.js";
-import { approveShare, createPotShare, listShareInbox, resolveShare, revokeShare } from "../src/shares.js";
+import {
+  approveShare,
+  createPotShare,
+  getPublicShare,
+  listShareInbox,
+  resolvePublicShare,
+  resolveShare,
+  revokeShare,
+} from "../src/shares.js";
 import { store } from "../src/store.js";
 import { createTestWorkspace } from "./helpers.js";
 
@@ -66,5 +74,47 @@ describe("shares", () => {
 
     const resolved = await resolveShare(share.id, { wsPath: ctx.wsPath });
     expect(resolved).toBeNull();
+  });
+
+  it("snapshots public share membership when the share is created", async () => {
+    const pot = await createPot({ name: "Acme DD" }, { wsPath: ctx.wsPath });
+
+    const first = join(ctx.baseDir, "brief.md");
+    await writeFile(first, "brief text");
+    await store(
+      {
+        sourcePath: first,
+        tags: [buildPotTag(pot.slug)],
+        description: "Initial brief",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const pending = await createPotShare(
+      { pot: pot.slug, kind: "link", role: "read" },
+      { wsPath: ctx.wsPath },
+    );
+
+    const second = join(ctx.baseDir, "appendix.md");
+    await writeFile(second, "appendix text");
+    await store(
+      {
+        sourcePath: second,
+        tags: [buildPotTag(pot.slug)],
+        description: "Late appendix",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const approved = await approveShare(pending.id, { wsPath: ctx.wsPath });
+
+    expect(await getPublicShare(approved.id, { wsPath: ctx.wsPath })).toBeNull();
+
+    const publicResolved = await resolvePublicShare(approved.token!, { wsPath: ctx.wsPath });
+    expect(publicResolved?.items).toHaveLength(1);
+    expect(publicResolved?.items[0]?.original_name).toBe("brief.md");
+
+    const liveResolved = await resolveShare(approved.token!, { wsPath: ctx.wsPath });
+    expect(liveResolved?.files).toHaveLength(2);
   });
 });

@@ -2,23 +2,16 @@ import { mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Command } from "commander";
-import { buildPotTag, createPot, dedupeTags, getFileInfo, requirePot, store, update } from "@clawdrive/core";
+import { createPot, requirePot } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
 import { getGlobalOptions, setupContext, setupWorkspaceContext } from "../helpers.js";
+import { importSourceToPot, summarizeImportResults, type PotImportResult } from "../pot-import.js";
 
 interface CollectedSource {
   source: string;
   path: string;
   sourceUrl?: string;
   cleanup?: () => Promise<void>;
-}
-
-interface PotAddResult {
-  source: string;
-  status: "stored" | "attached" | "existing" | "error";
-  id?: string;
-  chunks?: number;
-  error?: string;
 }
 
 async function walkDir(dir: string): Promise<string[]> {
@@ -97,19 +90,6 @@ async function collectSource(source: string): Promise<CollectedSource[]> {
   throw new Error(`Unsupported source: ${source}`);
 }
 
-function summarizeResults(results: PotAddResult[]): { stored: number; attached: number; existing: number; failed: number } {
-  return results.reduce(
-    (summary, result) => {
-      if (result.status === "stored") summary.stored += 1;
-      if (result.status === "attached") summary.attached += 1;
-      if (result.status === "existing") summary.existing += 1;
-      if (result.status === "error") summary.failed += 1;
-      return summary;
-    },
-    { stored: 0, attached: 0, existing: 0, failed: 0 },
-  );
-}
-
 export function registerPotCommand(program: Command) {
   const pot = program
     .command("pot")
@@ -152,46 +132,21 @@ export function registerPotCommand(program: Command) {
 
       try {
         const potRecord = await requirePot(potRef, { wsPath: ctx.wsPath });
-        const potTag = buildPotTag(potRecord.slug);
         const collected = (await Promise.all(sources.map((source) => collectSource(source)))).flat();
-        const results: PotAddResult[] = [];
+        const results: PotImportResult[] = [];
 
         for (const source of collected) {
           try {
-            const result = await store(
+            const result = await importSourceToPot(
               {
-                sourcePath: source.path,
-                tags: [potTag],
+                source: source.source,
+                path: source.path,
                 sourceUrl: source.sourceUrl,
               },
+              potRecord.slug,
               { wsPath: ctx.wsPath, embedder: ctx.embedder },
             );
-
-            if (result.status === "duplicate") {
-              const existingId = result.duplicateId ?? result.id;
-              const existing = await getFileInfo(existingId, { wsPath: ctx.wsPath });
-              if (!existing) {
-                throw new Error(`Duplicate file vanished: ${existingId}`);
-              }
-
-              if (existing.tags.includes(potTag)) {
-                results.push({ source: source.source, status: "existing", id: existing.id });
-              } else {
-                await update(
-                  existing.id,
-                  { tags: dedupeTags([...existing.tags, potTag]) },
-                  { wsPath: ctx.wsPath },
-                );
-                results.push({ source: source.source, status: "attached", id: existing.id });
-              }
-            } else {
-              results.push({
-                source: source.source,
-                status: "stored",
-                id: result.id,
-                chunks: result.chunks,
-              });
-            }
+            results.push(result);
           } catch (err) {
             results.push({
               source: source.source,
@@ -203,7 +158,7 @@ export function registerPotCommand(program: Command) {
           }
         }
 
-        const summary = summarizeResults(results);
+        const summary = summarizeImportResults(results);
 
         if (globalOpts.json) {
           console.log(formatJson({

@@ -3,9 +3,11 @@ import { join, resolve } from "node:path";
 import { copyFile } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
 import { createDatabase, getFilesTable, toFileRecord } from "./storage/db.js";
+import { getDigest } from "./digests.js";
 
 export interface ReadOptions {
   wsPath: string;
+  includeDigest?: boolean;
 }
 
 /**
@@ -26,7 +28,16 @@ export async function getFileInfo(
     .toArray();
 
   if (rows.length === 0) return null;
-  return toFileRecord(rows[0] as Record<string, unknown>);
+
+  const record = toFileRecord(rows[0] as Record<string, unknown>);
+  if (!opts.includeDigest) {
+    return record;
+  }
+
+  return {
+    ...record,
+    digest: await getDigest(record.id, { wsPath: opts.wsPath }),
+  };
 }
 
 /**
@@ -36,7 +47,7 @@ export async function getFilePath(
   id: string,
   opts: ReadOptions,
 ): Promise<string | null> {
-  const info = await getFileInfo(id, opts);
+  const info = await getFileInfo(id, { ...opts, includeDigest: false });
   if (!info) return null;
   return join(opts.wsPath, "files", info.file_path);
 }

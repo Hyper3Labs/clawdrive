@@ -42,7 +42,7 @@ describe("detectMimeType", () => {
     expect(detectMimeType("video.webm")).toBe("video/webm");
   });
   it("detects MPEG", () => {
-    expect(detectMimeType("video.mpeg")).toBe("video/mp4");
+    expect(detectMimeType("video.mpeg")).toBe("video/mpeg");
   });
   it("detects MP3", () => {
     expect(detectMimeType("song.mp3")).toBe("audio/mpeg");

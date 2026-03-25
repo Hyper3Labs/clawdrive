@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { CameraControls } from "@react-three/drei";
 import { PointCloud } from "./PointCloud";
 import { ClusterLabels } from "./ClusterLabels";
 import { ExpandablePreview } from "./ExpandablePreview";
@@ -10,7 +10,7 @@ import { MapCameraRig } from "./MapCameraRig";
 import { useProjections } from "./useProjections";
 import React, { useMemo, useRef, useEffect } from "react";
 import { MAP_THEME } from "../../theme";
-import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import type CameraControlsImpl from "camera-controls";
 
 const STATUS_STYLE: React.CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "center",
@@ -23,10 +23,11 @@ interface EmbeddingSpaceProps {
 
 export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   const { points, loading, error } = useProjections();
-  const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const controlsRef = useRef<CameraControlsImpl | null>(null);
   const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
   const clickFile = useVisualizationStore((s) => s.clickFile);
   const hoverFile = useVisualizationStore((s) => s.hoverFile);
+  const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
   const lastConsumedFocusId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -38,9 +39,11 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
     }
   }, [focusFileId, points, clickFile]);
 
+  const focusAnchorId = clickedFileId ?? focusFileId;
+
   const focusTarget = useMemo(() => {
-    if (!focusFileId) return null;
-    const anchor = points.find((point) => point.id === focusFileId);
+    if (!focusAnchorId) return null;
+    const anchor = points.find((point) => point.id === focusAnchorId);
     if (!anchor) return null;
 
     const nearest = points
@@ -68,7 +71,9 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
 
     if (sumW === 0) return { x: anchor.x, y: anchor.y, z: anchor.z };
     return { x: x / sumW, y: y / sumW, z: z / sumW };
-  }, [focusFileId, points]);
+  }, [focusAnchorId, points]);
+
+  const cameraTargetKey = focusAnchorId ?? "overview";
 
   if (loading)
     return (
@@ -118,16 +123,15 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
 
         <MapCameraRig
           focusTarget={focusTarget}
+          focusKey={cameraTargetKey}
           controlsRef={controlsRef}
         />
-        <OrbitControls
+        <CameraControls
           ref={controlsRef}
-          enableDamping
-          dampingFactor={0.05}
-          minDistance={8}
-          maxDistance={140}
-          onStart={() => recordInteraction()}
-          onEnd={() => recordInteraction()}
+          makeDefault
+          onControlStart={() => recordInteraction()}
+          onControlEnd={() => recordInteraction()}
+          onTransitionStart={() => recordInteraction()}
         />
       </Canvas>
       <ExpandablePreview points={points} />

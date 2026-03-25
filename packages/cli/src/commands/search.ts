@@ -7,10 +7,9 @@ import { formatSearchResults } from "../formatters/human.js";
 
 export function registerSearchCommand(program: Command) {
   program
-    .command("search <query>")
+    .command("search [query]")
     .description("Search by meaning across the workspace or a single pot")
     .option("--image <path>", "Image file to use as query input")
-    .option("--mode <mode>", "Search mode: vector, fts, or hybrid", "vector")
     .option("--pot <pot>", "Limit search to a pot")
     .option("--type <mime>", "Filter by MIME content type")
     .option("--tags <tags>", "Comma-separated tag filter", (val: string) => val.split(","))
@@ -18,13 +17,12 @@ export function registerSearchCommand(program: Command) {
     .option("--min-score <n>", "Minimum score threshold", (val: string) => parseFloat(val))
     .option("--after <date>", "Filter: created after date (ISO 8601)")
     .option("--before <date>", "Filter: created before date (ISO 8601)")
-    .action(async (query: string, cmdOpts, cmd) => {
+    .action(async (query: string | undefined, cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupContext(globalOpts);
 
       const input: SearchInput = {
         query,
-        mode: cmdOpts.mode as SearchInput["mode"],
         pot: cmdOpts.pot,
         contentType: cmdOpts.type,
         tags: cmdOpts.tags,

@@ -7,10 +7,13 @@ export async function searchFiles(query: string, opts?: Record<string, string>) 
   return res.json();
 }
 
-export async function listFiles(opts?: { limit?: number; cursor?: string }) {
+export async function listFiles(opts?: { limit?: number; cursor?: string; taxonomyPath?: string[] }) {
   const params = new URLSearchParams();
   if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.cursor) params.set("cursor", opts.cursor);
+  if (opts?.taxonomyPath && opts.taxonomyPath.length > 0) {
+    params.set("taxonomyPath", opts.taxonomyPath.join("/"));
+  }
   const res = await fetch(`${BASE}/files?${params}`);
   if (!res.ok) throw new Error(`List failed: ${res.statusText}`);
   return res.json();
@@ -19,6 +22,12 @@ export async function listFiles(opts?: { limit?: number; cursor?: string }) {
 export async function getFile(id: string) {
   const res = await fetch(`${BASE}/files/${id}`);
   if (!res.ok) throw new Error(`Get file failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function getFileTags(id: string) {
+  const res = await fetch(`${BASE}/files/${id}/tags`);
+  if (!res.ok) throw new Error(`Get file tags failed: ${res.statusText}`);
   return res.json();
 }
 
@@ -81,7 +90,7 @@ export async function listPotFiles(potSlug: string) {
 export const fileContentUrl = (id: string) => `/api/files/${encodeURIComponent(id)}/content`;
 export const fileThumbnailUrl = (id: string) => `/api/files/${encodeURIComponent(id)}/thumbnail`;
 
-export async function updateFile(id: string, changes: { tags?: string[]; description?: string }) {
+export async function updateFile(id: string, changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; abstract?: string | null }) {
   const res = await fetch(`${BASE}/files/${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

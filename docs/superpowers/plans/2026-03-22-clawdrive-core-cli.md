@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-03-22-clawdrive-v1-design.md`
 
+**2026-03-25 Alignment Update:** Keep the first multimodal pass tightly aligned with the Gemini Embedding 2 docs: one shared 3072-d embedding space, `RETRIEVAL_DOCUMENT` for indexed corpus items, `RETRIEVAL_QUERY` for search queries, native media bytes or Files API handles for non-text inputs, and parent vectors built from aggregated child embeddings. Video transcript enrichment is explicitly deferred; this plan only uses Gemini's native video embeddings.
+
 ---
 
 ## File Structure
@@ -422,8 +424,8 @@ export interface StoreResult {
 }
 
 export interface SearchInput {
-  query: string;
-  queryImage?: string; // path to image file
+  query?: string;
+  queryImage?: string; // path to image file; image-only and text+image queries are both allowed
   mode?: "vector" | "fts" | "hybrid";
   contentType?: string;
   tags?: string[];
@@ -472,7 +474,7 @@ export const ConfigSchema = z.object({
   default_workspace: z.string().default("default"),
   embedding: z.object({
     model: z.string().default("gemini-embedding-2-preview"),
-    dimensions: z.number().default(3072),
+    dimensions: z.literal(3072).default(3072),
   }).default({}),
   store: z.object({
     concurrency: z.number().default(3),
@@ -833,29 +835,55 @@ describe("MockEmbeddingProvider", () => {
   const provider = new MockEmbeddingProvider(3072);
 
   it("returns a vector of correct dimensions", async () => {
-    const result = await provider.embed({ kind: "text", text: "hello", taskType: "RETRIEVAL_DOCUMENT" });
+    const result = await provider.embed({
+      parts: [{ kind: "text", text: "hello" }],
+      taskType: "RETRIEVAL_DOCUMENT",
+      title: "hello.md",
+    });
     expect(result).toBeInstanceOf(Float32Array);
     expect(result.length).toBe(3072);
   });
 
   it("returns deterministic vectors for same input", async () => {
-    const a = await provider.embed({ kind: "text", text: "hello", taskType: "RETRIEVAL_DOCUMENT" });
-    const b = await provider.embed({ kind: "text", text: "hello", taskType: "RETRIEVAL_DOCUMENT" });
+    const a = await provider.embed({
+      parts: [{ kind: "text", text: "hello" }],
+      taskType: "RETRIEVAL_DOCUMENT",
+    });
+    const b = await provider.embed({
+      parts: [{ kind: "text", text: "hello" }],
+      taskType: "RETRIEVAL_DOCUMENT",
+    });
     expect(a).toEqual(b);
   });
 
   it("returns different vectors for different inputs", async () => {
-    const a = await provider.embed({ kind: "text", text: "hello", taskType: "RETRIEVAL_DOCUMENT" });
-    const b = await provider.embed({ kind: "text", text: "world", taskType: "RETRIEVAL_DOCUMENT" });
+    const a = await provider.embed({
+      parts: [{ kind: "text", text: "hello" }],
+      taskType: "RETRIEVAL_DOCUMENT",
+    });
+    const b = await provider.embed({
+      parts: [{ kind: "text", text: "world" }],
+      taskType: "RETRIEVAL_DOCUMENT",
+    });
     expect(a).not.toEqual(b);
   });
 
   it("handles binary input", async () => {
     const result = await provider.embed({
-      kind: "binary",
-      data: Buffer.from("image data"),
-      mimeType: "image/png",
+      parts: [{ kind: "inlineData", data: Buffer.from("image data"), mimeType: "image/png" }],
       taskType: "RETRIEVAL_DOCUMENT",
+      title: "diagram.png",
+    });
+    expect(result.length).toBe(3072);
+  });
+
+  it("handles combined text plus image input", async () => {
+    const result = await provider.embed({
+      parts: [
+        { kind: "text", text: "system architecture" },
+        { kind: "inlineData", data: Buffer.from("image data"), mimeType: "image/png" },
+      ],
+      taskType: "RETRIEVAL_QUERY",
     });
     expect(result.length).toBe(3072);
   });
@@ -873,9 +901,16 @@ Expected: FAIL.
 // packages/core/src/embedding/types.ts
 import type { TaskType } from "../types.js";
 
-export type EmbedInput =
-  | { kind: "text"; text: string; taskType: TaskType }
-  | { kind: "binary"; data: Buffer; mimeType: string; taskType: TaskType };
+export type EmbedPart =
+  | { kind: "text"; text: string }
+  | { kind: "inlineData"; data: Buffer; mimeType: string }
+  | { kind: "fileUri"; uri: string; mimeType: string };
+
+export interface EmbedInput {
+  parts: EmbedPart[];
+  taskType: TaskType;
+  title?: string;
+}
 
 export interface EmbeddingProvider {
   embed(input: EmbedInput): Promise<Float32Array>;
@@ -892,11 +927,15 @@ Use `node:crypto` `createHash("sha256")` to derive a deterministic seed from inp
 
 Use `@google/genai` SDK. Implement `GeminiEmbeddingProvider` class:
 - Constructor takes API key, model ID, dimensions
-- `embed()` calls `client.models.embedContent()` with the input
-- For text inputs: pass text directly with taskType
-- For binary inputs: pass as inline data with mimeType
+- `embed()` builds one Gemini embedding request from the ordered `parts` array and calls `client.models.embedContent()`
+- For text parts: pass the text directly
+- For smaller binary parts: pass inline data with mimeType
+- For larger or reused binary inputs: upload with the Files API and pass a file URI part instead of forcing inline upload
+- Pass `taskType`, `outputDimensionality: 3072`, and `title` for `RETRIEVAL_DOCUMENT` inputs when available
+- Multiple parts in one request must produce one combined embedding so text+image queries stay aligned with the Gemini docs
 - Add exponential backoff retry wrapper (3 retries, 1s/2s/4s + jitter)
 - 5-minute timeout on HTTP calls
+- Do not add transcript extraction for video in this pass; video uses Gemini's native video embedding path only
 
 Check @context7 for `@google/genai` SDK docs for correct embedding API usage.
 
@@ -1013,7 +1052,8 @@ export interface Chunk {
   index: number;
   label: string;       // "pages 1-6", "Section: Methods", "0:00-2:00"
   text?: string;       // for text chunks
-  data?: Buffer;       // for binary chunks (PDF pages, video segments)
+  data?: Buffer;       // for inline binary chunks
+  filePath?: string;   // for temporary media files used with Gemini Files API
   mimeType?: string;   // for binary chunks
 }
 
@@ -1042,11 +1082,15 @@ Structure-preserving text splitter:
 
 - [ ] **Step 7: Implement pdf.ts, video.ts, audio.ts**
 
-These chunkers must produce actual binary segments — the Gemini Embedding API requires the real bytes, not page/time range metadata.
+These chunkers must produce actual binary segments or temporary media files — the Gemini Embedding API requires real media inputs, not page/time range metadata.
 
 - **pdf.ts**: Use `pdf-lib` (`npm install pdf-lib`) to split a PDF into 6-page segment files. Each chunk returns a `Buffer` containing a valid PDF with just those pages, plus `mimeType: "application/pdf"` and `label: "pages 1-6"`.
-- **video.ts**: Use `ffmpeg` (via `child_process.execFile`) to split video into 120s segments. Command: `ffmpeg -i input.mp4 -ss START -t 120 -c copy segment.mp4`. Each chunk returns the segment file path and `label: "0:00-2:00"`.
-- **audio.ts**: Use `ffmpeg` to split audio into 80s segments. Command: `ffmpeg -i input.mp3 -ss START -t 80 -c copy segment.mp3`. Each chunk returns the segment file path and `label: "0:00-1:20"`.
+- **video.ts**: Use `ffmpeg` (via `child_process.execFile`) to split video into 120s segments. Command: `ffmpeg -i input.mp4 -ss START -t 120 -c copy segment.mp4`. Each chunk returns the segment `filePath`, `mimeType`, and `label: "0:00-2:00"`.
+- **audio.ts**: Use `ffmpeg` to split audio into 80s segments. Command: `ffmpeg -i input.mp3 -ss START -t 80 -c copy segment.mp3`. Each chunk returns the segment `filePath`, `mimeType`, and `label: "0:00-1:20"`.
+
+For images, there is still no chunker: the store pipeline should embed the original image as one native-media chunk. Normalize unsupported image formats to PNG or JPEG before embedding. Normalize unsupported audio/video containers to Gemini-supported formats before embedding, and use Files API fallback for large media instead of forcing inline upload.
+
+Video transcript extraction is explicitly out of scope for this task. The first pass only uses Gemini's native video embeddings.
 
 Add `pdf-lib` to `packages/core/package.json` dependencies. ffmpeg is a system dependency (document in README that it's required for video/audio support).
 
@@ -1129,25 +1173,32 @@ describe("store", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
+Add focused failing tests for non-text ingestion as part of this task as well: image/PDF/audio/video inputs should assert that `store()` sends native media chunks into the embedder instead of collapsing those files into metadata text, and parent-vector tests should assert that the stored parent vector is the normalized average of all child vectors.
+
 Run: `cd packages/core && npx vitest run tests/store.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement store.ts**
 
-Implement the 13-step store pipeline from the spec:
+Implement the store pipeline from the spec:
 1. Hash file → check duplicate
 2. Generate UUID v7 for id
 3. Insert pending row (acquire lock, insert, release lock)
 4. Copy file to workspace (hard-link or copy)
-5. Detect MIME → select chunker → split into chunks
-6. Embed each chunk via EmbeddingProvider (with taskType: RETRIEVAL_DOCUMENT)
-7. Insert child rows for chunks (acquire lock, insert, release lock)
-8. Update parent row to "embedded" with vector from first chunk
-9. Populate `searchable_text` field (full text for text files, filename+desc+tags for binary)
+5. Detect MIME → select chunker → split into chunks, or treat a single image as one native-media chunk
+6. Build Gemini inputs for each chunk and embed with `taskType: RETRIEVAL_DOCUMENT`
+  - text/code chunks: one text part with contextual prefix
+  - image/PDF/audio/video chunks: native bytes or Files API handles, never metadata-text fallback
+  - pass `title` from the original filename when available
+7. Insert child rows for chunks (acquire lock, insert, release lock), recording `embedding_model` and `task_type` on every row
+8. Update parent row to "embedded" with the normalized average of child vectors, not the first chunk vector
+9. Populate `searchable_text` for FTS only (full text for text files, filename+desc+tags+chunk labels for binary)
 10. Log usage
 11. Return StoreResult
 
 Lock scope: acquire lock for the initial duplicate-check + pending-row-insert (these must be atomic to prevent race conditions). Release lock. Embed chunks without lock. Re-acquire lock for inserting child rows and updating parent to "embedded". Release lock.
+
+Video transcript enrichment is deferred. Do not extract transcript text or create a second text embedding for video in this task.
 
 - [ ] **Step 4: Run tests**
 
@@ -1254,23 +1305,31 @@ describe("search", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
+Add failing coverage for image-only queries, combined text+image queries, `embedding_model` filtering, and the rule that image-only queries must stay on vector mode.
+
 Run: `cd packages/core && npx vitest run tests/search.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement search.ts**
 
 Implement the search pipeline:
-1. Embed query with `taskType: RETRIEVAL_QUERY` (or `CODE_RETRIEVAL_QUERY` for code)
-2. Open LanceDB, get files table
-3. Vector search with `table.vectorSearch(queryVector)`
-4. Apply filters: `WHERE deleted_at IS NULL AND embedding_model = ?`
-5. Add content type, tags, date filters if provided
-6. Deduplicate by `parent_id` — group results, keep highest score per parent
-7. Attach chunk label from the best-matching chunk
-8. Return `SearchResult[]`
+1. Validate input: require at least one of `query` or `queryImage`
+2. Build one Gemini query embedding request
+  - text-only: one text part with `RETRIEVAL_QUERY`
+  - image-only: one image part with `RETRIEVAL_QUERY`
+  - text+image: one multipart request containing both parts
+  - use `CODE_RETRIEVAL_QUERY` only for text/code queries, not image-only queries
+3. Open LanceDB, get files table
+4. Vector search with `table.vectorSearch(queryVector)`
+5. Apply filters: `WHERE deleted_at IS NULL AND status = "embedded" AND embedding_model = ?`
+6. Add content type, tags, date filters if provided
+7. Deduplicate by `parent_id` — group results, keep highest score per parent
+8. Attach chunk label from the best-matching chunk
+9. Return `SearchResult[]`
 
 For FTS mode: use `table.search(query, "fts")` on `searchable_text` field.
 For hybrid mode: combine vector + FTS results via reciprocal rank fusion.
+FTS and hybrid require a non-empty text query. If `--image` is also present, use the combined text+image Gemini embedding for the vector side and the text query for the FTS side. Pure image queries always use vector mode.
 
 **Important:** Before FTS/hybrid search can work, the FTS index must exist. Add a helper `ensureFtsIndex(table)` that calls `table.createIndex("searchable_text", { config: Index.fts({ withPosition: true }) })` if the index doesn't already exist. Call this at the start of `search()` for FTS/hybrid modes. Note: LanceDB FTS index is NOT incrementally updated — after batch inserts via `storeBatch()`, the FTS index must be rebuilt by dropping and recreating it.
 
@@ -1530,10 +1589,15 @@ Exit code 2 if no API key. Exit code 5 if duplicate and `--fail-on-dup`.
 - [ ] **Step 4: Implement search command**
 
 ```typescript
-// clawdrive search <query> --image <path> --mode <vector|fts|hybrid>
+// clawdrive search [query] --image <path> --mode <vector|fts|hybrid>
 //   --type <mime> --tags <tags> --limit <n> --min-score <n>
 //   --after <date> --before <date> --json
 ```
+
+Command validation rules:
+- allow text-only, image-only, and combined text+image queries
+- reject `--mode fts` or `--mode hybrid` when no text query is provided
+- build one combined core search input when both text and image are present
 
 - [ ] **Step 5: Implement read and info commands**
 

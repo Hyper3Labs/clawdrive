@@ -174,11 +174,17 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
   // Fetch once on mount
   useEffect(() => {
     setLoading(true);
+    let cancelled = false;
+
     async function fetchAll() {
       const files: FileInfo[] = [];
       let cursor: string | undefined;
       for (let i = 0; i < 20; i++) {
-        const res: { items?: FileInfo[]; nextCursor?: string } = await listFiles({ limit: 100, cursor });
+        const res: { items?: FileInfo[]; nextCursor?: string } = await listFiles({
+          limit: 100,
+          cursor,
+          taxonomyPath: selectedPath.length > 1 ? selectedPath : undefined,
+        });
         const items = res.items ?? [];
         files.push(...items);
         if (!res.nextCursor || items.length === 0) break;
@@ -187,23 +193,31 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
       return files;
     }
     fetchAll()
-      .then(setAllFiles)
-      .catch(() => setAllFiles([]))
-      .finally(() => setLoading(false));
-  }, []); // fetch once on mount
-
-  // Filter + sort in memory (no refetch)
-  const displayFiles = useMemo(() => {
-    let filtered = allFiles;
-    if (selectedPath.length > 1) {
-      const byPath = allFiles.filter((f: any) => {
-        const tp: string[] = f.taxonomy_path ?? [];
-        return selectedPath.every((seg) => tp.includes(seg));
+      .then((files) => {
+        if (!cancelled) {
+          setAllFiles(files);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAllFiles([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
-      if (byPath.length > 0) filtered = byPath;
-    }
-    return sortFiles(filtered, sort);
-  }, [allFiles, selectedPath, sort]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPath]);
+
+  // Sort in memory after server-side filtering.
+  const displayFiles = useMemo(() => {
+    return sortFiles(allFiles, sort);
+  }, [allFiles, sort]);
 
   if (loading) {
     return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>Loading files...</div>;

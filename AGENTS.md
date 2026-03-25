@@ -8,29 +8,23 @@ Rules:
 - Prefer small, reviewable changes and preserve user-authored work.
 - Treat external projects as references, not code to copy.
 
-Run the app:
+Develop (two terminals):
 ```sh
-npm run build                    # build all packages (turbo)
-set -a && . ./.env && set +a
-node packages/cli/dist/bin/clawdrive.js serve --host 127.0.0.1 --port 7432
+npm run dev                      # turbo: tsc --watch (core/server/cli) + Vite on :5173
+node packages/cli/dist/bin/clawdrive.js serve   # API on :7432 (.env loaded automatically)
 ```
-Single process serves API (`/api/*`) + built frontend (`/`) on one port.
-Verify: `curl http://127.0.0.1:7432/api/files` → 200, open http://127.0.0.1:7432.
+Vite proxies `/api` → `localhost:7432`. Open http://127.0.0.1:5173.
 
-For frontend dev with hot-reload, run Vite separately:
-```sh
-cd packages/web && npm run dev -- --host 127.0.0.1   # port 5173, proxies /api → 7432
-```
-
-NASA demo (58 files, auto-downloads ~248 MB on first run):
+Production build:
 ```sh
 npm run build
-set -a && . ./.env && set +a
-node packages/cli/dist/bin/clawdrive.js ui --demo nasa --port 7432
+node packages/cli/dist/bin/clawdrive.js serve --host 127.0.0.1 --port 7432
 ```
-Or with a named workspace:
+Single process serves API + built frontend on one port.
+
+NASA demo (auto-downloads ~248 MB on first run):
 ```sh
-node packages/cli/dist/bin/clawdrive.js --workspace nasa-demo serve --host 127.0.0.1 --port 7432
+node packages/cli/dist/bin/clawdrive.js ui --demo nasa --port 7432
 ```
 
 Startup workflow:
