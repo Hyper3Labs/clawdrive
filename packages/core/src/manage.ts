@@ -278,6 +278,8 @@ export interface ListFilesInput {
   limit?: number;
   cursor?: string;
   taxonomyPath?: string[];
+  contentType?: string;
+  tags?: string[];
 }
 
 export interface ListFilesResult {
@@ -330,6 +332,13 @@ export async function listFiles(
     items = items.filter((item) =>
       input.taxonomyPath!.every((segment) => item.taxonomy_path.includes(segment)),
     );
+  }
+
+  if (input.contentType) {
+    items = items.filter((f) => f.content_type.startsWith(input.contentType!));
+  }
+  if (input.tags && input.tags.length > 0) {
+    items = items.filter((f) => input.tags!.every((t) => f.tags.includes(t)));
   }
 
   const total = items.length;

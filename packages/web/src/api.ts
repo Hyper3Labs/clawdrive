@@ -2,8 +2,16 @@ import type { UploadResult } from "./types";
 
 const BASE = "/api";
 
-export async function searchFiles(query: string, opts?: Record<string, string>) {
-  const params = new URLSearchParams({ q: query, ...opts });
+export async function searchFiles(
+  query: string,
+  opts?: { type?: string; tags?: string; pot?: string; limit?: number; minScore?: number },
+) {
+  const params = new URLSearchParams({ q: query });
+  if (opts?.type) params.set("type", opts.type);
+  if (opts?.tags) params.set("tags", opts.tags);
+  if (opts?.pot) params.set("pot", opts.pot);
+  if (opts?.limit) params.set("limit", String(opts.limit));
+  if (opts?.minScore) params.set("minScore", String(opts.minScore));
   const res = await fetch(`${BASE}/search?${params}`);
   if (!res.ok) throw new Error(`Search failed: ${res.statusText}`);
   return res.json();

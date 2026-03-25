@@ -67,16 +67,18 @@ async function listFilesForRoute(
   limit: number,
   cursor: string | undefined,
   taxonomyPath: string[] | undefined,
+  contentType: string | undefined,
+  tags: string[] | undefined,
 ) {
   if (!taxonomyPath) {
-    return listFiles({ limit, cursor }, { wsPath });
+    return listFiles({ limit, cursor, contentType, tags }, { wsPath });
   }
 
   const matchingItems = [] as Awaited<ReturnType<typeof listFiles>>["items"];
   let pageCursor: string | undefined;
 
   for (let page = 0; page < 200; page += 1) {
-    const result = await listFiles({ limit: 500, cursor: pageCursor }, { wsPath });
+    const result = await listFiles({ limit: 500, cursor: pageCursor, contentType, tags }, { wsPath });
     matchingItems.push(
       ...result.items.filter((item) => matchesTaxonomyPath(taxonomyPath, item.taxonomy_path)),
     );
@@ -160,8 +162,11 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
       const cursor = (req.query.cursor as string) || undefined;
       const taxonomyPath = parseTaxonomyPath(req.query.taxonomyPath);
+      const contentType = req.query.type as string | undefined;
+      const tagsParam = req.query.tags as string | undefined;
+      const tags = tagsParam ? tagsParam.split(",").map((t) => t.trim()).filter(Boolean) : undefined;
 
-      const result = await listFilesForRoute(wsPath, limit, cursor, taxonomyPath);
+      const result = await listFilesForRoute(wsPath, limit, cursor, taxonomyPath, contentType, tags);
 
       res.json({
         items: result.items.map((item) => toFileMetadataRecord(item)),

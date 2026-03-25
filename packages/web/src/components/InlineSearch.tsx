@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHand
 import { searchFiles } from "../api";
 import type { SearchResult } from "../types";
 import { MAP_THEME } from "../theme";
+import { SearchFilters, EMPTY_FILTERS, type SearchFilterState } from "./shared/SearchFilters";
 
 export interface InlineSearchHandle {
   focus: () => void;
@@ -44,10 +45,12 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
     const [loading, setLoading] = useState(false);
     const [queryTime, setQueryTime] = useState<number | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [filters, setFilters] = useState<SearchFilterState>(EMPTY_FILTERS);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     const onActiveChangeRef = useRef(onActiveChange);
+    const filtersRef = useRef<SearchFilterState>(EMPTY_FILTERS);
 
     useImperativeHandle(ref, () => ({
       focus: () => inputRef.current?.focus(),
@@ -61,6 +64,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
     }, []);
 
     useEffect(() => { onActiveChangeRef.current = onActiveChange; });
+    useEffect(() => { filtersRef.current = filters; }, [filters]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -87,7 +91,12 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
         setLoading(true);
         const start = performance.now();
         try {
-          const res = await searchFiles(q);
+          const currentFilters = filtersRef.current;
+          const searchOpts = {
+            type: currentFilters.types.length > 0 ? currentFilters.types.join(",") : undefined,
+            pot: currentFilters.pot ?? undefined,
+          };
+          const res = await searchFiles(q, searchOpts);
           const elapsed = performance.now() - start;
           setResults(res.results ?? []);
           setQueryTime(elapsed);
@@ -106,6 +115,14 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
       if (!dropdownOpen) {
         setDropdownOpen(true);
         onActiveChangeRef.current?.(true);
+      }
+    };
+
+    const handleFiltersChange = (newFilters: SearchFilterState) => {
+      setFilters(newFilters);
+      filtersRef.current = newFilters;
+      if (query.trim()) {
+        doSearch(query);
       }
     };
 
@@ -208,6 +225,16 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
               boxShadow: "0 12px 40px rgba(0,0,0,0.4)",
             }}
           >
+            {/* Filter row */}
+            <div
+              style={{
+                padding: "6px 12px",
+                borderBottom: "1px solid rgba(31, 54, 71, 0.4)",
+              }}
+            >
+              <SearchFilters value={filters} onChange={handleFiltersChange} />
+            </div>
+
             {results.length === 0 && query.trim() && !loading && (
               <div style={{ padding: "20px 16px", textAlign: "center", opacity: 0.4, fontSize: 13 }}>
                 No results found
