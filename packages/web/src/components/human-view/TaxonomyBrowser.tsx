@@ -7,7 +7,6 @@ import { FilePreview } from "./FilePreview";
 import { DropZone } from "../shared/DropZone";
 import { useUploadQueue } from "../../hooks/useUploadQueue";
 import { PotsSidebar } from "./PotsSidebar";
-import { useVisualizationStore } from "../agent-view/useVisualizationStore";
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "recent", label: "Recent" },
@@ -27,24 +26,14 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
   const [sort, setSort] = useState<SortMode>("recent");
   const [refreshKey, setRefreshKey] = useState(0);
   const { enqueue } = useUploadQueue({ onComplete: () => setRefreshKey(k => k + 1) });
-  const pots = useVisualizationStore((s) => s.pots);
-  const selectPot = useVisualizationStore((s) => s.selectPot);
-
   function handleSelectPot(slug: string | null) {
     setSelectedPotSlug(slug);
     setSelectedPath([]);
-    if (slug) {
-      const pot = pots.find((p) => p.slug === slug);
-      if (pot) selectPot(pot.id);
-    } else {
-      selectPot(null);
-    }
   }
 
   function handleSelectPath(path: string[]) {
     setSelectedPath(path);
     setSelectedPotSlug(null);
-    selectPot(null);
   }
 
   return (

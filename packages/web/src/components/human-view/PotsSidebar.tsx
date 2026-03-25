@@ -4,7 +4,7 @@ import { ContextMenu } from "../shared/ContextMenu";
 import { FileSearchPicker } from "../shared/FileSearchPicker";
 import { useToast } from "../shared/Toast";
 import { MAP_THEME } from "../../theme";
-import { getFileTags } from "../../api";
+import { getFileTags, listPotFiles } from "../../api";
 import type { PotRecord } from "../../types";
 
 interface PotsSidebarProps {
@@ -15,8 +15,8 @@ interface PotsSidebarProps {
 export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
   const pots = useVisualizationStore((s) => s.pots);
   const fetchPots = useVisualizationStore((s) => s.fetchPots);
-  const potFileIds = useVisualizationStore((s) => s.potFileIds);
   const createPot = useVisualizationStore((s) => s.createPot);
+  const [localPotFileIds, setLocalPotFileIds] = useState<Set<string>>(new Set());
   const renamePot = useVisualizationStore((s) => s.renamePot);
   const deletePot = useVisualizationStore((s) => s.deletePot);
   const assignFileToPot = useVisualizationStore((s) => s.assignFileToPot);
@@ -31,12 +31,25 @@ export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
 
   useEffect(() => { fetchPots(); }, [fetchPots]);
 
+  // Fetch pot file IDs locally — don't touch the shared store's selectedPotId
+  useEffect(() => {
+    if (!selectedSlug) { setLocalPotFileIds(new Set()); return; }
+    listPotFiles(selectedSlug)
+      .then((data) => {
+        const ids = new Set<string>((data.items ?? []).map((f: { id: string }) => f.id));
+        setLocalPotFileIds(ids);
+      })
+      .catch(() => setLocalPotFileIds(new Set()));
+  }, [selectedSlug]);
+
   async function handleAddFileToPot(fileId: string) {
     if (!selectedSlug) return;
     try {
       const res = await getFileTags(fileId);
       const tags = res.tags ?? [];
       await assignFileToPot(fileId, selectedSlug, tags);
+      // Refresh local file IDs
+      setLocalPotFileIds((prev) => new Set([...prev, fileId]));
       show("File added to pot", { type: "success" });
     } catch {
       show("Failed to add file", { type: "error" });
@@ -174,7 +187,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
           {pickerAnchor && (
             <FileSearchPicker
               onSelect={(fileId) => handleAddFileToPot(fileId)}
-              excludeIds={potFileIds}
+              excludeIds={localPotFileIds}
               onClose={() => setPickerAnchor(null)}
               anchorX={pickerAnchor.x}
               anchorY={pickerAnchor.y}
