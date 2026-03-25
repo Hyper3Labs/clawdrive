@@ -200,64 +200,149 @@ function renderSharePage(manifest: ReturnType<typeof buildManifest>, token: stri
   const expiresAt = manifest.share.expires_at
     ? new Date(manifest.share.expires_at).toLocaleString()
     : "No expiry";
-  const items = manifest.items.map((item) => `
-        <li>
-          <div class="item-row">
-            <div>
-              <a href="${buildDirectSharePath(token, item.content_url)}" data-relative-href="${escapeHtml(item.content_url)}">${escapeHtml(item.original_name)}</a>
-              <div class="meta">${escapeHtml(item.content_type)} · ${formatBytes(item.file_size)}</div>
-            </div>
-            <div class="actions">
-              <a href="${buildDirectSharePath(token, item.preview_url)}" data-relative-href="${escapeHtml(item.preview_url)}">Preview</a>
-              <a href="${buildDirectSharePath(token, item.content_url)}" data-relative-href="${escapeHtml(item.content_url)}">Download</a>
-            </div>
+
+  const items = manifest.items.map((item) => {
+    const modality = getModality(item.content_type);
+    const label = getModalityLabel(modality);
+    const style = getModalityStyle(modality);
+    const thumbUrl = buildDirectSharePath(token, item.thumbnail_url);
+    const contentUrl = buildDirectSharePath(token, item.content_url);
+    const tldrHtml = item.tldr
+      ? `<div class="file-tldr">${escapeHtml(item.tldr)}</div>`
+      : "";
+
+    return `
+      <div class="file-card">
+        <div class="thumb" style="position:relative">
+          <img src="${thumbUrl}" data-relative-href="${escapeHtml(item.thumbnail_url)}" alt="${escapeHtml(item.original_name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="thumb-fallback" style="display:none;height:120px;background:${style.gradient};align-items:center;justify-content:center">
+            <span style="color:${style.color};font-size:12px;font-family:'SF Mono','Fira Code',monospace;letter-spacing:1px">${label}</span>
           </div>
-          ${item.tldr ? `<p class="tldr">${escapeHtml(item.tldr)}</p>` : ""}
-        </li>`).join("");
+          <span class="modality-badge" style="color:${style.color};border-color:${style.borderColor};background:${style.background}">${label}</span>
+        </div>
+        <div class="card-body">
+          <div class="file-name">${escapeHtml(item.original_name)}</div>
+          <div class="file-meta">${escapeHtml(item.content_type)} &middot; ${formatBytes(item.file_size)}</div>
+          ${tldrHtml}
+          <a class="download-btn" href="${contentUrl}" data-relative-href="${escapeHtml(item.content_url)}" download>&#8595; Download</a>
+        </div>
+      </div>`;
+  }).join("");
 
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(manifest.pot.name)} · ClawDrive Share</title>
+    <title>${escapeHtml(manifest.pot.name)} &middot; ClawDrive Share</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      body { margin: 0; font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0b1220; color: #e8edf2; }
-      main { max-width: 920px; margin: 0 auto; padding: 40px 20px 72px; }
-      .hero { padding: 28px; border-radius: 22px; background: linear-gradient(135deg, rgba(41, 98, 255, 0.18), rgba(12, 18, 33, 0.92)); border: 1px solid rgba(160, 190, 255, 0.18); }
-      h1 { margin: 0 0 10px; font-size: 36px; line-height: 1.1; }
-      .subtitle { margin: 0; color: rgba(232, 237, 242, 0.78); line-height: 1.6; }
-      .stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
-      .stat { padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); color: rgba(232, 237, 242, 0.88); font-size: 13px; }
-      .manifest-link { margin-top: 16px; display: inline-block; color: #9dc1ff; }
-      ul { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 14px; }
-      li { padding: 18px; border-radius: 18px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
-      .item-row { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
-      .meta { margin-top: 4px; color: rgba(232, 237, 242, 0.56); font-size: 13px; }
-      .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-      .actions a, a { color: #9dc1ff; text-decoration: none; }
-      .actions a:hover, a:hover { text-decoration: underline; }
-      .tldr { margin: 10px 0 0; color: rgba(232, 237, 242, 0.78); line-height: 1.6; }
-      @media (max-width: 720px) {
-        h1 { font-size: 28px; }
-        .item-row { flex-direction: column; align-items: flex-start; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif; background: #061018; color: #E6F0F7; min-height: 100vh; }
+      a { color: #6EE7FF; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      .topbar {
+        display: flex; align-items: center; padding: 12px 20px;
+        border-bottom: 1px solid #1F3647;
+        background: linear-gradient(180deg, rgba(8,21,31,0.95) 0%, rgba(6,16,24,0.95) 100%);
+        position: sticky; top: 0; z-index: 10;
       }
+      .logo { font-weight: 700; font-size: 15px; color: #E6F0F7; }
+      .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+      .badge-shared {
+        padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+        background: rgba(110, 231, 255, 0.12); color: #6EE7FF; letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      .content { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+
+      .pot-info {
+        padding: 20px 24px; border-radius: 8px;
+        background: rgba(14, 26, 36, 0.6);
+        border: 1px solid #1F3647; margin-bottom: 24px;
+      }
+      .pot-name { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+      .pot-desc { font-size: 13px; color: #6B8A9E; line-height: 1.5; margin-bottom: 14px; }
+      .pot-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .stat-pill {
+        padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500;
+        background: rgba(255,255,255,0.05); color: #6B8A9E;
+      }
+      .stat-pill.accent { background: rgba(110, 231, 255, 0.08); color: #6EE7FF; }
+      .manifest-link {
+        font-size: 11px; color: #6EE7FF; text-decoration: none; margin-left: auto;
+        opacity: 0.6; font-family: 'SF Mono', 'Fira Code', monospace;
+      }
+      .manifest-link:hover { opacity: 1; }
+
+      .section-label {
+        font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+        color: #6B8A9E; font-weight: 600; margin-bottom: 14px;
+      }
+
+      .file-grid { column-count: 4; column-gap: 12px; }
+      @media (max-width: 900px) { .file-grid { column-count: 3; } }
+      @media (max-width: 640px) { .file-grid { column-count: 2; } }
+      @media (max-width: 400px) { .file-grid { column-count: 1; } }
+
+      .file-card {
+        break-inside: avoid; margin-bottom: 12px; border-radius: 8px;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+        overflow: hidden; transition: background 0.15s, border-color 0.15s, transform 0.15s;
+      }
+      .file-card:hover {
+        background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14);
+        transform: translateY(-2px);
+      }
+
+      .thumb { position: relative; }
+      .thumb img { width: 100%; display: block; }
+
+      .modality-badge {
+        position: absolute; top: 8px; left: 8px;
+        padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600;
+        letter-spacing: 0.8px; border: 1px solid;
+      }
+
+      .card-body { padding: 10px 12px; }
+      .file-name { font-size: 12px; font-weight: 600; color: #E6F0F7; word-break: break-word; }
+      .file-meta { font-size: 11px; color: #6B8A9E; margin-top: 2px; }
+      .file-tldr { font-size: 11px; color: rgba(230,240,247,0.55); margin-top: 6px; line-height: 1.45; }
+
+      .download-btn {
+        display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+        padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500;
+        background: rgba(110,231,255,0.08); color: #6EE7FF; border: 1px solid rgba(110,231,255,0.2);
+        text-decoration: none; transition: background 0.15s;
+      }
+      .download-btn:hover { background: rgba(110,231,255,0.16); text-decoration: none; }
     </style>
   </head>
   <body>
-    <main>
-      <section class="hero">
-        <h1>${escapeHtml(manifest.pot.name)}</h1>
-        <p class="subtitle">${manifest.pot.description ? escapeHtml(manifest.pot.description) : "Shared from ClawDrive as a public capability link."}</p>
-        <div class="stats">
-          <span class="stat">${manifest.total} item${manifest.total === 1 ? "" : "s"}</span>
-          <span class="stat">Role: ${escapeHtml(manifest.share.role)}</span>
-          <span class="stat">${escapeHtml(expiresAt)}</span>
+    <div class="topbar">
+      <span class="logo">ClawDrive</span>
+      <div class="topbar-right">
+        <span class="badge-shared">Public Share</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="pot-info">
+        <div class="pot-name">${escapeHtml(manifest.pot.name)}</div>
+        <div class="pot-desc">${manifest.pot.description ? escapeHtml(manifest.pot.description) : "Shared from ClawDrive"}</div>
+        <div class="pot-stats">
+          <span class="stat-pill accent">${manifest.total} item${manifest.total === 1 ? "" : "s"}</span>
+          <span class="stat-pill">Role: ${escapeHtml(manifest.share.role)}</span>
+          <span class="stat-pill">${escapeHtml(expiresAt)}</span>
+          <a class="manifest-link" href="${buildDirectSharePath(token, "manifest.json")}" data-relative-href="manifest.json">manifest.json</a>
         </div>
-        <a class="manifest-link" href="${buildDirectSharePath(token, "manifest.json")}" data-relative-href="manifest.json">manifest.json</a>
-      </section>
-      <ul>${items}</ul>
-    </main>
+      </div>
+      <div class="section-label">Files</div>
+      <div class="file-grid">${items}</div>
+    </div>
     <script>
       (() => {
         const currentPath = window.location.pathname || "/";
@@ -267,14 +352,11 @@ function renderSharePage(manifest: ReturnType<typeof buildManifest>, token: stri
             ? currentPath
             : currentPath + "/";
         const baseUrl = new URL(basePath, window.location.origin);
-
         for (const link of document.querySelectorAll("[data-relative-href]")) {
           const relativeHref = link.getAttribute("data-relative-href");
-          if (!relativeHref) {
-            continue;
-          }
-
-          link.setAttribute("href", new URL(relativeHref, baseUrl).toString());
+          if (!relativeHref) continue;
+          const attr = link.tagName === "IMG" ? "src" : "href";
+          link.setAttribute(attr, new URL(relativeHref, baseUrl).toString());
         }
       })();
     </script>
