@@ -4,6 +4,8 @@ import { FileGrid } from "./FileGrid";
 import type { SortMode } from "./FileGrid";
 import { Breadcrumb } from "./Breadcrumb";
 import { FilePreview } from "./FilePreview";
+import { DropZone } from "../shared/DropZone";
+import { useUploadQueue } from "../../hooks/useUploadQueue";
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "recent", label: "Recent" },
@@ -16,8 +18,11 @@ export function TaxonomyBrowser() {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [sort, setSort] = useState<SortMode>("recent");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { enqueue } = useUploadQueue({ onComplete: () => setRefreshKey(k => k + 1) });
 
   return (
+    <DropZone onDrop={enqueue}>
     <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}>
       {/* Sidebar */}
       <div
@@ -67,7 +72,7 @@ export function TaxonomyBrowser() {
           </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          <FileGrid selectedPath={selectedPath} onFileClick={setPreviewFileId} sort={sort} />
+          <FileGrid key={refreshKey} selectedPath={selectedPath} onFileClick={setPreviewFileId} sort={sort} />
         </div>
       </div>
 
@@ -76,5 +81,6 @@ export function TaxonomyBrowser() {
         <FilePreview fileId={previewFileId} onClose={() => setPreviewFileId(null)} />
       )}
     </div>
+    </DropZone>
   );
 }

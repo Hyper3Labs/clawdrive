@@ -1,20 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ViewTabs } from "./ViewTabs";
 import { InlineSearch, type InlineSearchHandle } from "./InlineSearch";
 import { listFiles } from "../api";
 import { MAP_THEME } from "../theme";
 import type { ViewMode, SearchResult } from "../types";
+import { useUploadQueue } from "../hooks/useUploadQueue";
 
 interface TopBarProps {
   activeView: ViewMode;
   onViewChange: (view: ViewMode) => void;
   onSelectResult: (result: SearchResult) => void;
   searchRef?: React.Ref<InlineSearchHandle>;
+  onUploadComplete?: () => void;
 }
 
-export function TopBar({ activeView, onViewChange, onSelectResult, searchRef }: TopBarProps) {
+export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, onUploadComplete }: TopBarProps) {
   const [fileCount, setFileCount] = useState<number | null>(null);
   const [searchActive, setSearchActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { enqueue } = useUploadQueue({ onComplete: onUploadComplete });
 
   useEffect(() => {
     listFiles({ limit: 1 })
@@ -64,6 +68,36 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef }: 
         }}
       >
         <ViewTabs activeView={activeView} onViewChange={onViewChange} />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: `1px solid ${MAP_THEME.border}`,
+            borderRadius: 6,
+            padding: "6px 12px",
+            color: MAP_THEME.text,
+            fontSize: 12,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "inherit",
+          }}
+          title="Upload files"
+        >
+          ↑ Upload
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const files = Array.from(e.target.files ?? []);
+            if (files.length > 0) enqueue(files);
+            e.target.value = "";
+          }}
+        />
         {fileCount !== null && (
           <span style={{ fontSize: 12, opacity: 0.55, color: MAP_THEME.text }}>
             {fileCount.toLocaleString()} file{fileCount !== 1 ? "s" : ""}
