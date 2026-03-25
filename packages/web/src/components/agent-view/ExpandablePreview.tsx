@@ -1,8 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import type { ProjectionPoint } from "../../types";
+import type { FileInfo, ProjectionPoint } from "../../types";
 import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
-import { fileContentUrl } from "../../api";
+import { fileContentUrl, getFile, getFileTags, updateFile } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
+import { TagEditor } from "../shared/TagEditor";
+import { InlineEdit } from "../shared/InlineEdit";
+import { DigestModal } from "../shared/DigestModal";
+import { useToast } from "../shared/Toast";
 
 function TextPreview({ point }: { point: ProjectionPoint }) {
   const [text, setText] = useState<string | null>(null);
@@ -236,6 +240,11 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
   const [opacity, setOpacity] = useState(1);
   const prevClickedId = useRef<string | null>(null);
 
+  const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [showDigestModal, setShowDigestModal] = useState(false);
+  const { show } = useToast();
+
   useEffect(() => {
     if (clickedFileId === null) {
       // Closing modal — instant
@@ -264,6 +273,50 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       return () => clearTimeout(timer);
     }
   }, [clickedFileId]);
+
+  useEffect(() => {
+    if (!displayedId) {
+      setFileInfo(null);
+      setTags([]);
+      setShowDigestModal(false);
+      return;
+    }
+    let cancelled = false;
+    getFile(displayedId)
+      .then((info: FileInfo) => { if (!cancelled) { setFileInfo(info); setTags(info.tags ?? []); } })
+      .catch(() => {});
+    getFileTags(displayedId)
+      .then((res: { tags?: string[] }) => { if (!cancelled) setTags(res.tags ?? []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [displayedId]);
+
+  async function handleTagChange(newTags: string[]) {
+    if (!displayedId) return;
+    try {
+      await updateFile(displayedId, { tags: newTags });
+      setTags(newTags);
+      show("Tags updated", { type: "success" });
+    } catch { show("Failed to update tags", { type: "error" }); }
+  }
+
+  async function handleTldrSave(value: string) {
+    if (!displayedId) return;
+    try {
+      await updateFile(displayedId, { tldr: value || null });
+      setFileInfo((prev) => prev ? { ...prev, tldr: value || null } : prev);
+      show("Saved", { type: "success" });
+    } catch { show("Failed to save", { type: "error" }); }
+  }
+
+  async function handleDigestSave(value: string) {
+    if (!displayedId) return;
+    try {
+      await updateFile(displayedId, { digest: value || null });
+      setFileInfo((prev) => prev ? { ...prev, digest: value || null } : prev);
+      show("Digest saved", { type: "success" });
+    } catch { show("Failed to save digest", { type: "error" }); }
+  }
 
   const dismiss = () => { clickFile(null); };
 
@@ -357,6 +410,43 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
             )}
 
             <PotAssignment point={point} />
+
+            {/* Metadata editing */}
+            <div style={{ padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.07)", marginTop: 12 }}>
+              <TagEditor tags={tags} onChange={handleTagChange} />
+            </div>
+            <div style={{ padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: 10, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
+              <InlineEdit
+                value={fileInfo?.tldr ?? fileInfo?.abstract ?? fileInfo?.description ?? ""}
+                placeholder="Add a summary..."
+                onSave={handleTldrSave}
+              />
+            </div>
+            <div style={{ padding: "8px 0" }}>
+              <button
+                onClick={() => setShowDigestModal(true)}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 4,
+                  color: MAP_THEME.textMuted,
+                  fontSize: 11,
+                  padding: "4px 10px",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                {fileInfo?.digest ? "Edit digest" : "Add digest"}
+              </button>
+            </div>
+            {showDigestModal && (
+              <DigestModal
+                value={fileInfo?.digest ?? ""}
+                onSave={handleDigestSave}
+                onClose={() => setShowDigestModal(false)}
+              />
+            )}
           </>
         )}
       </div>
