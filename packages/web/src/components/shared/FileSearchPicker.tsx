@@ -7,9 +7,11 @@ interface FileSearchPickerProps {
   onSelect: (fileId: string) => void;
   excludeIds?: Set<string>;
   onClose: () => void;
+  anchorX: number;
+  anchorY: number;
 }
 
-export function FileSearchPicker({ onSelect, excludeIds, onClose }: FileSearchPickerProps) {
+export function FileSearchPicker({ onSelect, excludeIds, onClose, anchorX, anchorY }: FileSearchPickerProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const ref = useRef<HTMLDivElement>(null);
@@ -37,10 +39,9 @@ export function FileSearchPicker({ onSelect, excludeIds, onClose }: FileSearchPi
     <div
       ref={ref}
       style={{
-        position: "absolute",
-        left: "100%",
-        top: 0,
-        marginLeft: 4,
+        position: "fixed",
+        left: anchorX,
+        top: anchorY,
         width: 280,
         zIndex: Z_INDEX.contextMenu,
         background: MAP_THEME.panel,

@@ -27,7 +27,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; pot: PotRecord } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [showPicker, setShowPicker] = useState(false);
+  const [pickerAnchor, setPickerAnchor] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => { fetchPots(); }, [fetchPots]);
 
@@ -151,9 +151,12 @@ export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
 
       {/* Add files button when pot selected */}
       {selectedSlug && (
-        <div style={{ padding: "6px 12px", position: "relative" }}>
+        <div style={{ padding: "6px 12px" }}>
           <button
-            onClick={() => setShowPicker(!showPicker)}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setPickerAnchor(pickerAnchor ? null : { x: rect.right + 4, y: rect.top });
+            }}
             style={{
               background: "rgba(255,255,255,0.04)",
               border: "1px dashed rgba(255,255,255,0.15)",
@@ -168,11 +171,13 @@ export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
           >
             + Add files
           </button>
-          {showPicker && (
+          {pickerAnchor && (
             <FileSearchPicker
               onSelect={(fileId) => handleAddFileToPot(fileId)}
               excludeIds={potFileIds}
-              onClose={() => setShowPicker(false)}
+              onClose={() => setPickerAnchor(null)}
+              anchorX={pickerAnchor.x}
+              anchorY={pickerAnchor.y}
             />
           )}
         </div>
