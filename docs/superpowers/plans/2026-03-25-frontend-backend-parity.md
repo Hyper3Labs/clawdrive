@@ -46,6 +46,7 @@
 | `packages/web/src/components/InlineSearch.tsx` | Integrate SearchFilters component |
 | `packages/server/src/routes/pots.ts` | Add `GET /api/pots/:pot/shares` endpoint |
 | `packages/server/src/routes/files.ts` | Add `type` and `tags` query params to `GET /api/files` |
+| `packages/server/src/lib/file-metadata.ts` | Add `tags` to `FileMetadataRecord` and `toFileMetadataRecord` |
 | `packages/core/src/shares.ts` | Add `listPotShares()` function |
 | `packages/core/src/manage.ts` | Add `type` and `tags` filter support to `listFiles()` |
 
@@ -108,7 +109,18 @@ export interface PotShare {
 }
 ```
 
-- [ ] **Step 3: Add API functions**
+- [ ] **Step 3: Add tags to backend FileMetadataRecord**
+
+The backend's `toFileMetadataRecord` in `packages/server/src/lib/file-metadata.ts` strips `tags` from the response. The frontend needs tags on every file list item. Fix:
+
+In `packages/server/src/lib/file-metadata.ts`:
+- Add `tags: string[]` to `FileMetadataRecord` interface
+- Add `tags: string[]` to `FileMetadataSource` interface
+- In `toFileMetadataRecord`, add `tags: [...record.tags]` to the return object
+
+This ensures `GET /api/files`, `GET /api/files/:id`, and `GET /api/pots/:pot/files` all return tags inline. The separate `GET /api/files/:id/tags` endpoint remains for backwards compatibility.
+
+- [ ] **Step 4: Add API functions**
 
 Add to `packages/web/src/api.ts`:
 
@@ -172,16 +184,16 @@ export async function listPotShares(potSlug: string) {
 
 Add the import for `UploadResult` at the top of `api.ts`.
 
-- [ ] **Step 4: Verify build**
+- [ ] **Step 5: Verify build**
 
-Run: `cd packages/web && npx tsc --noEmit`
-Expected: No type errors (existing code that uses `FileInfo` may need `tags` added where objects are constructed — check and fix any errors).
+Run: `cd packages/web && npx tsc --noEmit && cd ../server && npx tsc --noEmit`
+Expected: No type errors. Existing code that uses `FileInfo` may need `tags` added where objects are constructed — check and fix any errors.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add packages/web/src/types.ts packages/web/src/api.ts
-git commit -m "feat(web): extend types and API layer for frontend-backend parity"
+git add packages/web/src/types.ts packages/web/src/api.ts packages/server/src/lib/file-metadata.ts
+git commit -m "feat: extend types and API layer for frontend-backend parity"
 ```
 
 ---
@@ -237,6 +249,14 @@ const BORDER_COLORS: Record<string, string> = {
   error: "#ff8d8d",
   info: MAP_THEME.accentPrimary,
 };
+
+// Inject keyframe animation once
+if (typeof document !== "undefined" && !document.getElementById("toast-keyframes")) {
+  const style = document.createElement("style");
+  style.id = "toast-keyframes";
+  style.textContent = `@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`;
+  document.head.appendChild(style);
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -539,7 +559,7 @@ export function DropZone({
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      style={{ position: "relative", display: "contents" }}
+      style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
     >
       {children}
       {dragOver && (
@@ -610,13 +630,15 @@ export function useUploadQueue(opts?: {
   const { show } = useToast();
   const activeRef = useRef(0);
   const queueRef = useRef<File[]>([]);
+  const optsRef = useRef(opts);
+  optsRef.current = opts;
 
   const processQueue = useCallback(async () => {
     while (queueRef.current.length > 0 && activeRef.current < MAX_CONCURRENT) {
       const file = queueRef.current.shift()!;
       activeRef.current++;
       try {
-        const result = await uploadFile(file, { potSlug: opts?.potSlug });
+        const result = await uploadFile(file, { potSlug: optsRef.current?.potSlug });
         if (result.status === "duplicate") {
           show(`${file.name} already exists`, { type: "info" });
         } else {
@@ -630,9 +652,9 @@ export function useUploadQueue(opts?: {
       }
     }
     if (activeRef.current === 0 && queueRef.current.length === 0) {
-      opts?.onComplete?.();
+      optsRef.current?.onComplete?.();
     }
-  }, [show, opts]);
+  }, [show]);
 
   const enqueue = useCallback((files: File[]) => {
     queueRef.current.push(...files);
@@ -704,6 +726,7 @@ In `packages/web/src/components/agent-view/PotsSidebar.tsx`:
 - The pot list items should also act as drop targets:
   - Wrap each pot `<div>` in a mini drag handler that detects file drops
   - On drop: call `enqueue(files)` with the pot's slug
+- Initialize `useUploadQueue` with `onComplete: () => recomputeProjections()` to refresh the 3D space after upload (import `recomputeProjections` from `../../api`)
 
 - [ ] **Step 5: Verify build + manual test**
 
@@ -1413,8 +1436,7 @@ export async function listPotShares(
   potRef: string,
   opts: { wsPath: string },
 ): Promise<PotShare[]> {
-  const pot = await getPot(potRef, opts);
-  if (!pot) return [];
+  const pot = await requirePot(potRef, opts);  // already imported in shares.ts
   const all = await listShares(opts);
   return all.filter((s) => s.pot_id === pot.id);
 }
@@ -1835,15 +1857,17 @@ const tagsParam = req.query.tags as string | undefined;
 const tags = tagsParam ? tagsParam.split(",").map((t) => t.trim()).filter(Boolean) : undefined;
 ```
 
-Pass these to `listFiles()`:
+Pass these to the core `listFiles()`. Note: `listFilesForRoute` in `files.ts` uses positional parameters (`wsPath, limit, cursor, taxonomyPath`). Add `contentType` and `tags` as additional positional params:
 
 ```typescript
-const result = await listFilesForRoute({
-  limit, cursor, taxonomyPath, contentType, tags,
-}, { wsPath });
+// Update listFilesForRoute signature:
+async function listFilesForRoute(
+  wsPath: string, limit: number, cursor?: string,
+  taxonomyPath?: string[], contentType?: string, tags?: string[],
+)
 ```
 
-Update `listFilesForRoute` to forward these params to `listFiles()`.
+Then forward `contentType` and `tags` to the core `listFiles()` call inside this function. Also update the call site in the `GET /api/files` handler to pass the new params.
 
 - [ ] **Step 3: Update searchFiles in api.ts**
 
