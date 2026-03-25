@@ -2,6 +2,18 @@ import { useEffect, useState, useMemo, memo, useRef } from "react";
 import { listFiles } from "../../api";
 import type { FileInfo } from "../../types";
 import { PdfThumbnail } from "./PdfThumbnail";
+import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
+import { useVisualizationStore } from "../agent-view/useVisualizationStore";
+import { useToast } from "../shared/Toast";
+
+function downloadFile(fileId: string, fileName: string) {
+  const a = document.createElement("a");
+  a.href = `/api/files/${encodeURIComponent(fileId)}/content`;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
 export type SortMode = "recent" | "name" | "type" | "size";
 
@@ -27,7 +39,7 @@ function formatSize(bytes: number): string {
 // Global snippet cache — survives re-renders and re-mounts
 const snippetCache = new Map<string, string>();
 
-const FileCard = memo(function FileCard({ file, onClick }: { file: FileInfo; onClick: () => void }) {
+const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file: FileInfo; onClick: () => void; onContextMenu: (e: React.MouseEvent) => void }) {
   const isImage = file.content_type.startsWith("image/");
   const isVideo = file.content_type.startsWith("video/");
   const isAudio = file.content_type.startsWith("audio/");
@@ -75,6 +87,7 @@ const FileCard = memo(function FileCard({ file, onClick }: { file: FileInfo; onC
         e.currentTarget.style.transform = "translateY(0)";
       }}
       onClick={onClick}
+      onContextMenu={onContextMenu}
     >
       {/* Preview area — natural height for images, variable for text */}
       {isImage ? (
@@ -170,6 +183,11 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
   const [loading, setLoading] = useState(true);
   const onFileClickRef = useRef(onFileClick);
   onFileClickRef.current = onFileClick;
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(null);
+  const scheduleDelete = useVisualizationStore((s) => s.scheduleDelete);
+  const cancelDelete = useVisualizationStore((s) => s.cancelDelete);
+  const pendingDeletes = useVisualizationStore((s) => s.pendingDeletes);
+  const { show } = useToast();
 
   // Fetch once on mount
   useEffect(() => {
@@ -214,10 +232,11 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
     };
   }, [selectedPath]);
 
-  // Sort in memory after server-side filtering.
+  // Sort in memory after server-side filtering. Filter out pending deletes.
   const displayFiles = useMemo(() => {
-    return sortFiles(allFiles, sort);
-  }, [allFiles, sort]);
+    const filtered = allFiles.filter((f) => !pendingDeletes.has(f.id));
+    return sortFiles(filtered, sort);
+  }, [allFiles, sort, pendingDeletes]);
 
   if (loading) {
     return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>Loading files...</div>;
@@ -228,14 +247,54 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
   }
 
   return (
-    <div style={{
-      columnCount: 4,
-      columnGap: 12,
-      padding: "4px 0",
-    }}>
-      {displayFiles.map((f) => (
-        <FileCard key={f.id} file={f} onClick={() => onFileClickRef.current?.(f.id)} />
-      ))}
-    </div>
+    <>
+      <div style={{
+        columnCount: 4,
+        columnGap: 12,
+        padding: "4px 0",
+      }}>
+        {displayFiles.map((f) => (
+          <FileCard
+            key={f.id}
+            file={f}
+            onClick={() => onFileClickRef.current?.(f.id)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setCtxMenu({ x: e.clientX, y: e.clientY, file: f });
+            }}
+          />
+        ))}
+      </div>
+      {ctxMenu && (
+        <ContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          items={[
+            {
+              label: "Download",
+              onClick: () => downloadFile(ctxMenu.file.id, ctxMenu.file.original_name),
+            },
+            {
+              label: "Delete",
+              danger: true,
+              onClick: () => {
+                const { id, original_name } = ctxMenu.file;
+                scheduleDelete(id, original_name, () => {
+                  // Will re-fetch on next refresh
+                });
+                show(`${original_name} deleted`, {
+                  type: "info",
+                  action: {
+                    label: "Undo",
+                    onClick: () => cancelDelete(id),
+                  },
+                });
+              },
+            },
+          ]}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
+    </>
   );
 }

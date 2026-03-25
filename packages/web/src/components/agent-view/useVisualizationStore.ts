@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { PotRecord, ProjectionPoint } from "../../types";
 import * as api from "../../api";
+import { deleteFile } from "../../api";
 
 const IDLE_TIMEOUT = 30_000; // 30 seconds
 
@@ -33,6 +34,11 @@ interface VisualizationState {
   // File-pot assignment
   assignFileToPot: (fileId: string, potSlug: string, currentTags: string[]) => Promise<void>;
   unassignFileFromPot: (fileId: string, potSlug: string, currentTags: string[]) => Promise<void>;
+
+  // Pending deletes (soft delete with undo)
+  pendingDeletes: Map<string, { timer: ReturnType<typeof setTimeout>; fileName: string }>;
+  scheduleDelete: (id: string, fileName: string, onComplete: () => void) => void;
+  cancelDelete: (id: string) => void;
 }
 
 export const useVisualizationStore = create<VisualizationState>((set, get) => ({
@@ -109,6 +115,33 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
       await get().fetchPots();
     } catch (err) {
       console.error("Failed to delete pot:", err);
+    }
+  },
+
+  pendingDeletes: new Map(),
+
+  scheduleDelete: (id, fileName, onComplete) => {
+    const timer = setTimeout(async () => {
+      try {
+        await deleteFile(id);
+      } catch {}
+      const next = new Map(get().pendingDeletes);
+      next.delete(id);
+      set({ pendingDeletes: next });
+      onComplete();
+    }, 8000);
+    const next = new Map(get().pendingDeletes);
+    next.set(id, { timer, fileName });
+    set({ pendingDeletes: next });
+  },
+
+  cancelDelete: (id) => {
+    const entry = get().pendingDeletes.get(id);
+    if (entry) {
+      clearTimeout(entry.timer);
+      const next = new Map(get().pendingDeletes);
+      next.delete(id);
+      set({ pendingDeletes: next });
     }
   },
 

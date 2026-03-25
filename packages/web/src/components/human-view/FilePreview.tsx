@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { getFile } from "../../api";
 import type { FileInfo } from "../../types";
 
+function downloadFile(fileId: string, fileName: string) {
+  const a = document.createElement("a");
+  a.href = `/api/files/${encodeURIComponent(fileId)}/content`;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 interface FilePreviewProps {
   fileId: string;
   onClose: () => void;
@@ -56,6 +65,13 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
         <span style={{ fontWeight: "bold", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
           {file.original_name}
         </span>
+        <button
+          onClick={() => downloadFile(fileId, file.original_name)}
+          style={closeStyle}
+          title="Download"
+        >
+          ↓
+        </button>
         <button onClick={onClose} style={closeStyle}>x</button>
       </div>
 
