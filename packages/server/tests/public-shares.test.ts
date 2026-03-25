@@ -179,6 +179,7 @@ describe("public share routes", () => {
     const proxiedThumbUrl = proxiedManifest.items[0]!.content_url.replace("/content", "/thumbnail");
     const proxiedThumbRes = await fetch(new URL(proxiedThumbUrl, proxiedManifestRes.url));
     expect(proxiedThumbRes.status).toBe(200);
+    expect(proxiedThumbRes.headers.get("content-type")).toMatch(/image\/jpeg/);
 
     const proxiedBlockedRes = await fetch(`${proxyListener.baseUrl}/api/files`);
     expect(proxiedBlockedRes.status).toBe(404);

@@ -6,6 +6,7 @@ import {
   resolvePublicShareItem,
   getThumbnail,
 } from "@clawdrive/core";
+import { createReadStream } from "node:fs";
 import { join } from "node:path";
 import { streamFilePath } from "../lib/file-stream.js";
 import { toShareItemMetadataRecord } from "../lib/file-metadata.js";
@@ -301,7 +302,6 @@ export function createPublicShareRoutes(wsPath: string): Router {
 
       res.set("Content-Type", "image/jpeg");
       res.set("Cache-Control", "public, max-age=86400");
-      const { createReadStream } = await import("node:fs");
       createReadStream(thumbPath).pipe(res);
     } catch (err) {
       next(err);
