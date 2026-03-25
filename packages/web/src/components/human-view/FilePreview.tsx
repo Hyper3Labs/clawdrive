@@ -137,7 +137,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
         <InlineEdit
-          value={file.tldr ?? file.abstract ?? file.description ?? ""}
+          value={file.tldr ?? ""}
           placeholder="Add a summary..."
           onSave={handleTldrSave}
         />

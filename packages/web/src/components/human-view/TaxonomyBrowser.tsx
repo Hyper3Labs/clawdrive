@@ -16,7 +16,11 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "size", label: "Size" },
 ];
 
-export function TaxonomyBrowser() {
+interface TaxonomyBrowserProps {
+  refreshKey?: number;
+}
+
+export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: TaxonomyBrowserProps) {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
   const [selectedPotSlug, setSelectedPotSlug] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
@@ -99,7 +103,7 @@ export function TaxonomyBrowser() {
           </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          <FileGrid key={refreshKey} selectedPath={selectedPath} potSlug={selectedPotSlug ?? undefined} onFileClick={setPreviewFileId} sort={sort} />
+          <FileGrid key={`${refreshKey}-${externalRefreshKey}`} selectedPath={selectedPath} potSlug={selectedPotSlug ?? undefined} onFileClick={setPreviewFileId} sort={sort} />
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import type { InlineSearchHandle } from "./components/InlineSearch";
 export function App() {
   const [view, setView] = useState<ViewMode>("space");
   const [focusFileId, setFocusFileId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const searchRef = useRef<InlineSearchHandle>(null);
 
   // Global Cmd+K / Ctrl+K shortcut — focus the inline search
@@ -36,6 +37,7 @@ export function App() {
             setTimeout(() => setFocusFileId(null), 1500);
           }}
           searchRef={searchRef}
+          onUploadComplete={() => setRefreshKey((k) => k + 1)}
         />
 
         {/* Mount only the active view so the hidden media grid does not preload in space mode. */}
@@ -45,7 +47,7 @@ export function App() {
           </div>
         ) : (
           <div style={{ flex: 1, minHeight: 0, display: "flex", overflow: "hidden" }}>
-            <TaxonomyBrowser />
+            <TaxonomyBrowser refreshKey={refreshKey} />
           </div>
         )}
       </div>

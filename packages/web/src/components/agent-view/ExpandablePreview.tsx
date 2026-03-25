@@ -393,22 +393,6 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
               </div>
             </div>
 
-            {point.tags.length > 0 && (
-              <div style={{ marginTop: 14 }}>
-                <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Tags</div>
-                <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
-                  {point.tags.filter((t) => !t.startsWith("pot:")).map((t) => (
-                    <span key={t} style={{
-                      padding: "2px 8px", borderRadius: 999, fontSize: 10,
-                      background: `${color}20`, color,
-                    }}>
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <PotAssignment point={point} />
 
             {/* Metadata editing */}
@@ -418,7 +402,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
             <div style={{ padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
               <div style={{ fontSize: 10, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
               <InlineEdit
-                value={fileInfo?.tldr ?? fileInfo?.abstract ?? fileInfo?.description ?? ""}
+                value={fileInfo?.tldr ?? ""}
                 placeholder="Add a summary..."
                 onSave={handleTldrSave}
               />

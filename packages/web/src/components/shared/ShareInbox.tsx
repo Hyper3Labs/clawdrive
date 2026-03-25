@@ -19,13 +19,19 @@ export function ShareInbox() {
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, 30_000);
+    let interval: ReturnType<typeof setInterval> | null = setInterval(refresh, 30_000);
+
     function handleVisibility() {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState === "visible") {
+        refresh();
+        if (!interval) interval = setInterval(refresh, 30_000);
+      } else {
+        if (interval) { clearInterval(interval); interval = null; }
+      }
     }
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [refresh]);

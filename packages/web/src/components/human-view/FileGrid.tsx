@@ -185,6 +185,7 @@ export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }
   const onFileClickRef = useRef(onFileClick);
   onFileClickRef.current = onFileClick;
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(null);
+  const [deletedCount, setDeletedCount] = useState(0);
   const scheduleDelete = useVisualizationStore((s) => s.scheduleDelete);
   const cancelDelete = useVisualizationStore((s) => s.cancelDelete);
   const pendingDeletes = useVisualizationStore((s) => s.pendingDeletes);
@@ -235,7 +236,7 @@ export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }
     return () => {
       cancelled = true;
     };
-  }, [selectedPath, potSlug]);
+  }, [selectedPath, potSlug, deletedCount]);
 
   // Sort in memory after server-side filtering. Filter out pending deletes.
   const displayFiles = useMemo(() => {
@@ -285,7 +286,7 @@ export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }
               onClick: () => {
                 const { id, original_name } = ctxMenu.file;
                 scheduleDelete(id, original_name, () => {
-                  // Will re-fetch on next refresh
+                  setDeletedCount((c) => c + 1);
                 });
                 show(`${original_name} deleted`, {
                   type: "info",

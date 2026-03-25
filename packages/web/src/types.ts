@@ -40,9 +40,7 @@ export interface FileInfo {
   file_size: number;
   tags: string[];
   tldr?: string | null;
-  abstract?: string | null;
   digest?: string | null;
-  description?: string | null;
   created_at: number;
   updated_at: number;
   source_url?: string | null;
