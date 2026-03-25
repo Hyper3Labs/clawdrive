@@ -60,8 +60,10 @@ Each card mirrors the main UI's file card pattern:
 - Transition: `background 0.15s, border-color 0.15s, transform 0.15s`
 
 **Thumbnail area:**
-- Full-width `<img>` tag pointing to the preview endpoint: `/s/:token/items/:shareItemId/preview`
-- Fallback when no preview available: colored gradient placeholder based on modality, with the modality label centered
+- Full-width `<img>` tag pointing to a new thumbnail endpoint: `/s/:token/items/:shareItemId/thumbnail`
+- This endpoint calls `getThumbnail()` from `@clawdrive/core` (the same function used by the authenticated `/api/files/:id/thumbnail` route) to generate JPEG thumbnails for all file types
+- The existing `/preview` endpoint streams the original file, which is unsuitable for `<img>` tags on non-image files
+- Fallback: if `getThumbnail()` returns null (generation failed) or for unsupported types, the `<img>` `onerror` handler hides it and a CSS gradient placeholder with the modality label is shown instead
 - `loading="lazy"` attribute for deferred loading
 
 **Modality badge (overlaid top-left of thumbnail):**
@@ -110,7 +112,8 @@ font-mono:        "SF Mono", "Fira Code", monospace
 ### In scope
 - Rework `renderSharePage()` HTML and CSS in `public-shares.ts`
 - Rework `renderStatusPage()` HTML and CSS in `public-shares.ts`
-- Add thumbnail `<img>` tags to file cards
+- Add a new `/s/:token/items/:shareItemId/thumbnail` route that calls `getThumbnail()` from `@clawdrive/core` to serve JPEG thumbnails (mirrors the authenticated thumbnail route pattern)
+- Add thumbnail `<img>` tags to file cards pointing to the new thumbnail endpoint
 - Add modality badge logic (derive from content_type, same logic as `getModalityLabel()` in `theme.ts`)
 - Responsive breakpoints for the masonry grid
 - Load Manrope font via Google Fonts `<link>`
