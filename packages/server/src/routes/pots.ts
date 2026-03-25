@@ -3,6 +3,7 @@ import { toFileMetadataRecord } from "../lib/file-metadata.js";
 import {
   createPot,
   listPotFiles,
+  listPotShares,
   listPots,
   renamePot,
   deletePot,
@@ -67,6 +68,16 @@ export function createPotRoutes(wsPath: string): Router {
     try {
       const items = await listPotFiles(req.params.pot, { wsPath });
       res.json({ items: items.map((item) => toFileMetadataRecord(item)), total: items.length });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /api/pots/:pot/shares — list shares for a specific pot
+  router.get("/:pot/shares", async (req, res, next) => {
+    try {
+      const items = await listPotShares(req.params.pot, { wsPath });
+      res.json({ items, total: items.length });
     } catch (err) {
       next(err);
     }

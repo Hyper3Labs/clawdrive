@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { ViewTabs } from "./ViewTabs";
 import { InlineSearch, type InlineSearchHandle } from "./InlineSearch";
+import { ShareInbox } from "./shared/ShareInbox";
 import { listFiles } from "../api";
 import { MAP_THEME } from "../theme";
 import type { ViewMode, SearchResult } from "../types";
@@ -68,6 +69,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         }}
       >
         <ViewTabs activeView={activeView} onViewChange={onViewChange} />
+        <ShareInbox />
         <button
           onClick={() => fileInputRef.current?.click()}
           style={{

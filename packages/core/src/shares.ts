@@ -141,6 +141,15 @@ async function ensureShareItems(share: PotShare, opts: ShareOptions): Promise<Sh
   }
 }
 
+export async function listPotShares(
+  potRef: string,
+  opts: { wsPath: string },
+): Promise<PotShare[]> {
+  const pot = await requirePot(potRef, opts);
+  const all = await listShares(opts);
+  return all.filter((s) => s.pot_id === pot.id);
+}
+
 export async function listShares(opts: ShareOptions): Promise<PotShare[]> {
   const shares = await readWorkspaceJson(opts.wsPath, SHARES_FILE, [] as PotShare[]);
   return shares
