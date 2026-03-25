@@ -7,6 +7,7 @@ import { TagEditor } from "../shared/TagEditor";
 import { InlineEdit } from "../shared/InlineEdit";
 import { DigestModal } from "../shared/DigestModal";
 import { useToast } from "../shared/Toast";
+import { ExternalLink } from "lucide-react";
 
 function TextPreview({ point }: { point: ProjectionPoint }) {
   const [text, setText] = useState<string | null>(null);
@@ -92,21 +93,6 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
             PDF preview unavailable
           </div>
         </object>
-        <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8 }}>
-          <a
-            href={contentUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: MAP_THEME.accentPrimary, fontSize: 11, textDecoration: "none",
-              padding: "4px 10px", borderRadius: 4,
-              border: `1px solid rgba(110, 231, 255, 0.2)`,
-              background: "rgba(110, 231, 255, 0.05)",
-            }}
-          >
-            Open in new tab ↗
-          </a>
-        </div>
       </div>
     );
   }
@@ -364,11 +350,33 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
               <div style={{ color: MAP_THEME.text, fontSize: 15, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
                 {point.fileName}
               </div>
-              <div
-                onClick={() => dismiss()}
-                style={{ color: MAP_THEME.textMuted, fontSize: 20, cursor: "pointer", marginLeft: 8, lineHeight: 1 }}
-              >
-                ×
+              <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                <a
+                  href={fileContentUrl(point.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Open in new tab"
+                  style={{
+                    color: MAP_THEME.textMuted, cursor: "pointer", lineHeight: 1,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 28, height: 28, borderRadius: 4,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = MAP_THEME.text; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = MAP_THEME.textMuted; }}
+                >
+                  <ExternalLink size={16} />
+                </a>
+                <div
+                  onClick={() => dismiss()}
+                  style={{ color: MAP_THEME.textMuted, fontSize: 20, cursor: "pointer", lineHeight: 1,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 28, height: 28, borderRadius: 4,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = MAP_THEME.text; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = MAP_THEME.textMuted; }}
+                >
+                  ×
+                </div>
               </div>
             </div>
 
