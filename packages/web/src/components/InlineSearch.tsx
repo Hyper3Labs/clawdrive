@@ -73,6 +73,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
       const handleMouseDown = (e: MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
           setDropdownOpen(false);
+          setFocused(false);
           onActiveChangeRef.current?.(false);
         }
       };
@@ -128,7 +129,10 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
       }
     };
 
+    const [focused, setFocused] = useState(false);
+
     const handleFocus = () => {
+      setFocused(true);
       if (query.trim() || results.length > 0) {
         setDropdownOpen(true);
       }
@@ -168,7 +172,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
         <div
           style={{
             background: "rgba(14, 26, 36, 0.85)",
-            border: `1px solid ${showDropdown ? "rgba(110, 231, 255, 0.35)" : MAP_THEME.border}`,
+            border: `1px solid ${showDropdown || focused ? "rgba(110, 231, 255, 0.35)" : MAP_THEME.border}`,
             borderRadius: showDropdown ? "8px 8px 0 0" : 8,
             padding: "8px 16px",
             display: "flex",
