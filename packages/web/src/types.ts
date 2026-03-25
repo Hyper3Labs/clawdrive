@@ -38,6 +38,7 @@ export interface FileInfo {
   original_name: string;
   content_type: string;
   file_size: number;
+  tags: string[];
   tldr?: string | null;
   abstract?: string | null;
   digest?: string | null;
@@ -59,6 +60,30 @@ export interface PotRecord {
   description: string | null;
   created_at: number;
   updated_at: number;
+}
+
+export interface UploadResult {
+  id: string;
+  fileHash: string;
+  status: "stored" | "duplicate";
+  duplicateId?: string;
+  chunks: number;
+  tokensUsed: number;
+}
+
+export interface PotShare {
+  id: string;
+  pot_id: string;
+  pot_slug: string;
+  kind: "link" | "principal";
+  principal: string | null;
+  role: "read" | "write";
+  status: "pending" | "active" | "revoked" | "expired";
+  token: string | null;
+  expires_at: number | null;
+  created_at: number;
+  approved_at: number | null;
+  revoked_at: number | null;
 }
 
 export type ViewMode = "space" | "files";

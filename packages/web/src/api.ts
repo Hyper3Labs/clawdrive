@@ -1,3 +1,5 @@
+import type { UploadResult } from "./types";
+
 const BASE = "/api";
 
 export async function searchFiles(query: string, opts?: Record<string, string>) {
@@ -97,5 +99,61 @@ export async function updateFile(id: string, changes: { tags?: string[]; descrip
     body: JSON.stringify(changes),
   });
   if (!res.ok) throw new Error(`Update file failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function uploadFile(
+  file: File,
+  opts?: { tags?: string[]; potSlug?: string },
+): Promise<UploadResult> {
+  const form = new FormData();
+  form.append("file", file);
+  const tags = [...(opts?.tags ?? [])];
+  if (opts?.potSlug) tags.push(`pot:${opts.potSlug}`);
+  if (tags.length > 0) form.append("tags", JSON.stringify(tags));
+  const res = await fetch(`${BASE}/files/store`, { method: "POST", body: form });
+  if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function deleteFile(id: string): Promise<void> {
+  const res = await fetch(`${BASE}/files/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Delete failed: ${res.statusText}`);
+}
+
+export async function createShare(
+  potSlug: string,
+  opts: { kind: "link" | "principal"; role?: "read" | "write"; principal?: string },
+) {
+  const res = await fetch(`${BASE}/shares/pot/${encodeURIComponent(potSlug)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(opts),
+  });
+  if (!res.ok) throw new Error(`Create share failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function listShareInbox() {
+  const res = await fetch(`${BASE}/shares/inbox`);
+  if (!res.ok) throw new Error(`List inbox failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function approveShare(ref: string) {
+  const res = await fetch(`${BASE}/shares/${encodeURIComponent(ref)}/approve`, { method: "POST" });
+  if (!res.ok) throw new Error(`Approve failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function revokeShare(ref: string) {
+  const res = await fetch(`${BASE}/shares/${encodeURIComponent(ref)}/revoke`, { method: "POST" });
+  if (!res.ok) throw new Error(`Revoke failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function listPotShares(potSlug: string) {
+  const res = await fetch(`${BASE}/pots/${encodeURIComponent(potSlug)}/shares`);
+  if (!res.ok) throw new Error(`List pot shares failed: ${res.statusText}`);
   return res.json();
 }

@@ -5,6 +5,7 @@ export interface FileMetadataRecord {
   original_name: string;
   content_type: string;
   file_size: number;
+  tags: string[];
   created_at: number;
   updated_at: number;
   tldr?: string;
@@ -22,6 +23,7 @@ interface FileMetadataSource {
   original_name: string;
   content_type: string;
   file_size: number;
+  tags: string[];
   created_at: number;
   updated_at: number;
   source_url: string | null;
@@ -42,6 +44,7 @@ export function toFileMetadataRecord(
     original_name: record.original_name,
     content_type: record.content_type,
     file_size: record.file_size,
+    tags: [...record.tags],
     created_at: record.created_at,
     updated_at: record.updated_at,
     ...(tldr != null ? { tldr } : {}),
