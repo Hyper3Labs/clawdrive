@@ -1,93 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { MAP_THEME, Z_INDEX } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
-
-function ContextMenu({
-  x, y, potId, potName, onClose,
-}: {
-  x: number; y: number; potId: string; potName: string; onClose: () => void;
-}) {
-  const renamePot = useVisualizationStore((s) => s.renamePot);
-  const deletePotAction = useVisualizationStore((s) => s.deletePot);
-  const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
-  const [renaming, setRenaming] = useState(false);
-  const [newName, setNewName] = useState(potName);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    window.addEventListener("mousedown", handleClickOutside);
-    return () => window.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
-
-  if (renaming) {
-    return (
-      <div ref={menuRef} style={{
-        position: "fixed", left: x, top: y, zIndex: Z_INDEX.contextMenu,
-        background: MAP_THEME.panel, border: `1px solid ${MAP_THEME.border}`,
-        borderRadius: 8, padding: 8, minWidth: 160,
-      }}>
-        <input
-          autoFocus
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={async (e) => {
-            if (e.key === "Enter" && newName.trim()) {
-              await renamePot(potId, newName.trim());
-              recordInteraction();
-              onClose();
-            }
-            if (e.key === "Escape") onClose();
-          }}
-          style={{
-            width: "100%", background: MAP_THEME.background,
-            border: `1px solid ${MAP_THEME.border}`, borderRadius: 4,
-            padding: "4px 8px", color: MAP_THEME.text, fontSize: 12, outline: "none",
-          }}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div ref={menuRef} style={{
-      position: "fixed", left: x, top: y, zIndex: Z_INDEX.contextMenu,
-      background: MAP_THEME.panel, border: `1px solid ${MAP_THEME.border}`,
-      borderRadius: 8, padding: 4, minWidth: 120,
-    }}>
-      <div
-        onClick={() => setRenaming(true)}
-        style={{
-          padding: "6px 12px", fontSize: 12, color: MAP_THEME.text,
-          cursor: "pointer", borderRadius: 4,
-        }}
-        onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "rgba(110, 231, 255, 0.08)"; }}
-        onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "transparent"; }}
-      >
-        Rename
-      </div>
-      <div
-        onClick={async () => {
-          await deletePotAction(potId);
-          recordInteraction();
-          onClose();
-        }}
-        style={{
-          padding: "6px 12px", fontSize: 12, color: "#ff8d8d",
-          cursor: "pointer", borderRadius: 4,
-        }}
-        onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "rgba(255, 100, 100, 0.08)"; }}
-        onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "transparent"; }}
-      >
-        Delete
-      </div>
-    </div>
-  );
-}
+import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
 
 export function PotsSidebar() {
   const pots = useVisualizationStore((s) => s.pots);
@@ -95,6 +9,8 @@ export function PotsSidebar() {
   const selectPot = useVisualizationStore((s) => s.selectPot);
   const fetchPots = useVisualizationStore((s) => s.fetchPots);
   const createPotAction = useVisualizationStore((s) => s.createPot);
+  const deletePot = useVisualizationStore((s) => s.deletePot);
+  const renamePot = useVisualizationStore((s) => s.renamePot);
   const potFileIds = useVisualizationStore((s) => s.potFileIds);
   const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
 
@@ -102,6 +18,8 @@ export function PotsSidebar() {
   const [creating, setCreating] = useState(false);
   const [newPotName, setNewPotName] = useState("");
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; potId: string; potName: string } | null>(null);
+  const [renamingPotId, setRenamingPotId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   useEffect(() => {
     fetchPots();
@@ -195,10 +113,12 @@ export function PotsSidebar() {
       <div style={{ flex: 1, overflowY: "auto", padding: 8 }}>
         {pots.map((pot) => {
           const isSelected = pot.id === selectedPotId;
+          const isRenaming = renamingPotId === pot.id;
           return (
             <div
               key={pot.id}
               onClick={() => {
+                if (isRenaming) return;
                 selectPot(isSelected ? null : pot.id);
                 recordInteraction();
               }}
@@ -213,19 +133,44 @@ export function PotsSidebar() {
                 transition: "background 120ms ease",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{
-                  color: isSelected ? MAP_THEME.text : "#9AB",
-                  fontSize: 13, fontWeight: isSelected ? 500 : 400,
-                }}>
-                  {pot.name}
-                </span>
-                {isSelected && potFileIds.size > 0 && (
-                  <span style={{ color: MAP_THEME.accentPrimary, fontSize: 11 }}>
-                    {potFileIds.size}
+              {isRenaming ? (
+                <input
+                  autoFocus
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.key === "Enter" && renameValue.trim()) {
+                      await renamePot(pot.id, renameValue.trim());
+                      recordInteraction();
+                      setRenamingPotId(null);
+                    }
+                    if (e.key === "Escape") {
+                      setRenamingPotId(null);
+                    }
+                  }}
+                  onBlur={() => setRenamingPotId(null)}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "100%", background: MAP_THEME.background,
+                    border: `1px solid ${MAP_THEME.border}`, borderRadius: 4,
+                    padding: "4px 8px", color: MAP_THEME.text, fontSize: 12, outline: "none",
+                  }}
+                />
+              ) : (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{
+                    color: isSelected ? MAP_THEME.text : "#9AB",
+                    fontSize: 13, fontWeight: isSelected ? 500 : 400,
+                  }}>
+                    {pot.name}
                   </span>
-                )}
-              </div>
+                  {isSelected && potFileIds.size > 0 && (
+                    <span style={{ color: MAP_THEME.accentPrimary, fontSize: 11 }}>
+                      {potFileIds.size}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -251,8 +196,23 @@ export function PotsSidebar() {
         <ContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
-          potId={contextMenu.potId}
-          potName={contextMenu.potName}
+          items={[
+            {
+              label: "Rename",
+              onClick: () => {
+                setRenamingPotId(contextMenu.potId);
+                setRenameValue(contextMenu.potName);
+              },
+            },
+            {
+              label: "Delete",
+              danger: true,
+              onClick: () => {
+                deletePot(contextMenu.potId);
+                recordInteraction();
+              },
+            },
+          ] as ContextMenuItem[]}
           onClose={() => setContextMenu(null)}
         />
       )}
