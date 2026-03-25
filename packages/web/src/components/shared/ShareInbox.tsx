@@ -67,22 +67,31 @@ export function ShareInbox() {
       <button
         onClick={() => setOpen(!open)}
         style={{
-          background: "none", border: "none", cursor: "pointer",
-          color: MAP_THEME.text, fontSize: 14, padding: "4px 8px",
+          background: "rgba(255,255,255,0.06)",
+          border: `1px solid ${MAP_THEME.border}`,
+          borderRadius: 6,
+          padding: "6px 12px",
+          color: MAP_THEME.text,
+          fontSize: 12,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "inherit",
           position: "relative",
-          display: "flex", alignItems: "center",
         }}
         title="Share inbox"
       >
-        <Link size={16} />
+        <Link size={14} />
+        Shares
         {items.length > 0 && (
           <span style={{
-            position: "absolute", top: -2, right: -2,
             background: MAP_THEME.accentWarm,
             color: MAP_THEME.background,
             fontSize: 9, fontWeight: 700,
-            width: 16, height: 16, borderRadius: "50%",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            minWidth: 16, height: 16, borderRadius: "50%",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            padding: "0 4px",
           }}>
             {items.length}
           </span>
