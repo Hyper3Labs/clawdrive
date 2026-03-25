@@ -6,3 +6,5 @@ dist/
 context/
 .vscode/
 .agents/
+docs/logo-concepts/
+.playwright-cli/
