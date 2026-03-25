@@ -1,5 +1,11 @@
 // packages/core/src/types.ts
-export type TaskType = "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY" | "CODE_RETRIEVAL_QUERY" | "CLUSTERING";
+export type TaskType =
+  | "RETRIEVAL_DOCUMENT"
+  | "RETRIEVAL_QUERY"
+  | "CODE_RETRIEVAL_QUERY"
+  | "QUESTION_ANSWERING"
+  | "FACT_VERIFICATION"
+  | "CLUSTERING";
 export type FileStatus = "pending" | "embedded" | "failed";
 
 export interface FileRecord {
@@ -54,6 +60,7 @@ export interface StoreResult {
 export interface SearchInput {
   query?: string;
   queryImage?: string;
+  queryFile?: string;
   contentType?: string;
   tags?: string[];
   pot?: string;

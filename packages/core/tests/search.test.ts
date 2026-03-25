@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
 import { search } from "../src/search.js";
 import { buildPotTag } from "../src/metadata.js";
@@ -151,6 +152,49 @@ describe("search", () => {
     );
 
     expect(results[0]?.file).toBe("nebula.png");
+  });
+
+  it("uses PDF query files for real vector search", async () => {
+    const pdfPath = join(ctx.baseDir, "reference.pdf");
+    const otherPdfPath = join(ctx.baseDir, "other.pdf");
+
+    const referencePdf = await PDFDocument.create();
+    referencePdf.addPage([300, 300]).drawText("Artemis II mission reference guide");
+    await writeFile(pdfPath, Buffer.from(await referencePdf.save()));
+
+    const otherPdf = await PDFDocument.create();
+    otherPdf.addPage([300, 300]).drawText("Ocean circulation field notes");
+    await writeFile(otherPdfPath, Buffer.from(await otherPdf.save()));
+
+    await store({ sourcePath: pdfPath }, { wsPath: ctx.wsPath, embedder });
+    await store({ sourcePath: otherPdfPath }, { wsPath: ctx.wsPath, embedder });
+
+    const results = await search(
+      { queryFile: pdfPath, contentType: "application/pdf", limit: 5 },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    expect(results[0]?.file).toBe("reference.pdf");
+  });
+
+  it("reports totalChunks without counting the parent row as an extra chunk", async () => {
+    const pdfPath = join(ctx.baseDir, "chunked.pdf");
+
+    const pdf = await PDFDocument.create();
+    for (let index = 0; index < 7; index += 1) {
+      pdf.addPage([300, 300]).drawText(`Mission page ${index + 1}`);
+    }
+    await writeFile(pdfPath, Buffer.from(await pdf.save()));
+
+    await store({ sourcePath: pdfPath }, { wsPath: ctx.wsPath, embedder });
+
+    const results = await search(
+      { queryFile: pdfPath, contentType: "application/pdf", limit: 5 },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    expect(results[0]?.file).toBe("chunked.pdf");
+    expect(results[0]?.totalChunks).toBe(2);
   });
 
   it("filters search results to the current embedding model", async () => {

@@ -20,6 +20,10 @@ const TIMEOUT_MS = 5 * 60 * 1000;
 const FILE_POLL_INTERVAL_MS = 1000;
 const INLINE_MAX_BYTES = 100 * 1024 * 1024;
 const INLINE_PDF_MAX_BYTES = 50 * 1024 * 1024;
+const FILE_STATE_ACTIVE = "ACTIVE";
+const FILE_STATE_FAILED = "FAILED";
+const FILE_STATE_PROCESSING = "PROCESSING";
+const FILE_STATE_UNSPECIFIED = "STATE_UNSPECIFIED";
 
 export class GeminiEmbeddingProvider implements EmbeddingProvider {
   readonly modelId: string;
@@ -111,6 +115,7 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
   ): Promise<{ parts: Part[]; cleanup: () => Promise<void> }> {
     const uploadedFiles: string[] = [];
     const preparedParts: Part[] = [];
+    let inlineBytes = 0;
 
     try {
       for (const part of parts) {
@@ -128,7 +133,11 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
           ? INLINE_PDF_MAX_BYTES
           : INLINE_MAX_BYTES;
 
-        if (part.data.length <= inlineLimit) {
+        if (
+          part.data.length <= inlineLimit
+          && inlineBytes + part.data.length <= INLINE_MAX_BYTES
+        ) {
+          inlineBytes += part.data.length;
           preparedParts.push(
             createPartFromBase64(part.data.toString("base64"), part.mimeType),
           );
@@ -137,7 +146,7 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
 
         const uploaded = await this.uploadPart(part.data, part.mimeType);
         uploadedFiles.push(uploaded.name);
-        preparedParts.push(createPartFromUri(uploaded.uri, part.mimeType));
+        preparedParts.push(createPartFromUri(uploaded.uri, uploaded.mimeType));
       }
 
       return {
@@ -155,23 +164,31 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
   private async uploadPart(
     data: Buffer,
     mimeType: string,
-  ): Promise<{ name: string; uri: string }> {
+  ): Promise<{ name: string; uri: string; mimeType: string }> {
     const tempDir = await mkdtemp(join(tmpdir(), "clawdrive-gemini-upload-"));
     const tempPath = join(tempDir, "payload");
 
     try {
       await writeFile(tempPath, data);
-      const uploaded = await this.client.files.upload({
-        file: tempPath,
-        config: { mimeType },
-      });
+      const uploaded = await withTimeout(
+        this.client.files.upload({
+          file: tempPath,
+          config: { mimeType },
+        }),
+        TIMEOUT_MS,
+        `Gemini Files API upload timed out after ${TIMEOUT_MS}ms`,
+      );
       const ready = await this.waitForFileReady(uploaded.name ?? "");
 
       if (!ready.name || !ready.uri) {
         throw new Error("Gemini Files API did not return a usable file URI");
       }
 
-      return { name: ready.name, uri: ready.uri };
+      return {
+        name: ready.name,
+        uri: ready.uri,
+        mimeType: ready.mimeType ?? mimeType,
+      };
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
@@ -179,30 +196,53 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
 
   private async waitForFileReady(
     name: string,
-  ): Promise<{ name?: string; uri?: string; state?: string }> {
+  ): Promise<{ name?: string; uri?: string; mimeType?: string; state?: string }> {
     if (!name) {
       throw new Error("Gemini Files API did not return a file name");
     }
 
     const start = Date.now();
-    let file = await this.client.files.get({ name });
-    let state = file.state?.toString();
-
-    while (state === "PROCESSING") {
+    while (true) {
       if (Date.now() - start > TIMEOUT_MS) {
         throw new Error(`Gemini file processing timed out after ${TIMEOUT_MS}ms`);
       }
 
+      const remainingMs = Math.max(TIMEOUT_MS - (Date.now() - start), 1);
+      const file = await withTimeout(
+        this.client.files.get({ name }),
+        remainingMs,
+        `Gemini file status check timed out after ${TIMEOUT_MS}ms`,
+      );
+      const state = normalizeFileState(file.state);
+
+      if (state === FILE_STATE_ACTIVE) {
+        return {
+          name: file.name,
+          uri: file.uri,
+          mimeType: file.mimeType,
+          state,
+        };
+      }
+
+      if (state === FILE_STATE_FAILED) {
+        const details = extractFileErrorMessage(file.error);
+        throw new Error(
+          details
+            ? `Gemini file processing failed for ${name}: ${details}`
+            : `Gemini file processing failed for ${name}`,
+        );
+      }
+
+      if (
+        state !== null
+        && state !== FILE_STATE_PROCESSING
+        && state !== FILE_STATE_UNSPECIFIED
+      ) {
+        throw new Error(`Gemini file processing entered unexpected state ${state} for ${name}`);
+      }
+
       await new Promise((resolve) => setTimeout(resolve, FILE_POLL_INTERVAL_MS));
-      file = await this.client.files.get({ name });
-      state = file.state?.toString();
     }
-
-    if (state === "FAILED") {
-      throw new Error(`Gemini file processing failed for ${name}`);
-    }
-
-    return { name: file.name, uri: file.uri, state };
   }
 
   private async cleanupUploadedFiles(uploadedFiles: string[]): Promise<void> {
@@ -234,4 +274,40 @@ function normalizeVector(vector: Float32Array): Float32Array {
   }
 
   return vector;
+}
+
+function normalizeFileState(state: unknown): string | null {
+  if (typeof state === "string") {
+    const normalized = state.trim().toUpperCase();
+    return normalized.length > 0 ? normalized : null;
+  }
+
+  if (state == null) {
+    return null;
+  }
+
+  const normalized = String(state).trim().toUpperCase();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function extractFileErrorMessage(error: unknown): string | null {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+
+  const message = (error as { message?: unknown }).message;
+  return typeof message === "string" && message.trim().length > 0 ? message : null;
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]);
 }
