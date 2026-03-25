@@ -96,7 +96,7 @@ export function FileSearchPicker({ onSelect, excludeIds, onClose, anchorX, ancho
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {r.filePath?.split("/").pop() ?? r.id}
+                {r.file || r.id}
               </span>
               {inPot && <span style={{ fontSize: 10 }}>✓</span>}
             </button>
