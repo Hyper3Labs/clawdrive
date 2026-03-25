@@ -29,6 +29,27 @@ The frontend is missing several backend capabilities — file upload, delete, do
 
 ---
 
+## Section 0: State Management Strategy
+
+**Toast system:** React Context (`<ToastProvider>` + `useToast()` hook). Lightweight, no external state needed.
+
+**Upload queue:** A `useUploadQueue` hook using local state with `useRef` for the pending queue. Manages concurrency (max 3), progress tracking, and abort on unmount. Not a Zustand store — upload state is transient and view-local.
+
+**Files view state:** The existing `useVisualizationStore` (Zustand) already manages pots and file interaction. Extend it with:
+- `selectedPotSlugForFilesView: string | null` — pot filter for Files view
+- `pendingDeletes: Map<string, { timer: number, file: FileRecord }>` — deferred delete tracking
+
+**Pending delete lifecycle:**
+- On delete action: remove file from local display state, start 8s timer, store file data in `pendingDeletes`
+- On undo: cancel timer, restore file to display state, remove from `pendingDeletes`
+- On timer expiry: fire `DELETE /api/files/:id`, remove from `pendingDeletes`, re-fetch list
+- On component unmount: cancel all pending timers (files survive — delete was never sent)
+- On page refresh: same — pending deletes are lost, files survive
+
+This is safe because the backend `DELETE` is a soft-delete (sets `deleted_at` timestamp). Files are only permanently removed by the separate `gc` command.
+
+---
+
 ## Section 1: Shared Infrastructure
 
 ### 1.1 Toast Notification System
@@ -63,6 +84,8 @@ A `<ContextMenu>` component triggered by right-click or three-dot button.
 
 **Reused by:** file cards, pot sidebar items, Space view points
 
+**Note:** `PotsSidebar.tsx` already contains an inline context menu implementation. Extract and generalize it into this shared component.
+
 ### 1.3 Drop Zone
 
 A `<DropZone>` component wrapping any area.
@@ -93,7 +116,8 @@ export async function uploadFile(
 ```
 
 - Uses `FormData` with `multipart/form-data` to `POST /api/files/store`
-- If `potSlug` provided, auto-adds `pot:<slug>` to tags array
+- If `potSlug` provided, client-side appends `pot:<slug>` to the tags array before sending in FormData (not a separate form field)
+- Full return type from backend: `{ id, fileHash, status: "stored" | "duplicate", duplicateId?, chunks, tokensUsed }`
 
 ### 2.2 Global Upload (Files View)
 
@@ -116,6 +140,7 @@ export async function uploadFile(
 - File list auto-refreshes (re-fetch current view)
 - In Space view: projections recompute after upload (`POST /api/projections/recompute`)
 - Toast: "filename.pdf uploaded" on success
+- **Duplicate handling:** When `status === "duplicate"`, show toast: "filename.pdf already exists" (info type, not error). Do not show it as a failure — the file is accessible via the existing record.
 
 ---
 
@@ -163,7 +188,7 @@ Calls `DELETE /api/files/:id` (soft-delete).
 - Each chip has an "x" button to remove
 - "+" chip at the end: opens small text input, Enter to add tag
 - Tags starting with `pot:` styled with `MAP_THEME.accentSecondary`, not removable here (managed via pot assignment)
-- On change: calls `updateFile(id, { tags })`, success toast
+- On change: calls existing `updateFile(id, { tags })` (already in `api.ts`), success toast
 
 ### 4.2 Inline TL;DR / Description (Preview Panel)
 
@@ -220,7 +245,8 @@ Calls `DELETE /api/files/:id` (soft-delete).
 - Stacked layout in left sidebar:
   - **Top section: Pots** — compact list of pot names with file counts, collapsible
   - **Bottom section: Taxonomy** — expandable tree (existing `TaxonomySidebar`)
-- Selecting a pot filters the file grid to that pot's files
+- Selecting a pot filters the file grid to that pot's files (uses `GET /api/pots/:slug/files`)
+- **Pot and taxonomy filters are mutually exclusive:** selecting a pot clears taxonomy selection and vice versa. The active filter is indicated visually (highlighted pot name or highlighted taxonomy node, never both).
 - Pot CRUD (create, rename, delete) available via same interactions as Space view sidebar ("+", right-click context menu)
 - Both sections independently scrollable
 
@@ -233,7 +259,7 @@ Calls `DELETE /api/files/:id` (soft-delete).
 - Share icon button on each pot (visible on hover, always visible for selected pot)
 - Click: opens share popover with:
   - **"Create public link"** button: calls `POST /api/shares/pot/:pot` with `kind: "link", role: "read"`
-  - **Active shares list**: existing shares for this pot with status chips (pending / active / expired / revoked)
+  - **Active shares list**: existing shares for this pot with status chips (pending / active / expired / revoked). **Note:** No endpoint exists to list shares by pot — need to add `GET /api/shares?pot=:slug` or `GET /api/pots/:pot/shares` to the backend.
   - **Copy link** button on active link shares: copies `/s/:token` URL to clipboard, toast "Link copied"
   - **Revoke** button on active/pending shares: calls `POST /api/shares/:ref/revoke`, undo toast
 
@@ -246,7 +272,7 @@ Calls `DELETE /api/files/:id` (soft-delete).
   - "Approve" button: `POST /api/shares/:ref/approve`, toast "Share approved"
   - "Reject" button: `POST /api/shares/:ref/revoke`, toast "Share rejected"
   - Empty state: "No pending shares"
-- Refreshes on window focus and every 30s
+- Refreshes on window focus and every 30s (pauses when tab is hidden via `visibilitychange`, clears interval on unmount)
 
 ### 6.3 API Additions
 
@@ -276,7 +302,7 @@ export async function revokeShare(ref: string): Promise<PotShare>
 - **Tags filter**: text input with autocomplete from known tags, maps to `tags` param
 - Active filters shown as removable chips below the search input
 - All filters passed to `GET /api/search?q=...&type=...&tags=...&pot=...`
-- When no query text but filters are set: search still runs
+- **Filter-only mode (no query text):** The backend requires `q` param. When filters are set but no text query, fall back to `GET /api/files` with client-side filtering by type/tags. Alternatively, send a broad query like `q=*` — needs backend testing. Decision: use `GET /api/files` fallback for filter-only, `GET /api/search` when text is present.
 
 ### 7.2 API Change
 
@@ -315,5 +341,9 @@ export async function searchFiles(
 | `listShareInbox` | GET | `/api/shares/inbox` |
 | `approveShare` | POST | `/api/shares/:ref/approve` |
 | `revokeShare` | POST | `/api/shares/:ref/revoke` |
+| `listPotShares` | GET | `/api/pots/:pot/shares` **(new)** |
 
-No new backend endpoints needed — all endpoints already exist. Only the frontend API client and components are new.
+### Backend Changes Needed
+
+One new endpoint required:
+- `GET /api/pots/:pot/shares` — list all shares for a specific pot (needed for Section 6.1 share popover). Returns `{ items: PotShare[], total: number }`. Requires a new `listPotShares(potRef)` function in `@clawdrive/core/shares.ts`.
