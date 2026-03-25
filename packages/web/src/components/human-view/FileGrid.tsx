@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, memo, useRef } from "react";
-import { listFiles } from "../../api";
+import { listFiles, listPotFiles } from "../../api";
 import type { FileInfo } from "../../types";
 import { PdfThumbnail } from "./PdfThumbnail";
 import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
@@ -19,6 +19,7 @@ export type SortMode = "recent" | "name" | "type" | "size";
 
 interface FileGridProps {
   selectedPath: string[];
+  potSlug?: string;
   onFileClick?: (fileId: string) => void;
   sort?: SortMode;
 }
@@ -178,7 +179,7 @@ function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
   }
 }
 
-export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGridProps) {
+export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }: FileGridProps) {
   const [allFiles, setAllFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const onFileClickRef = useRef(onFileClick);
@@ -195,6 +196,10 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
     let cancelled = false;
 
     async function fetchAll() {
+      if (potSlug) {
+        const res = await listPotFiles(potSlug);
+        return res.items ?? [];
+      }
       const files: FileInfo[] = [];
       let cursor: string | undefined;
       for (let i = 0; i < 20; i++) {
@@ -230,7 +235,7 @@ export function FileGrid({ selectedPath, onFileClick, sort = "recent" }: FileGri
     return () => {
       cancelled = true;
     };
-  }, [selectedPath]);
+  }, [selectedPath, potSlug]);
 
   // Sort in memory after server-side filtering. Filter out pending deletes.
   const displayFiles = useMemo(() => {

@@ -6,6 +6,8 @@ import { Breadcrumb } from "./Breadcrumb";
 import { FilePreview } from "./FilePreview";
 import { DropZone } from "../shared/DropZone";
 import { useUploadQueue } from "../../hooks/useUploadQueue";
+import { PotsSidebar } from "./PotsSidebar";
+import { useVisualizationStore } from "../agent-view/useVisualizationStore";
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "recent", label: "Recent" },
@@ -16,10 +18,30 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 
 export function TaxonomyBrowser() {
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
+  const [selectedPotSlug, setSelectedPotSlug] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [sort, setSort] = useState<SortMode>("recent");
   const [refreshKey, setRefreshKey] = useState(0);
   const { enqueue } = useUploadQueue({ onComplete: () => setRefreshKey(k => k + 1) });
+  const pots = useVisualizationStore((s) => s.pots);
+  const selectPot = useVisualizationStore((s) => s.selectPot);
+
+  function handleSelectPot(slug: string | null) {
+    setSelectedPotSlug(slug);
+    setSelectedPath([]);
+    if (slug) {
+      const pot = pots.find((p) => p.slug === slug);
+      if (pot) selectPot(pot.id);
+    } else {
+      selectPot(null);
+    }
+  }
+
+  function handleSelectPath(path: string[]) {
+    setSelectedPath(path);
+    setSelectedPotSlug(null);
+    selectPot(null);
+  }
 
   return (
     <DropZone onDrop={enqueue}>
@@ -30,10 +52,15 @@ export function TaxonomyBrowser() {
           width: 240,
           flexShrink: 0,
           borderRight: "1px solid rgba(255,255,255,0.1)",
-          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          overflowY: "hidden",
         }}
       >
-        <TaxonomySidebar selectedPath={selectedPath} onSelect={setSelectedPath} />
+        <PotsSidebar selectedSlug={selectedPotSlug} onSelectPot={handleSelectPot} />
+        <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <TaxonomySidebar selectedPath={selectedPath} onSelect={handleSelectPath} />
+        </div>
       </div>
 
       {/* Main content */}
@@ -45,7 +72,7 @@ export function TaxonomyBrowser() {
           alignItems: "center",
           justifyContent: "space-between",
         }}>
-          <Breadcrumb path={selectedPath} onNavigate={setSelectedPath} />
+          <Breadcrumb path={selectedPath} onNavigate={handleSelectPath} />
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             <span style={{ fontSize: 11, opacity: 0.35 }}>Sort:</span>
             <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.04)", borderRadius: 5, padding: 2 }}>
@@ -72,7 +99,7 @@ export function TaxonomyBrowser() {
           </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          <FileGrid key={refreshKey} selectedPath={selectedPath} onFileClick={setPreviewFileId} sort={sort} />
+          <FileGrid key={refreshKey} selectedPath={selectedPath} potSlug={selectedPotSlug ?? undefined} onFileClick={setPreviewFileId} sort={sort} />
         </div>
       </div>
 

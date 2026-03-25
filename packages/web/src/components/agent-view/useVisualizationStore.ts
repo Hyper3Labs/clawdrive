@@ -10,6 +10,7 @@ interface VisualizationState {
   selectedPotId: string | null;
   pots: PotRecord[];
   potFileIds: Set<string>;
+  selectedPotSlugForFilesView: string | null;
 
   // File interaction state
   clickedFileId: string | null;
@@ -20,6 +21,7 @@ interface VisualizationState {
 
   // Actions
   selectPot: (id: string | null) => void;
+  selectPotForFilesView: (slug: string | null) => void;
   clickFile: (id: string | null) => void;
   hoverFile: (id: string | null) => void;
   recordInteraction: () => void;
@@ -45,6 +47,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
   selectedPotId: null,
   pots: [],
   potFileIds: new Set(),
+  selectedPotSlugForFilesView: null,
   clickedFileId: null,
   hoveredFileId: null,
   lastInteractionTime: Date.now(),
@@ -66,6 +69,8 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
       console.error("Failed to fetch pot files:", err);
     }
   },
+
+  selectPotForFilesView: (slug) => set({ selectedPotSlugForFilesView: slug }),
 
   clickFile: (id) => {
     set({ clickedFileId: id });
