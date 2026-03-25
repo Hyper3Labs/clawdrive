@@ -60,6 +60,34 @@ function buildDirectSharePath(token: string, relativePath: string): string {
   return `/s/${encodeURIComponent(token)}/${relativePath}`;
 }
 
+type Modality = "image" | "video" | "audio" | "pdf" | "text";
+
+function getModality(contentType: string): Modality {
+  if (contentType.startsWith("image/")) return "image";
+  if (contentType.startsWith("video/")) return "video";
+  if (contentType.startsWith("audio/")) return "audio";
+  if (contentType === "application/pdf") return "pdf";
+  return "text";
+}
+
+function getModalityLabel(modality: Modality): string {
+  const labels: Record<Modality, string> = { image: "IMG", video: "VID", audio: "AUD", pdf: "PDF", text: "TXT" };
+  return labels[modality];
+}
+
+interface ModalityStyle { color: string; borderColor: string; background: string; gradient: string }
+
+function getModalityStyle(modality: Modality): ModalityStyle {
+  const styles: Record<Modality, ModalityStyle> = {
+    image: { color: "#7BD389", borderColor: "rgba(123,211,137,0.4)", background: "rgba(123,211,137,0.12)", gradient: "linear-gradient(135deg,#0f2a1f,#0a1a15)" },
+    pdf: { color: "#8AB4FF", borderColor: "rgba(138,180,255,0.4)", background: "rgba(138,180,255,0.12)", gradient: "linear-gradient(135deg,#0f1a2f,#0a1225)" },
+    video: { color: "#C792EA", borderColor: "rgba(199,146,234,0.4)", background: "rgba(199,146,234,0.12)", gradient: "linear-gradient(135deg,#1a0f2a,#120a20)" },
+    audio: { color: "#F6C177", borderColor: "rgba(246,193,119,0.4)", background: "rgba(246,193,119,0.12)", gradient: "linear-gradient(135deg,#2a2a1a,#1a150a)" },
+    text: { color: "#9AD1FF", borderColor: "rgba(154,209,255,0.4)", background: "rgba(154,209,255,0.12)", gradient: "linear-gradient(135deg,#0f1a2a,#0a1520)" },
+  };
+  return styles[modality];
+}
+
 function buildManifest(token: string, resolved: NonNullable<Awaited<ReturnType<typeof resolvePublicShare>>>) {
   return {
     share: {
