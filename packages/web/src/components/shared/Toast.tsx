@@ -100,9 +100,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => { t.action!.onClick(); dismiss(t.id); }}
                 style={{
-                  background: "none", border: "none", cursor: "pointer",
+                  background: "rgba(110, 231, 255, 0.12)",
+                  border: `1px solid rgba(110, 231, 255, 0.3)`,
+                  borderRadius: 4,
+                  cursor: "pointer",
                   color: MAP_THEME.accentPrimary, fontWeight: 600,
-                  fontSize: 13, padding: "2px 8px", flexShrink: 0,
+                  fontSize: 12, padding: "3px 10px", flexShrink: 0,
                 }}
               >
                 {t.action.label}
@@ -113,7 +116,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               style={{
                 background: "none", border: "none", cursor: "pointer",
                 color: MAP_THEME.textMuted, fontSize: 16, padding: 0,
-                lineHeight: 1, flexShrink: 0,
+                lineHeight: 1, flexShrink: 0, opacity: 0.6,
               }}
             >
               ×
