@@ -50,7 +50,7 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
           overflowY: "hidden",
         }}
       >
-        <PotsSidebar selectedSlug={selectedPotSlug} onSelectPot={handleSelectPot} />
+        <PotsSidebar selectedSlug={selectedPotSlug} onSelectPot={handleSelectPot} onPotContentChanged={() => setRefreshKey((k) => k + 1)} />
         <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
           <TaxonomySidebar selectedPath={selectedPath} onSelect={handleSelectPath} />
         </div>
@@ -65,7 +65,7 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
           alignItems: "center",
           justifyContent: "space-between",
         }}>
-          <Breadcrumb path={selectedPath} onNavigate={handleSelectPath} />
+          <Breadcrumb path={selectedPotSlug ? [`pot: ${selectedPotSlug}`] : selectedPath} onNavigate={handleSelectPath} />
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             <span style={{ fontSize: 11, opacity: 0.35 }}>Sort:</span>
             <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.04)", borderRadius: 5, padding: 2 }}>

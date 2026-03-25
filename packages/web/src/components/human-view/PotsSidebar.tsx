@@ -10,9 +10,10 @@ import type { PotRecord } from "../../types";
 interface PotsSidebarProps {
   selectedSlug: string | null;
   onSelectPot: (slug: string | null) => void;
+  onPotContentChanged?: () => void;
 }
 
-export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
+export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: PotsSidebarProps) {
   const pots = useVisualizationStore((s) => s.pots);
   const fetchPots = useVisualizationStore((s) => s.fetchPots);
   const createPot = useVisualizationStore((s) => s.createPot);
@@ -48,8 +49,9 @@ export function PotsSidebar({ selectedSlug, onSelectPot }: PotsSidebarProps) {
       const res = await getFileTags(fileId);
       const tags = res.tags ?? [];
       await assignFileToPot(fileId, selectedSlug, tags);
-      // Refresh local file IDs
+      // Refresh local file IDs and notify parent to re-fetch grid
       setLocalPotFileIds((prev) => new Set([...prev, fileId]));
+      onPotContentChanged?.();
       show("File added to pot", { type: "success" });
     } catch {
       show("Failed to add file", { type: "error" });
