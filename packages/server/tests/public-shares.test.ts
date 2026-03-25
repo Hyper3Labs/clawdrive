@@ -7,10 +7,20 @@ import { join } from "node:path";
 import express from "express";
 
 vi.mock("sharp", () => {
+  const TINY_JPEG = Buffer.from([
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xd9,
+  ]);
+
   const chain = {
     resize: () => chain,
     jpeg: () => chain,
-    toFile: async () => undefined,
+    toFile: async (dest: string) => {
+      const { mkdir, writeFile } = await import("node:fs/promises");
+      const { dirname } = await import("node:path");
+      await mkdir(dirname(dest), { recursive: true });
+      await writeFile(dest, TINY_JPEG);
+    },
   };
 
   return {
@@ -117,13 +127,14 @@ describe("public share routes", () => {
     expect(manifestRes.status).toBe(200);
     const manifest = await manifestRes.json() as {
       total: number;
-      items: Array<{ original_name: string; content_url: string; preview_url: string; tldr?: string }>;
+      items: Array<{ original_name: string; content_url: string; preview_url: string; thumbnail_url: string; tldr?: string }>;
     };
     expect(manifest.total).toBe(1);
     expect(manifest.items[0]?.original_name).toBe("brief.md");
     expect(manifest.items[0]?.tldr).toBe("Mission brief");
     expect(manifest.items[0]?.content_url).toMatch(/^items\/[^/]+\/content$/);
     expect(manifest.items[0]?.preview_url).toMatch(/^items\/[^/]+\/preview$/);
+    expect(manifest.items[0]?.thumbnail_url).toMatch(/^items\/[^/]+\/thumbnail$/);
     expect(manifest.items[0]).not.toHaveProperty("abstract");
 
     const contentRes = await fetch(new URL(manifest.items[0]!.content_url, manifestRes.url));
@@ -132,6 +143,11 @@ describe("public share routes", () => {
 
     const previewRes = await fetch(new URL(manifest.items[0]!.preview_url, manifestRes.url));
     expect(previewRes.status).toBe(200);
+
+    const thumbUrl = manifest.items[0]!.content_url.replace("/content", "/thumbnail");
+    const thumbRes = await fetch(new URL(thumbUrl, manifestRes.url));
+    expect(thumbRes.status).toBe(200);
+    expect(thumbRes.headers.get("content-type")).toMatch(/image\/jpeg/);
 
     const blockedRes = await fetch(`${publicListener.baseUrl}/api/files`);
     expect(blockedRes.status).toBe(404);
@@ -147,7 +163,7 @@ describe("public share routes", () => {
     expect(proxiedManifestRes.status).toBe(200);
     const proxiedManifest = await proxiedManifestRes.json() as {
       total: number;
-      items: Array<{ original_name: string; content_url: string; preview_url: string; tldr?: string }>;
+      items: Array<{ original_name: string; content_url: string; preview_url: string; thumbnail_url: string; tldr?: string }>;
     };
     expect(proxiedManifest.total).toBe(1);
     expect(proxiedManifest.items[0]?.tldr).toBe("Mission brief");
@@ -159,6 +175,10 @@ describe("public share routes", () => {
 
     const proxiedPreviewRes = await fetch(new URL(proxiedManifest.items[0]!.preview_url, proxiedManifestRes.url));
     expect(proxiedPreviewRes.status).toBe(200);
+
+    const proxiedThumbUrl = proxiedManifest.items[0]!.content_url.replace("/content", "/thumbnail");
+    const proxiedThumbRes = await fetch(new URL(proxiedThumbUrl, proxiedManifestRes.url));
+    expect(proxiedThumbRes.status).toBe(200);
 
     const proxiedBlockedRes = await fetch(`${proxyListener.baseUrl}/api/files`);
     expect(proxiedBlockedRes.status).toBe(404);

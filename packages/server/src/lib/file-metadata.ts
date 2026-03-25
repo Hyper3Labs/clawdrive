@@ -61,5 +61,5 @@ export function toFileTagRecord(record: Pick<FileRecord, "id" | "tags">): FileTa
 }
 
 export function toShareItemMetadataRecord(record: ShareItemRecord): FileMetadataRecord {
-  return toFileMetadataRecord(record);
+  return toFileMetadataRecord({ ...record, tags: [] });
 }

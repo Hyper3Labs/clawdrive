@@ -4,6 +4,7 @@ import {
   getPublicShare,
   resolvePublicShare,
   resolvePublicShareItem,
+  getThumbnail,
 } from "@clawdrive/core";
 import { join } from "node:path";
 import { streamFilePath } from "../lib/file-stream.js";
@@ -50,7 +51,7 @@ function formatBytes(bytes: number): string {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
-function buildShareItemPath(shareItemId: string, mode: "content" | "preview"): string {
+function buildShareItemPath(shareItemId: string, mode: "content" | "preview" | "thumbnail"): string {
   return `items/${encodeURIComponent(shareItemId)}/${mode}`;
 }
 
@@ -74,6 +75,7 @@ function buildManifest(token: string, resolved: NonNullable<Awaited<ReturnType<t
       ...toShareItemMetadataRecord(item),
       content_url: buildShareItemPath(item.id, "content"),
       preview_url: buildShareItemPath(item.id, "preview"),
+      thumbnail_url: buildShareItemPath(item.id, "thumbnail"),
     })),
     total: resolved.items.length,
   };
@@ -273,6 +275,38 @@ export function createPublicShareRoutes(wsPath: string): Router {
   router.get("/:token/items/:shareItemId/content", streamPublicShareItem);
 
   router.get("/:token/items/:shareItemId/preview", streamPublicShareItem);
+
+  router.get("/:token/items/:shareItemId/thumbnail", async (req, res, next) => {
+    try {
+      const lookup = await lookupActiveShare(req.params.token, wsPath);
+      if (lookup.kind !== "ok") {
+        sendShareJsonStatus(res, lookup);
+        return;
+      }
+
+      const resolved = await resolvePublicShareItem(req.params.token, req.params.shareItemId, { wsPath });
+      if (!resolved) {
+        res.status(404).json({ error: "Shared item not found" });
+        return;
+      }
+
+      const cacheDir = join(wsPath, "thumbnails");
+      const filePath = join(wsPath, "files", resolved.file.file_path);
+      const thumbPath = await getThumbnail(filePath, resolved.file.content_type, cacheDir, resolved.file.id);
+
+      if (!thumbPath) {
+        res.status(404).end();
+        return;
+      }
+
+      res.set("Content-Type", "image/jpeg");
+      res.set("Cache-Control", "public, max-age=86400");
+      const { createReadStream } = await import("node:fs");
+      createReadStream(thumbPath).pipe(res);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   router.get("/:token", async (req, res, next) => {
     try {
