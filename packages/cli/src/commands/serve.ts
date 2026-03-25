@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { exec } from "node:child_process";
 import { createServer } from "@clawdrive/server";
 import { parseServerBindings, resolveStaticWebDir, setupServerContext, startPublicShareSurface } from "../server-runtime.js";
 
@@ -11,6 +12,7 @@ export function registerServeCommand(program: Command) {
     .option("--public-port <port>", "Optional share-only public surface port")
     .option("--public-host <host>", "Host to bind the share-only public surface")
     .option("--demo <dataset>", "Prepare and launch a curated demo dataset")
+    .option("--open", "Open browser after starting")
     .action(async (cmdOpts, cmd) => {
       const ctx = await setupServerContext(cmd, cmdOpts.demo);
       const bindings = parseServerBindings(cmdOpts);
@@ -25,13 +27,25 @@ export function registerServeCommand(program: Command) {
       });
 
       app.listen(bindings.port, bindings.host, () => {
-        console.log(`ClawDrive server running at http://${bindings.host}:${bindings.port}`);
+        const url = `http://${bindings.host === "0.0.0.0" ? "localhost" : bindings.host}:${bindings.port}`;
+        console.log(`ClawDrive server running at ${url}`);
         if (staticDir) {
-          console.log(`Web UI available at http://${bindings.host}:${bindings.port}`);
+          console.log(`Web UI available at ${url}`);
         } else {
           console.log("Web UI not built - run 'npm run build:web' to enable");
         }
         console.log("Press Ctrl+C to stop");
+
+        if (cmdOpts.open) {
+          const platform = process.platform;
+          const openCmd =
+            platform === "darwin"
+              ? "open"
+              : platform === "win32"
+                ? "start"
+                : "xdg-open";
+          exec(`${openCmd} ${url}`);
+        }
       });
 
       startPublicShareSurface(ctx.wsPath, bindings);

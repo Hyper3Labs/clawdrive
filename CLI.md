@@ -146,10 +146,6 @@ Download a public share into a local pot. Downloads everything by default.
 
 Start the REST API and web UI.
 
-### `cdrive ui`
-
-Same as `serve`, but also opens the browser.
-
 | Option | Description | Default |
 |---|---|---|
 | `--port <port>` | Port number | `7432` |
@@ -157,6 +153,7 @@ Same as `serve`, but also opens the browser.
 | `--public-port <port>` | Share-only public surface port | — |
 | `--public-host <host>` | Share-only public surface host | — |
 | `--demo <dataset>` | Seed a curated demo dataset (e.g. `nasa`) | — |
+| `--open` | Open browser after starting | — |
 
 ---
 

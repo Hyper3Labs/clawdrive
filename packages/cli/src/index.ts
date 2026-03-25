@@ -7,7 +7,6 @@ import { registerSearchCommand } from "./commands/search.js";
 import { registerTodoCommand } from "./commands/todo.js";
 import { registerServeCommand } from "./commands/serve.js";
 import { registerShareCommand } from "./commands/share.js";
-import { registerUiCommand } from "./commands/ui.js";
 
 export const program = new Command()
   .name("cdrive")
@@ -24,4 +23,3 @@ registerDigestCommand(program);
 registerGetCommand(program);
 registerShareCommand(program);
 registerServeCommand(program);
-registerUiCommand(program);
