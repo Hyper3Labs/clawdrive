@@ -1,5 +1,5 @@
 import { useState, useRef, type ReactNode, type DragEvent } from "react";
-import { MAP_THEME } from "../../theme";
+import { MAP_THEME, Z_INDEX } from "../../theme";
 
 interface DropZoneProps {
   onDrop: (files: File[]) => void;
@@ -63,7 +63,7 @@ export function DropZone({
           style={{
             position: nested ? "absolute" : "fixed",
             inset: 0,
-            zIndex: 50,
+            zIndex: Z_INDEX.overlay,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

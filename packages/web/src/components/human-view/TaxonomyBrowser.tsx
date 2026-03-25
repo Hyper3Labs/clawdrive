@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MAP_THEME } from "../../theme";
 import { TaxonomySidebar } from "./TaxonomySidebar";
 import { FileGrid } from "./FileGrid";
 import type { SortMode } from "./FileGrid";
@@ -51,7 +52,7 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
         }}
       >
         <PotsSidebar selectedSlug={selectedPotSlug} onSelectPot={handleSelectPot} onPotContentChanged={() => setRefreshKey((k) => k + 1)} />
-        <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ flex: 1, overflowY: "auto", borderTop: `1px solid ${MAP_THEME.borderSubtle}` }}>
           <TaxonomySidebar selectedPath={selectedPath} onSelect={handleSelectPath} />
         </div>
       </div>
@@ -60,7 +61,7 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{
           padding: "10px 20px",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          borderBottom: `1px solid ${MAP_THEME.borderSubtle}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -79,8 +80,8 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
                     border: "none",
                     cursor: "pointer",
                     fontSize: 11,
-                    color: sort === opt.value ? "#e4e4e7" : "rgba(255,255,255,0.4)",
-                    background: sort === opt.value ? "rgba(99,102,241,0.25)" : "transparent",
+                    color: sort === opt.value ? MAP_THEME.text : "rgba(255,255,255,0.4)",
+                    background: sort === opt.value ? "rgba(110,231,255,0.22)" : "transparent",
                     transition: "all 0.15s",
                     fontFamily: "inherit",
                   }}

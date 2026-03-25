@@ -53,7 +53,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
         src={contentUrl}
         alt={point.fileName}
         loading="lazy"
-        style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: "#0a131c" }}
+        style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: MAP_THEME.background }}
       />
     );
   }
@@ -396,10 +396,10 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
             <PotAssignment point={point} />
 
             {/* Metadata editing */}
-            <div style={{ padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.07)", marginTop: 12 }}>
+            <div style={{ padding: "8px 0", borderTop: `1px solid ${MAP_THEME.borderSubtle}`, marginTop: 12 }}>
               <TagEditor tags={tags} onChange={handleTagChange} />
             </div>
-            <div style={{ padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+            <div style={{ padding: "8px 0", borderTop: `1px solid ${MAP_THEME.borderSubtle}` }}>
               <div style={{ fontSize: 10, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
               <InlineEdit
                 value={fileInfo?.tldr ?? ""}

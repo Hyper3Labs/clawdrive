@@ -14,7 +14,7 @@ interface SharePopoverProps {
 const STATUS_COLORS: Record<string, string> = {
   active: MAP_THEME.accentSecondary,
   pending: MAP_THEME.accentWarm,
-  revoked: "#ff8d8d",
+  revoked: MAP_THEME.accentDanger,
   expired: MAP_THEME.textMuted,
 };
 
@@ -140,7 +140,7 @@ export function SharePopover({ potSlug, onClose, anchorX, anchorY }: SharePopove
                   onClick={() => handleRevoke(s.id)}
                   style={{
                     background: "none", border: "none", cursor: "pointer",
-                    color: "#ff8d8d", fontSize: 10, padding: 0,
+                    color: MAP_THEME.accentDanger, fontSize: 10, padding: 0,
                   }}
                 >
                   Revoke

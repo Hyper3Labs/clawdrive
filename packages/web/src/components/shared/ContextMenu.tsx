@@ -64,7 +64,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
             padding: "6px 12px",
             border: "none",
             background: "transparent",
-            color: item.danger ? "#ff8d8d" : MAP_THEME.text,
+            color: item.danger ? MAP_THEME.accentDanger : MAP_THEME.text,
             fontSize: 12,
             textAlign: "left",
             cursor: "pointer",

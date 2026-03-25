@@ -109,7 +109,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Metadata */}
-      <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)", fontSize: 12 }}>
+      <div style={{ padding: "12px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}`, fontSize: 12 }}>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", opacity: 0.6 }}>
           <span>{file.content_type}</span>
           <span>{formatSize(file.file_size)}</span>
@@ -121,7 +121,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
               href={file.source_url}
               target="_blank"
               rel="noreferrer"
-              style={{ fontSize: 12, color: "#93c5fd", textDecoration: "none" }}
+              style={{ fontSize: 12, color: MAP_THEME.accentPrimary, textDecoration: "none" }}
             >
               Open source
             </a>
@@ -130,12 +130,12 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Tags */}
-      <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ padding: "8px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}` }}>
         <TagEditor tags={tags} onChange={handleTagChange} />
       </div>
 
       {/* Summary */}
-      <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ padding: "8px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}` }}>
         <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
         <InlineEdit
           value={file.tldr ?? ""}
@@ -145,7 +145,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Digest button */}
-      <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ padding: "8px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}` }}>
         <button
           onClick={() => setShowDigestModal(true)}
           style={{
@@ -269,7 +269,7 @@ const headerStyle: React.CSSProperties = {
 };
 
 const closeStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.1)", border: "none", color: "#e4e4e7",
+  background: "rgba(255,255,255,0.1)", border: "none", color: MAP_THEME.text,
   width: 24, height: 24, borderRadius: 4, cursor: "pointer", fontSize: 13,
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
 };

@@ -148,7 +148,7 @@ export function ShareInbox() {
                   onClick={() => handleReject(s.id)}
                   style={{
                     background: "rgba(255,141,141,0.15)", border: "none", borderRadius: 4,
-                    color: "#ff8d8d", fontSize: 11, padding: "2px 8px",
+                    color: MAP_THEME.accentDanger, fontSize: 11, padding: "2px 8px",
                     cursor: "pointer", fontFamily: "inherit",
                   }}
                 >

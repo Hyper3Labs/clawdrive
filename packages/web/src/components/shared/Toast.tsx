@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
-import { MAP_THEME } from "../../theme";
+import { MAP_THEME, Z_INDEX } from "../../theme";
 
 interface ToastAction {
   label: string;
@@ -35,7 +35,7 @@ const MAX_TOASTS = 3;
 
 const BORDER_COLORS: Record<string, string> = {
   success: MAP_THEME.accentSecondary,
-  error: "#ff8d8d",
+  error: MAP_THEME.accentDanger,
   info: MAP_THEME.accentPrimary,
 };
 
@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ show }}>
       {children}
       <div style={{
-        position: "fixed", bottom: 20, right: 20, zIndex: 9999,
+        position: "fixed", bottom: 20, right: 20, zIndex: Z_INDEX.toast,
         display: "flex", flexDirection: "column", gap: 8, pointerEvents: "none",
       }}>
         {toasts.map((t) => (
@@ -100,12 +100,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => { t.action!.onClick(); dismiss(t.id); }}
                 style={{
-                  background: "rgba(110, 231, 255, 0.12)",
-                  border: `1px solid rgba(110, 231, 255, 0.3)`,
-                  borderRadius: 4,
-                  cursor: "pointer",
+                  background: "none", border: "none", cursor: "pointer",
                   color: MAP_THEME.accentPrimary, fontWeight: 600,
-                  fontSize: 12, padding: "3px 10px", flexShrink: 0,
+                  fontSize: 13, padding: "2px 8px", flexShrink: 0,
                 }}
               >
                 {t.action.label}
@@ -116,7 +113,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               style={{
                 background: "none", border: "none", cursor: "pointer",
                 color: MAP_THEME.textMuted, fontSize: 16, padding: 0,
-                lineHeight: 1, flexShrink: 0, opacity: 0.6,
+                lineHeight: 1, flexShrink: 0,
               }}
             >
               ×

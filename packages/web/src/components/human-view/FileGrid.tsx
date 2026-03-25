@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, memo, useRef } from "react";
 import type { ReactNode } from "react";
 import { listFiles, listPotFiles } from "../../api";
 import type { FileInfo } from "../../types";
+import { MAP_THEME } from "../../theme";
 import { PdfThumbnail } from "./PdfThumbnail";
 import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
 import { useVisualizationStore } from "../agent-view/useVisualizationStore";
@@ -153,7 +154,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
       <div style={{ padding: "10px 12px" }}>
         <div
           style={{
-            fontSize: 12, color: "#e4e4e7",
+            fontSize: 12, color: MAP_THEME.text,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}
           title={file.original_name}

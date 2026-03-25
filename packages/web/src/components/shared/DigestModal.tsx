@@ -58,7 +58,7 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
             minHeight: 200,
             margin: 16,
             padding: 12,
-            background: "rgba(255,255,255,0.03)",
+            background: "rgba(255,255,255,0.05)",
             border: `1px solid ${MAP_THEME.border}`,
             borderRadius: 8,
             color: MAP_THEME.text,

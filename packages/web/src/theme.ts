@@ -7,6 +7,8 @@ export const MAP_THEME = {
   accentPrimary: "#6EE7FF",
   accentSecondary: "#7BD389",
   accentWarm: "#FFB84D",
+  accentDanger: "#ff8d8d",
+  borderSubtle: "rgba(255,255,255,0.07)",
 } as const;
 
 export const MODALITY_COLORS = {
@@ -45,6 +47,8 @@ export const Z_INDEX = {
   sidebar: 10,
   modal: 20,
   contextMenu: 1000,
+  overlay: 50,
+  toast: 9999,
 } as const;
 
 export const MINI_CARD_Z_RANGE: [number, number] = [100, 0];

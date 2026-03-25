@@ -1,3 +1,5 @@
+import { MAP_THEME } from "../../theme";
+
 interface BreadcrumbProps {
   path: string[];
   onNavigate: (path: string[]) => void;
@@ -23,12 +25,12 @@ export function Breadcrumb({ path, onNavigate }: BreadcrumbProps) {
               }}
               style={{
                 cursor: isLast ? "default" : "pointer",
-                color: isLast ? "#e4e4e7" : "rgba(255,255,255,0.5)",
+                color: isLast ? MAP_THEME.text : "rgba(255,255,255,0.5)",
                 fontWeight: isLast ? 600 : 400,
                 transition: "color 0.15s",
               }}
               onMouseEnter={(e) => {
-                if (!isLast) e.currentTarget.style.color = "#e4e4e7";
+                if (!isLast) e.currentTarget.style.color = MAP_THEME.text;
               }}
               onMouseLeave={(e) => {
                 if (!isLast) e.currentTarget.style.color = "rgba(255,255,255,0.5)";

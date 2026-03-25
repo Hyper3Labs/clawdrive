@@ -24,8 +24,8 @@ function contentTypeIcon(ct: string): ReactNode {
 }
 
 function scoreColor(score: number): string {
-  if (score > 0.9) return "#86efac";
-  if (score > 0.7) return "#fbbf24";
+  if (score > 0.9) return MAP_THEME.accentSecondary;
+  if (score > 0.7) return MAP_THEME.accentWarm;
   return "rgba(255,255,255,0.4)";
 }
 

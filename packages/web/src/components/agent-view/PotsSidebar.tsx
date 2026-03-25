@@ -159,7 +159,7 @@ export function PotsSidebar() {
               ) : (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{
-                    color: isSelected ? MAP_THEME.text : "#9AB",
+                    color: isSelected ? MAP_THEME.text : MAP_THEME.textMuted,
                     fontSize: 13, fontWeight: isSelected ? 500 : 400,
                   }}>
                     {pot.name}
