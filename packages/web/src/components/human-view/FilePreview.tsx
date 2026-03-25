@@ -6,6 +6,7 @@ import { TagEditor } from "../shared/TagEditor";
 import { InlineEdit } from "../shared/InlineEdit";
 import { DigestModal } from "../shared/DigestModal";
 import { useToast } from "../shared/Toast";
+import { Download } from "lucide-react";
 
 function downloadFile(fileId: string, fileName: string) {
   const a = document.createElement("a");
@@ -102,7 +103,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           style={closeStyle}
           title="Download"
         >
-          ↓
+          <Download size={14} />
         </button>
         <button onClick={onClose} style={closeStyle}>x</button>
       </div>

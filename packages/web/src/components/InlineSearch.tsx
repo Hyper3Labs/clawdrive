@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from "react";
+import type { ReactNode } from "react";
 import { searchFiles } from "../api";
 import type { SearchResult } from "../types";
 import { MAP_THEME } from "../theme";
 import { SearchFilters, EMPTY_FILTERS, type SearchFilterState } from "./shared/SearchFilters";
+import { Search, FileText, Image, Video, Volume2, FileCode } from "lucide-react";
 
 export interface InlineSearchHandle {
   focus: () => void;
@@ -13,12 +15,12 @@ interface InlineSearchProps {
   onActiveChange?: (active: boolean) => void;
 }
 
-function contentTypeIcon(ct: string): string {
-  if (ct.startsWith("application/pdf")) return "\uD83D\uDCC4";
-  if (ct.startsWith("image/")) return "\uD83D\uDDBC\uFE0F";
-  if (ct.startsWith("video/")) return "\uD83C\uDFAC";
-  if (ct.startsWith("audio/")) return "\uD83D\uDD0A";
-  return "\uD83D\uDCDD";
+function contentTypeIcon(ct: string): ReactNode {
+  if (ct.startsWith("application/pdf")) return <FileText size={14} />;
+  if (ct.startsWith("image/")) return <Image size={14} />;
+  if (ct.startsWith("video/")) return <Video size={14} />;
+  if (ct.startsWith("audio/")) return <Volume2 size={14} />;
+  return <FileCode size={14} />;
 }
 
 function scoreColor(score: number): string {
@@ -175,8 +177,8 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             transition: "border-color 0.15s",
           }}
         >
-          <span style={{ fontSize: 13, opacity: 0.4, color: MAP_THEME.text }}>
-            {"\uD83D\uDD0D"}
+          <span style={{ opacity: 0.4, color: MAP_THEME.text, display: "flex", alignItems: "center" }}>
+            <Search size={14} />
           </span>
           <input
             ref={inputRef}

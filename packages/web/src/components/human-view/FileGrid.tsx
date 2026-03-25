@@ -1,10 +1,12 @@
 import { useEffect, useState, useMemo, memo, useRef } from "react";
+import type { ReactNode } from "react";
 import { listFiles, listPotFiles } from "../../api";
 import type { FileInfo } from "../../types";
 import { PdfThumbnail } from "./PdfThumbnail";
 import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
 import { useVisualizationStore } from "../agent-view/useVisualizationStore";
 import { useToast } from "../shared/Toast";
+import { FileText, Video, Volume2, FileCode, Music } from "lucide-react";
 
 function downloadFile(fileId: string, fileName: string) {
   const a = document.createElement("a");
@@ -24,11 +26,11 @@ interface FileGridProps {
   sort?: SortMode;
 }
 
-function contentTypeIcon(ct: string): string {
-  if (ct.startsWith("application/pdf")) return "\uD83D\uDCC4";
-  if (ct.startsWith("video/")) return "\uD83C\uDFAC";
-  if (ct.startsWith("audio/")) return "\uD83D\uDD0A";
-  return "\uD83D\uDCDD";
+function contentTypeIcon(ct: string, size = 16): ReactNode {
+  if (ct.startsWith("application/pdf")) return <FileText size={size} />;
+  if (ct.startsWith("video/")) return <Video size={size} />;
+  if (ct.startsWith("audio/")) return <Volume2 size={size} />;
+  return <FileCode size={size} />;
 }
 
 function formatSize(bytes: number): string {
@@ -114,7 +116,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
           background: "linear-gradient(135deg, rgba(251,191,36,0.1), rgba(251,191,36,0.05))",
           gap: 8,
         }}>
-          <span style={{ fontSize: 28 }}>{"\uD83C\uDFB5"}</span>
+          <Music size={28} />
           <audio
             src={`/api/files/${file.id}/content`}
             controls
@@ -143,7 +145,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
           height: 80, display: "flex", alignItems: "center", justifyContent: "center",
           background: "rgba(0,0,0,0.2)",
         }}>
-          <span style={{ fontSize: 36, opacity: 0.3 }}>{contentTypeIcon(file.content_type)}</span>
+          <div style={{ opacity: 0.3 }}>{contentTypeIcon(file.content_type, 36)}</div>
         </div>
       )}
 

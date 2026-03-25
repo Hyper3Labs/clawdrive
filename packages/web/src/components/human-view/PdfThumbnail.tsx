@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
+import { FileText } from "lucide-react";
 
 // Point to the worker bundled with pdfjs-dist
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -65,7 +66,7 @@ export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
         height: 80, display: "flex", alignItems: "center", justifyContent: "center",
         background: "rgba(0,0,0,0.2)",
       }}>
-        <span style={{ fontSize: 36, opacity: 0.3 }}>{"\uD83D\uDCC4"}</span>
+        <div style={{ opacity: 0.3 }}><FileText size={36} /></div>
       </div>
     );
   }

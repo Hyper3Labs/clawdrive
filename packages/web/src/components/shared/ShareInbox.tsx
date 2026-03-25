@@ -3,6 +3,7 @@ import { listShareInbox, approveShare, revokeShare } from "../../api";
 import { useToast } from "./Toast";
 import { MAP_THEME, Z_INDEX } from "../../theme";
 import type { PotShare } from "../../types";
+import { Link } from "lucide-react";
 
 export function ShareInbox() {
   const [open, setOpen] = useState(false);
@@ -69,10 +70,11 @@ export function ShareInbox() {
           background: "none", border: "none", cursor: "pointer",
           color: MAP_THEME.text, fontSize: 14, padding: "4px 8px",
           position: "relative",
+          display: "flex", alignItems: "center",
         }}
         title="Share inbox"
       >
-        🔗
+        <Link size={16} />
         {items.length > 0 && (
           <span style={{
             position: "absolute", top: -2, right: -2,

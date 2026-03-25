@@ -6,6 +6,7 @@ import { listFiles } from "../api";
 import { MAP_THEME } from "../theme";
 import type { ViewMode, SearchResult } from "../types";
 import { useUploadQueue } from "../hooks/useUploadQueue";
+import { Upload } from "lucide-react";
 
 interface TopBarProps {
   activeView: ViewMode;
@@ -87,7 +88,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
           }}
           title="Upload files"
         >
-          ↑ Upload
+          <Upload size={14} /> Upload
         </button>
         <input
           ref={fileInputRef}
