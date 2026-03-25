@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { getFile } from "../../api";
+import { getFile, getFileTags, updateFile } from "../../api";
 import type { FileInfo } from "../../types";
+import { MAP_THEME } from "../../theme";
+import { TagEditor } from "../shared/TagEditor";
+import { InlineEdit } from "../shared/InlineEdit";
+import { DigestModal } from "../shared/DigestModal";
+import { useToast } from "../shared/Toast";
 
 function downloadFile(fileId: string, fileName: string) {
   const a = document.createElement("a");
@@ -20,7 +25,9 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   const [file, setFile] = useState<FileInfo | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const summary = file?.tldr ?? file?.abstract ?? file?.description ?? null;
+  const [tags, setTags] = useState<string[]>([]);
+  const [showDigestModal, setShowDigestModal] = useState(false);
+  const { show } = useToast();
 
   useEffect(() => {
     setLoading(true);
@@ -38,7 +45,32 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    getFileTags(fileId).then((res) => setTags(res.tags ?? [])).catch(() => {});
   }, [fileId]);
+
+  async function handleTagChange(newTags: string[]) {
+    try {
+      await updateFile(fileId, { tags: newTags });
+      setTags(newTags);
+      show("Tags updated", { type: "success" });
+    } catch { show("Failed to update tags", { type: "error" }); }
+  }
+
+  async function handleTldrSave(value: string) {
+    try {
+      await updateFile(fileId, { tldr: value || null });
+      setFile((prev) => prev ? { ...prev, tldr: value || null } : prev);
+      show("Saved", { type: "success" });
+    } catch { show("Failed to save", { type: "error" }); }
+  }
+
+  async function handleDigestSave(value: string) {
+    try {
+      await updateFile(fileId, { digest: value || null });
+      setFile((prev) => prev ? { ...prev, digest: value || null } : prev);
+      show("Digest saved", { type: "success" });
+    } catch { show("Failed to save digest", { type: "error" }); }
+  }
 
   if (loading) {
     return (
@@ -82,9 +114,6 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           <span>{formatSize(file.file_size)}</span>
           <span>{new Date(file.created_at).toLocaleDateString()}</span>
         </div>
-        {summary && (
-          <div style={{ marginTop: 8, opacity: 0.7 }}>{summary}</div>
-        )}
         {file.source_url && (
           <div style={{ marginTop: 8 }}>
             <a
@@ -97,6 +126,40 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
             </a>
           </div>
         )}
+      </div>
+
+      {/* Tags */}
+      <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <TagEditor tags={tags} onChange={handleTagChange} />
+      </div>
+
+      {/* Summary */}
+      <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
+        <InlineEdit
+          value={file.tldr ?? file.abstract ?? file.description ?? ""}
+          placeholder="Add a summary..."
+          onSave={handleTldrSave}
+        />
+      </div>
+
+      {/* Digest button */}
+      <div style={{ padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <button
+          onClick={() => setShowDigestModal(true)}
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 4,
+            color: MAP_THEME.textMuted,
+            fontSize: 11,
+            padding: "4px 10px",
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          {file.digest ? "Edit digest" : "Add digest"}
+        </button>
       </div>
 
       {/* Content preview */}
@@ -179,6 +242,13 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           </div>
         )}
       </div>
+      {showDigestModal && (
+        <DigestModal
+          value={file.digest ?? ""}
+          onSave={handleDigestSave}
+          onClose={() => setShowDigestModal(false)}
+        />
+      )}
     </div>
   );
 }
