@@ -176,16 +176,32 @@ function renderStatusPage(title: string, detail: string): string {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(title)}</title>
+    <title>${escapeHtml(title)} &middot; ClawDrive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      body { margin: 0; font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #101820; color: #f3f5f7; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif; background: #061018; color: #E6F0F7; min-height: 100vh; }
+      .topbar {
+        display: flex; align-items: center; padding: 12px 20px;
+        border-bottom: 1px solid #1F3647;
+        background: linear-gradient(180deg, rgba(8,21,31,0.95) 0%, rgba(6,16,24,0.95) 100%);
+      }
+      .logo { font-weight: 700; font-size: 15px; color: #E6F0F7; }
       main { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
-      .card { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 24px; }
-      h1 { margin: 0 0 12px; font-size: 28px; }
-      p { margin: 0; color: rgba(243, 245, 247, 0.72); line-height: 1.6; }
+      .card {
+        background: rgba(14, 26, 36, 0.6); border: 1px solid #1F3647;
+        border-radius: 8px; padding: 24px;
+      }
+      h1 { margin: 0 0 12px; font-size: 22px; font-weight: 700; }
+      p { margin: 0; color: #6B8A9E; line-height: 1.6; }
     </style>
   </head>
   <body>
+    <div class="topbar">
+      <span class="logo">ClawDrive</span>
+    </div>
     <main>
       <section class="card">
         <h1>${escapeHtml(title)}</h1>
