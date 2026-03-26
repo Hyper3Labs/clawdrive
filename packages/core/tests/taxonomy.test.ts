@@ -26,6 +26,7 @@ async function insertStubFile(
     file_hash: `hash-${id}`,
     file_size: 100,
     description: null,
+    digest: null,
     tags: [],
     taxonomy_path: [],
     embedding_model: "mock",
@@ -40,6 +41,7 @@ async function insertStubFile(
     created_at: now,
     updated_at: now,
     source_url: null,
+    display_name: null,
   });
 }
 

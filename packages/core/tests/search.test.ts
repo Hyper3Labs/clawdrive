@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { createHash } from "node:crypto";
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
 import { search } from "../src/search.js";
+import type { EmbedInput } from "../src/embedding/types.js";
 import { buildPotTag } from "../src/metadata.js";
 import { createPot } from "../src/pots.js";
 import { store } from "../src/store.js";
@@ -9,6 +11,60 @@ import { createTestWorkspace } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
+
+class QueryCompatibleMockEmbeddingProvider extends MockEmbeddingProvider {
+  async embed(input: EmbedInput): Promise<Float32Array> {
+    const content = await serializeQueryCompatibleInput(input);
+    const seed = createHash("sha256").update(content).digest();
+    const vector = new Float32Array(this.dimensions);
+
+    let state = seed.readUInt32BE(0) | 1;
+    for (let i = 0; i < this.dimensions; i++) {
+      state ^= state << 13;
+      state ^= state >>> 17;
+      state ^= state << 5;
+      vector[i] = (state >>> 0) / 0xffffffff * 2 - 1;
+    }
+
+    let norm = 0;
+    for (let i = 0; i < this.dimensions; i++) {
+      norm += vector[i] * vector[i];
+    }
+    norm = Math.sqrt(norm);
+    if (norm > 0) {
+      for (let i = 0; i < this.dimensions; i++) {
+        vector[i] /= norm;
+      }
+    }
+
+    return vector;
+  }
+}
+
+async function serializeQueryCompatibleInput(input: EmbedInput): Promise<Buffer> {
+  const serializedParts = await Promise.all(
+    input.parts.map(async (part) => {
+      if (part.kind === "text") {
+        return `text:${part.text}`;
+      }
+
+      if (part.kind === "file-uri") {
+        return `file-uri:${part.mimeType}:${part.uri}`;
+      }
+
+      return Buffer.concat([
+        Buffer.from(`inline-data:${part.mimeType}:`, "utf8"),
+        part.data,
+      ]);
+    }),
+  );
+
+  return Buffer.concat(
+    serializedParts.map((part) =>
+      typeof part === "string" ? Buffer.from(`${part}|`, "utf8") : Buffer.concat([part, Buffer.from("|", "utf8")]),
+    ),
+  );
+}
 
 describe("search", () => {
   let ctx: Awaited<ReturnType<typeof createTestWorkspace>>;
@@ -121,7 +177,8 @@ describe("search", () => {
     expect(summary?.tldr).toBe("Mission planning note covering the selected trajectory and launch timing.");
   });
 
-  it("uses query images for real vector search", async () => {
+  it("uses query images for binary query search with a query-compatible mock embedder", async () => {
+    const mediaEmbedder = new QueryCompatibleMockEmbeddingProvider(3072, "query-compatible");
     const imagePath = join(ctx.baseDir, "nebula.png");
     const otherImagePath = join(ctx.baseDir, "ocean.png");
 
@@ -143,18 +200,19 @@ describe("search", () => {
       },
     }).png().toFile(otherImagePath);
 
-    await store({ sourcePath: imagePath, tags: ["space"] }, { wsPath: ctx.wsPath, embedder });
-    await store({ sourcePath: otherImagePath, tags: ["water"] }, { wsPath: ctx.wsPath, embedder });
+    await store({ sourcePath: imagePath, tags: ["space"] }, { wsPath: ctx.wsPath, embedder: mediaEmbedder });
+    await store({ sourcePath: otherImagePath, tags: ["water"] }, { wsPath: ctx.wsPath, embedder: mediaEmbedder });
 
     const results = await search(
       { queryImage: imagePath, contentType: "image/png", limit: 5 },
-      { wsPath: ctx.wsPath, embedder },
+      { wsPath: ctx.wsPath, embedder: mediaEmbedder },
     );
 
     expect(results[0]?.file).toBe("nebula.png");
   });
 
-  it("uses PDF query files for real vector search", async () => {
+  it("uses PDF query files for binary query search with a query-compatible mock embedder", async () => {
+    const mediaEmbedder = new QueryCompatibleMockEmbeddingProvider(3072, "query-compatible");
     const pdfPath = join(ctx.baseDir, "reference.pdf");
     const otherPdfPath = join(ctx.baseDir, "other.pdf");
 
@@ -166,18 +224,19 @@ describe("search", () => {
     otherPdf.addPage([300, 300]).drawText("Ocean circulation field notes");
     await writeFile(otherPdfPath, Buffer.from(await otherPdf.save()));
 
-    await store({ sourcePath: pdfPath }, { wsPath: ctx.wsPath, embedder });
-    await store({ sourcePath: otherPdfPath }, { wsPath: ctx.wsPath, embedder });
+    await store({ sourcePath: pdfPath }, { wsPath: ctx.wsPath, embedder: mediaEmbedder });
+    await store({ sourcePath: otherPdfPath }, { wsPath: ctx.wsPath, embedder: mediaEmbedder });
 
     const results = await search(
       { queryFile: pdfPath, contentType: "application/pdf", limit: 5 },
-      { wsPath: ctx.wsPath, embedder },
+      { wsPath: ctx.wsPath, embedder: mediaEmbedder },
     );
 
     expect(results[0]?.file).toBe("reference.pdf");
   });
 
   it("reports totalChunks without counting the parent row as an extra chunk", async () => {
+    const mediaEmbedder = new QueryCompatibleMockEmbeddingProvider(3072, "query-compatible");
     const pdfPath = join(ctx.baseDir, "chunked.pdf");
 
     const pdf = await PDFDocument.create();
@@ -186,11 +245,11 @@ describe("search", () => {
     }
     await writeFile(pdfPath, Buffer.from(await pdf.save()));
 
-    await store({ sourcePath: pdfPath }, { wsPath: ctx.wsPath, embedder });
+    await store({ sourcePath: pdfPath }, { wsPath: ctx.wsPath, embedder: mediaEmbedder });
 
     const results = await search(
       { queryFile: pdfPath, contentType: "application/pdf", limit: 5 },
-      { wsPath: ctx.wsPath, embedder },
+      { wsPath: ctx.wsPath, embedder: mediaEmbedder },
     );
 
     expect(results[0]?.file).toBe("chunked.pdf");

@@ -11,17 +11,17 @@ export function formatSearchResults(results: any[]): string {
     const potLabel = pots.length > 0 ? chalk.dim(` {${pots.join(", ")}}`) : "";
     const tldr = r.tldr ?? r.abstract ?? r.description;
     const summary = tldr ? `\n  ${chalk.dim(tldr)}` : "";
-    return `${score} ${name}${chunk}${potLabel} ${chalk.dim(r.id)}${summary}`;
+    return `${score} ${name}${chunk}${potLabel}${summary}`;
   }).join("\n");
 }
 
-export function formatTodoResults(result: { items: Array<{ id: string; originalName: string; missing: string[] }>; nextCursor?: string }): string {
+export function formatTodoResults(result: { items: Array<{ name: string; originalName: string; missing: string[] }>; nextCursor?: string }): string {
   if (result.items.length === 0) {
     return chalk.dim("No todo items.");
   }
 
   const lines = result.items.map((item) => (
-    `${chalk.dim(item.id)} missing:${item.missing.join(",")} ${item.originalName}`
+    `missing:${item.missing.join(",")} ${item.name}`
   ));
 
   if (result.nextCursor) {

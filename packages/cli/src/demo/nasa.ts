@@ -14,7 +14,7 @@ import {
 } from "@clawdrive/core";
 
 const NASA_DEMO_NAME = "nasa";
-const NASA_DEMO_WORKSPACE = "nasa-demo";
+export const NASA_DEMO_WORKSPACE = "nasa-demo";
 const NASA_CACHE_DIR = join("context", "demo-datasets", "nasa");
 const NASA_MANIFEST_PATH = join("sample-files", "sources.json");
 const NASA_SAMPLE_DIR = "sample-files";
@@ -70,22 +70,6 @@ interface NasaSeedMarker {
 interface DemoContext {
   wsPath: string;
   embedder: EmbeddingProvider;
-}
-
-export function resolveWorkspaceForDemo(
-  requestedWorkspace: string,
-  demo: string | undefined,
-  workspaceSource?: string,
-): string {
-  if (demo !== NASA_DEMO_NAME) {
-    return requestedWorkspace;
-  }
-
-  if (requestedWorkspace === "default" && workspaceSource !== "cli") {
-    return NASA_DEMO_WORKSPACE;
-  }
-
-  return requestedWorkspace;
 }
 
 export async function prepareDemoWorkspace(
@@ -169,7 +153,7 @@ async function ensureSeeded(
     marker.fileCount === manifest.entries.length &&
     marker.totalBytes === manifest.totalBytes
   ) {
-    console.log(`[demo:${NASA_DEMO_NAME}] workspace already seeded`);
+    console.log(`[demo:${NASA_DEMO_NAME}] demo dataset already seeded`);
     return;
   }
 
@@ -223,7 +207,7 @@ async function cleanupLegacySeedData(
   ctx: DemoContext,
 ): Promise<void> {
   const db = await createDatabase(join(ctx.wsPath, "db"));
-  const table = await getFilesTable(db);
+  const table = await getFilesTable(db, ctx.wsPath);
   const rows = await table
     .query()
     .where("deleted_at IS NULL AND parent_id IS NULL")
@@ -245,7 +229,7 @@ async function cleanupLegacySeedData(
     const release = await acquireLock(ctx.wsPath);
     try {
       const lockedDb = await createDatabase(join(ctx.wsPath, "db"));
-      const lockedTable = await getFilesTable(lockedDb);
+      const lockedTable = await getFilesTable(lockedDb, ctx.wsPath);
       for (const file of purgeFiles) {
         await rm(join(ctx.wsPath, "files", file.file_path), { force: true });
         await lockedTable.delete(`id = '${file.id}' OR parent_id = '${file.id}'`);

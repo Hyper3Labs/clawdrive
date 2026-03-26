@@ -2,12 +2,23 @@
 import { join, resolve } from "node:path";
 import { copyFile } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
+import { getFileName } from "./display-names.js";
 import { createDatabase, getFilesTable, toFileRecord } from "./storage/db.js";
-import { getDigest } from "./digests.js";
 
 export interface ReadOptions {
   wsPath: string;
   includeDigest?: boolean;
+}
+
+function withDigestVisibility(record: FileRecord, includeDigest: boolean | undefined): FileRecord {
+  if (includeDigest) {
+    return record;
+  }
+
+  return {
+    ...record,
+    digest: null,
+  };
 }
 
 /**
@@ -20,7 +31,7 @@ export async function getFileInfo(
 ): Promise<FileRecord | null> {
   const dbPath = join(opts.wsPath, "db");
   const db = await createDatabase(dbPath);
-  const table = await getFilesTable(db);
+  const table = await getFilesTable(db, opts.wsPath);
 
   const rows = await table
     .query()
@@ -30,14 +41,40 @@ export async function getFileInfo(
   if (rows.length === 0) return null;
 
   const record = toFileRecord(rows[0] as Record<string, unknown>);
-  if (!opts.includeDigest) {
-    return record;
+  return withDigestVisibility(record, opts.includeDigest);
+}
+
+/**
+ * Resolve a file by its canonical visible name.
+ * Legacy ids are still accepted as a fallback for compatibility.
+ */
+export async function resolveFileInfo(
+  selector: string,
+  opts: ReadOptions,
+): Promise<FileRecord | null> {
+  const dbPath = join(opts.wsPath, "db");
+  const db = await createDatabase(dbPath);
+  const table = await getFilesTable(db, opts.wsPath);
+
+  const rows = await table
+    .query()
+    .where("deleted_at IS NULL AND parent_id IS NULL")
+    .limit(1_000_000)
+    .toArray();
+
+  const items = rows.map((row) => toFileRecord(row as Record<string, unknown>));
+  const exactNameMatches = items.filter((item) => getFileName(item) === selector);
+
+  if (exactNameMatches.length > 1) {
+    throw new Error(`File name is ambiguous: ${selector}`);
   }
 
-  return {
-    ...record,
-    digest: await getDigest(record.id, { wsPath: opts.wsPath }),
-  };
+  if (exactNameMatches.length === 1) {
+    return withDigestVisibility(exactNameMatches[0], opts.includeDigest);
+  }
+
+  const legacyIdMatch = items.find((item) => item.id === selector) ?? null;
+  return legacyIdMatch ? withDigestVisibility(legacyIdMatch, opts.includeDigest) : null;
 }
 
 /**

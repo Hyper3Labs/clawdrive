@@ -66,6 +66,21 @@ describe("manage", () => {
     expect(info!.digest).toContain("## Detailed Description");
   });
 
+  it("assigns a unique canonical name when renaming into an existing file name", async () => {
+    const src1 = join(ctx.baseDir, "first.md");
+    const src2 = join(ctx.baseDir, "second.md");
+    await writeFile(src1, "first file");
+    await writeFile(src2, "second file");
+
+    const first = await store({ sourcePath: src1, originalName: "Alpha.md" }, { wsPath: ctx.wsPath, embedder });
+    const second = await store({ sourcePath: src2, originalName: "Beta.md" }, { wsPath: ctx.wsPath, embedder });
+
+    await update(second.id, { displayName: "Alpha.md" }, { wsPath: ctx.wsPath });
+
+    const updated = await getFileInfo(second.id, { wsPath: ctx.wsPath, includeDigest: true });
+    expect(updated?.display_name).toBe("Alpha (2).md");
+  });
+
   it("lists files with pagination", async () => {
     const src1 = join(ctx.baseDir, "a.md");
     const src2 = join(ctx.baseDir, "b.md");
@@ -87,10 +102,10 @@ describe("manage", () => {
   });
 
   it("filters files by taxonomy path before pagination", async () => {
-    const src1 = join(ctx.baseDir, "alpha.bin");
-    const src2 = join(ctx.baseDir, "beta.bin");
-    await writeFile(src1, Buffer.from([1, 2, 3]));
-    await writeFile(src2, Buffer.from([4, 5, 6]));
+    const src1 = join(ctx.baseDir, "alpha.md");
+    const src2 = join(ctx.baseDir, "beta.md");
+    await writeFile(src1, "alpha taxonomy fixture");
+    await writeFile(src2, "beta taxonomy fixture");
 
     const first = await store({ sourcePath: src1 }, { wsPath: ctx.wsPath, embedder });
     const second = await store({ sourcePath: src2 }, { wsPath: ctx.wsPath, embedder });

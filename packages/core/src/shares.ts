@@ -61,6 +61,7 @@ function createShareItemRecord(
     share_id: shareId,
     file_id: file.id,
     original_name: file.original_name,
+    display_name: file.display_name ?? null,
     content_type: file.content_type,
     file_size: file.file_size,
     tldr,

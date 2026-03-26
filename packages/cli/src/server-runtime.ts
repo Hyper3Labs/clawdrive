@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import { createPublicShareServer } from "@clawdrive/server";
-import { prepareDemoWorkspace, resolveWorkspaceForDemo } from "./demo/nasa.js";
+import { NASA_DEMO_WORKSPACE, prepareDemoWorkspace } from "./demo/nasa.js";
 import { getGlobalOptions, setupContext } from "./helpers.js";
 
 export interface ServerBindings {
@@ -34,15 +34,9 @@ export function parseServerBindings(cmdOpts: {
 }
 
 export async function setupServerContext(cmd: Command, demo?: string) {
-  const rootCommand = cmd.parent ?? cmd;
   const globalOpts = getGlobalOptions(cmd);
-  const workspaceSource = rootCommand.getOptionValueSource?.("workspace");
-  const workspace = resolveWorkspaceForDemo(
-    globalOpts.workspace,
-    demo,
-    workspaceSource,
-  );
-  const ctx = await setupContext({ ...globalOpts, workspace });
+  const workspaceName = demo === "nasa" ? NASA_DEMO_WORKSPACE : undefined;
+  const ctx = await setupContext(globalOpts, workspaceName);
   await prepareDemoWorkspace(demo, ctx);
   return ctx;
 }

@@ -47,7 +47,7 @@ export async function search(
 
   // 1. Open DB and get table
   const db = await createDatabase(dbPath);
-  const table = await getFilesTable(db);
+  const table = await getFilesTable(db, wsPath);
 
   // 2. Build WHERE filters (applied to all modes)
   const filters: string[] = [
@@ -332,11 +332,12 @@ function postProcess(
 
     const resultParentId = parentId ?? (row.id as string);
     const totalChunks = chunkCountByParent.get(resultParentId) ?? 1;
+    const fileId = (parentId ?? row.id) as string;
 
     return {
-      id: (parentId ?? row.id) as string,
+      id: fileId,
       score: row._score as number,
-      file: row.original_name as string,
+      file: (row.display_name as string | null) ?? (row.original_name as string),
       contentType: row.content_type as string,
       fileSize: row.file_size as number,
       tags: toPlainArray(row.tags),

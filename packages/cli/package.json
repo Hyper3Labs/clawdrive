@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
     "dev": "tsc --watch"
   },
   "dependencies": {

@@ -1,5 +1,7 @@
 // packages/core/src/storage/db.ts
 import * as lancedb from "@lancedb/lancedb";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
   Schema,
   Field,
@@ -11,9 +13,10 @@ import {
   List,
 } from "apache-arrow";
 import type { FileRecord } from "../types.js";
+import { ensureUniqueFileName, getFileName } from "../display-names.js";
 
 const VECTOR_DIM = 3072;
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 4;
 const FILES_TABLE = "files";
 const META_TABLE = "_meta";
 
@@ -35,6 +38,7 @@ function buildFilesSchema(): Schema {
     new Field("file_hash", new Utf8(), false),
     new Field("file_size", new Int32(), false),
     new Field("description", new Utf8(), true),
+    new Field("digest", new Utf8(), true),
     new Field("tags", new List(new Field("item", new Utf8())), false),
     new Field("taxonomy_path", new List(new Field("item", new Utf8())), false),
     new Field("embedding_model", new Utf8(), false),
@@ -49,6 +53,7 @@ function buildFilesSchema(): Schema {
     new Field("created_at", new Float64(), false),
     new Field("updated_at", new Float64(), false),
     new Field("source_url", new Utf8(), true),
+    new Field("display_name", new Utf8(), true),
   ]);
 }
 
@@ -72,15 +77,149 @@ export async function createDatabase(
 
 /**
  * Returns the files table, creating it (empty) if it doesn't exist.
+ * Migrates the schema if needed (e.g. adds display_name/digest columns).
+ * When wsPath is provided, migrates matching legacy sidecars into DB columns.
  */
 export async function getFilesTable(
   db: lancedb.Connection,
+  wsPath?: string,
 ): Promise<lancedb.Table> {
   const tableNames = await db.tableNames();
   if (tableNames.includes(FILES_TABLE)) {
-    return db.openTable(FILES_TABLE);
+    const table = await db.openTable(FILES_TABLE);
+    await migrateFilesSchema(table, wsPath);
+    return table;
   }
   return db.createEmptyTable(FILES_TABLE, buildFilesSchema());
+}
+
+/**
+ * Add columns that are missing from older schemas.
+ * Migrates sidecar display-names.json data into the new column when wsPath is given.
+ */
+async function migrateFilesSchema(table: lancedb.Table, wsPath?: string): Promise<void> {
+  const schema = await table.schema();
+  const fieldNames = new Set(schema.fields.map((f: { name: string }) => f.name));
+  const missingDisplayName = !fieldNames.has("display_name");
+  const missingDigest = !fieldNames.has("digest");
+
+  if (missingDisplayName) {
+    await table.addColumns([{ name: "display_name", valueSql: "cast(NULL as string)" }]);
+  }
+
+  if (missingDigest) {
+    await table.addColumns([{ name: "digest", valueSql: "cast(NULL as string)" }]);
+  }
+
+  // Migrate legacy sidecars only when the corresponding DB column was just added.
+  if (wsPath) {
+    if (missingDisplayName) {
+      await migrateSidecarDisplayNames(table, wsPath);
+    }
+    if (missingDigest) {
+      await migrateSidecarDigests(table, wsPath);
+    }
+
+    await migrateUniqueVisibleNames(table);
+  }
+}
+
+async function migrateUniqueVisibleNames(table: lancedb.Table): Promise<void> {
+  const records = await queryFiles(table);
+  const parents = records
+    .filter((record) => record.parent_id === null)
+    .sort((left, right) => {
+      const createdDiff = left.created_at - right.created_at;
+      if (createdDiff !== 0) {
+        return createdDiff;
+      }
+      return left.id.localeCompare(right.id);
+    });
+
+  const usedNames = new Set<string>();
+
+  for (const record of parents) {
+    const currentName = getFileName(record);
+    const uniqueName = ensureUniqueFileName(currentName, usedNames);
+    usedNames.add(uniqueName);
+
+    const nextDisplayName = uniqueName === record.original_name ? null : uniqueName;
+    if (nextDisplayName === record.display_name) {
+      continue;
+    }
+
+    await table.update({
+      where: `id = '${record.id}'`,
+      values: { display_name: nextDisplayName },
+    });
+
+    await table.update({
+      where: `parent_id = '${record.id}'`,
+      values: { display_name: nextDisplayName },
+    });
+  }
+}
+
+/**
+ * One-time migration: read display-names.json sidecar and write values into DB rows.
+ */
+async function migrateSidecarDisplayNames(table: lancedb.Table, wsPath: string): Promise<void> {
+  const sidecarPath = join(wsPath, "display-names.json");
+  let names: Record<string, string>;
+  try {
+    const raw = await readFile(sidecarPath, "utf-8");
+    names = JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return; // No sidecar file or invalid — nothing to migrate
+  }
+
+  for (const [fileId, displayName] of Object.entries(names)) {
+    if (displayName && typeof displayName === "string" && displayName.trim()) {
+      try {
+        await table.update({
+          where: `id = '${fileId}'`,
+          values: { display_name: displayName.trim() },
+        });
+      } catch {
+        // Row may not exist; skip silently
+      }
+    }
+  }
+}
+
+/**
+ * One-time migration: read digests.json sidecar and write values into DB rows.
+ */
+async function migrateSidecarDigests(table: lancedb.Table, wsPath: string): Promise<void> {
+  const sidecarPath = join(wsPath, "digests.json");
+  let digests: Record<string, string>;
+  try {
+    const raw = await readFile(sidecarPath, "utf-8");
+    digests = JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return; // No sidecar file or invalid — nothing to migrate
+  }
+
+  for (const [fileId, digest] of Object.entries(digests)) {
+    if (typeof digest !== "string") {
+      continue;
+    }
+
+    const normalized = digest
+      .trim()
+      .replace(/\r\n/g, "\n");
+
+    if (normalized) {
+      try {
+        await table.update({
+          where: `id = '${fileId}'`,
+          values: { digest: normalized },
+        });
+      } catch {
+        // Row may not exist; skip silently
+      }
+    }
+  }
 }
 
 /**
@@ -130,7 +269,8 @@ export function toFileRecord(raw: Record<string, unknown>): FileRecord {
 
   row.description = (row.description as string | null) ?? null;
   row.tldr = row.description;
-  row.digest = null;
+  row.digest = (row.digest as string | null) ?? null;
+  row.display_name = (row.display_name as string | null) ?? null;
   row.abstract = row.description;
 
   return row as unknown as FileRecord;

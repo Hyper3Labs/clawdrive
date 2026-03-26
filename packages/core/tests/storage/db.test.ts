@@ -27,6 +27,7 @@ describe("database", () => {
       file_hash: "abc123",
       file_size: 1024,
       description: null,
+      digest: null,
       tags: ["test"],
       taxonomy_path: [],
       embedding_model: "gemini-embedding-2-preview",
@@ -41,6 +42,7 @@ describe("database", () => {
       created_at: Date.now(),
       updated_at: Date.now(),
       source_url: null,
+      display_name: null,
     };
     await insertFileRecord(table, record);
     const rows = await queryFiles(table);

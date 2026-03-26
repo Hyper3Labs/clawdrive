@@ -1,11 +1,13 @@
-import { listDigests, normalizeDigest } from "./digests.js";
+import { normalizeDigest } from "./digests.js";
+import { getFileName, normalizeDisplayName } from "./display-names.js";
 import { listFiles, type ManageOptions } from "./manage.js";
 import { normalizeTldr } from "./metadata.js";
 
-export type TodoKind = "tldr" | "digest";
+export type TodoKind = "tldr" | "digest" | "display_name";
 
 export interface TodoItem {
   id: string;
+  name: string;
   originalName: string;
   missing: TodoKind[];
   taxonomyPath: string[];
@@ -26,26 +28,31 @@ export interface ListTodosResult {
   total: number;
 }
 
-const DEFAULT_TODO_KINDS: TodoKind[] = ["tldr", "digest"];
+const DEFAULT_TODO_KINDS: TodoKind[] = ["tldr", "digest", "display_name"];
 
 function getMissingKinds(
   record: {
     id: string;
     tldr: string | null;
+    digest: string | null;
     abstract?: string | null;
     description: string | null;
+    display_name: string | null;
   },
-  digests: Record<string, string>,
 ): TodoKind[] {
   const missing: TodoKind[] = [];
   const tldr = normalizeTldr(record.tldr ?? record.abstract ?? record.description ?? null);
-  const digest = normalizeDigest(digests[record.id]);
+  const digest = normalizeDigest(record.digest);
+  const displayName = normalizeDisplayName(record.display_name);
 
   if (tldr == null) {
     missing.push("tldr");
   }
   if (digest == null) {
     missing.push("digest");
+  }
+  if (displayName == null) {
+    missing.push("display_name");
   }
 
   return missing;
@@ -57,18 +64,16 @@ export async function listTodos(
 ): Promise<ListTodosResult> {
   const limit = input.limit ?? 50;
   const requestedKinds = new Set(input.kinds?.length ? input.kinds : DEFAULT_TODO_KINDS);
-  const [files, digests] = await Promise.all([
-    listFiles({ limit: 1_000_000, taxonomyPath: input.taxonomyPath }, opts),
-    listDigests({ wsPath: opts.wsPath }),
-  ]);
+  const files = await listFiles({ limit: 1_000_000, taxonomyPath: input.taxonomyPath }, opts);
 
   let items = files.items
     .map((item) => {
-      const missing = getMissingKinds(item, digests)
+      const missing = getMissingKinds(item)
         .filter((kind) => requestedKinds.has(kind));
 
       return {
         id: item.id,
+        name: getFileName(item),
         originalName: item.original_name,
         missing,
         taxonomyPath: item.taxonomy_path,

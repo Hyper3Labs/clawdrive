@@ -90,7 +90,7 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   if (points.length === 0)
     return (
       <div style={{ ...STATUS_STYLE, opacity: 0.72, color: MAP_THEME.text }}>
-        No files added yet. Use cdrive pot add or cdrive serve --demo nasa.
+        No files added yet. Use cdrive add or cdrive serve --demo nasa.
       </div>
     );
 

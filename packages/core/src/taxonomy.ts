@@ -186,7 +186,7 @@ export async function assignToTaxonomy(
   try {
     const db = await createDatabase(dbPath);
     const taxTable = await getTaxonomyTable(db);
-    const filesTable = await getFilesTable(db);
+    const filesTable = await getFilesTable(db, wsPath);
 
     // Get all existing taxonomy nodes
     const rawNodes = await taxTable.query().toArray();
@@ -271,7 +271,7 @@ export async function splitNode(
 
   const db = await createDatabase(dbPath);
   const taxTable = await getTaxonomyTable(db);
-  const filesTable = await getFilesTable(db);
+  const filesTable = await getFilesTable(db, wsPath);
 
   // Get the node being split
   const rawNodes = await taxTable.query().toArray();
@@ -507,7 +507,7 @@ export async function rebuildTaxonomy(
     // Recreate it empty
     await db.createEmptyTable(TAXONOMY_TABLE, buildTaxonomySchema());
 
-    const filesTable = await getFilesTable(db);
+    const filesTable = await getFilesTable(db, wsPath);
 
     // Get all non-deleted parent files
     const allFiles = await filesTable
@@ -552,7 +552,7 @@ export async function mergeEmptyNodes(
   try {
     const db = await createDatabase(dbPath);
     const taxTable = await getTaxonomyTable(db);
-    const filesTable = await getFilesTable(db);
+    const filesTable = await getFilesTable(db, wsPath);
 
     const rawNodes = await taxTable.query().toArray();
     const nodes = rawNodes.map((r) =>

@@ -35,7 +35,9 @@ export interface TaxonomyNode {
 
 export interface FileInfo {
   id: string;
+  name: string;
   original_name: string;
+  display_name?: string;
   content_type: string;
   file_size: number;
   tags: string[];
@@ -67,6 +69,8 @@ export interface UploadResult {
   duplicateId?: string;
   chunks: number;
   tokensUsed: number;
+  indexed: boolean;
+  indexError?: string;
 }
 
 export interface PotShare {

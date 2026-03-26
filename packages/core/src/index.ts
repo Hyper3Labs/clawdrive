@@ -23,3 +23,4 @@ export * from "./shares.js";
 export * from "./taxonomy.js";
 export * from "./thumbnails.js";
 export * from "./todo.js";
+export * from "./display-names.js";

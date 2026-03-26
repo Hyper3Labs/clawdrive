@@ -1,12 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import sharp from "sharp";
 import { store } from "../src/store.js";
-import { getFileInfo } from "../src/read.js";
+import { getFileInfo, resolveFileInfo } from "../src/read.js";
 import { createTestWorkspace } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 import { createDatabase, getFilesTable, queryFiles } from "../src/storage/db.js";
-import { writeFile } from "node:fs/promises";
+import { readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+
+async function countStoredBlobs(wsPath: string): Promise<number> {
+  const filesDir = join(wsPath, "files");
+  const monthDirs = await readdir(filesDir, { withFileTypes: true });
+  let total = 0;
+
+  for (const entry of monthDirs) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    total += (await readdir(join(filesDir, entry.name))).length;
+  }
+
+  return total;
+}
 
 describe("store", () => {
   let ctx: Awaited<ReturnType<typeof createTestWorkspace>>;
@@ -29,6 +45,7 @@ describe("store", () => {
     expect(result.status).toBe("stored");
     expect(result.id).toBeDefined();
     expect(result.chunks).toBeGreaterThanOrEqual(1);
+    expect(result.indexed).toBe(true);
   });
 
   it("detects duplicates by hash", async () => {
@@ -39,6 +56,7 @@ describe("store", () => {
     expect(r1.status).toBe("stored");
     expect(r2.status).toBe("duplicate");
     expect(r2.duplicateId).toBe(r1.id);
+    expect(r2.indexed).toBe(true);
   });
 
   it("reindexes the same file when the embedding model changes", async () => {
@@ -63,8 +81,9 @@ describe("store", () => {
     expect(parents.map((row) => row.embedding_model).sort()).toEqual(["model-a", "model-b"]);
   });
 
-  it("allows retrying the same file after a failed ingest", async () => {
+  it("keeps the file stored when indexing fails and reuses the same row on retry", async () => {
     const src = join(ctx.baseDir, "retry.md");
+    const retryEmbedder = new MockEmbeddingProvider(3072, "model-a");
     const failingEmbedder = {
       dimensions: 3072,
       modelId: "model-a",
@@ -75,21 +94,25 @@ describe("store", () => {
 
     await writeFile(src, "retry content");
 
-    await expect(store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder: failingEmbedder })).rejects.toThrow(
-      "embed failed",
-    );
+    const firstResult = await store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder: failingEmbedder });
+    expect(firstResult.status).toBe("stored");
+    expect(firstResult.indexed).toBe(false);
+    expect(firstResult.indexError).toContain("embed failed");
+    expect(await countStoredBlobs(ctx.wsPath)).toBe(1);
 
-    const retryResult = await store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder });
+    const retryResult = await store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder: retryEmbedder });
     expect(retryResult.status).toBe("stored");
+    expect(retryResult.indexed).toBe(true);
 
     const db = await createDatabase(join(ctx.wsPath, "db"));
     const table = await getFilesTable(db);
     const rows = await queryFiles(table);
     const parents = rows.filter((row) => row.original_name === "retry.md" && row.parent_id === null);
 
-    expect(parents).toHaveLength(2);
-    expect(parents.some((row) => row.status === "failed")).toBe(true);
-    expect(parents.some((row) => row.status === "embedded")).toBe(true);
+    expect(parents).toHaveLength(1);
+    expect(parents[0]?.status).toBe("embedded");
+    expect(parents[0]?.error_message).toBeNull();
+    expect(await countStoredBlobs(ctx.wsPath)).toBe(1);
   });
 
   it("treats an in-flight ingest for the same file and model as a duplicate", async () => {
@@ -127,7 +150,9 @@ describe("store", () => {
     const firstResult = await firstStore;
 
     expect(firstResult.status).toBe("stored");
+    expect(firstResult.indexed).toBe(true);
     expect(duplicateResult.status).toBe("duplicate");
+    expect(duplicateResult.indexed).toBe(false);
     expect(embedCalls).toBe(1);
 
     const db = await createDatabase(join(ctx.wsPath, "db"));
@@ -194,6 +219,31 @@ describe("store", () => {
     expect(info?.description).toBeNull();
   });
 
+  it("allocates unique visible names when two files share the same source name", async () => {
+    const src1 = join(ctx.baseDir, "dup-a.md");
+    const src2 = join(ctx.baseDir, "dup-b.md");
+    await writeFile(src1, "first content");
+    await writeFile(src2, "second content");
+
+    const first = await store(
+      { sourcePath: src1, originalName: "README.md" },
+      { wsPath: ctx.wsPath, embedder },
+    );
+    const second = await store(
+      { sourcePath: src2, originalName: "README.md" },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const firstInfo = await getFileInfo(first.id, { wsPath: ctx.wsPath, includeDigest: true });
+    const secondInfo = await getFileInfo(second.id, { wsPath: ctx.wsPath, includeDigest: true });
+
+    expect(firstInfo?.display_name).toBeNull();
+    expect(secondInfo?.display_name).toBe("README (2).md");
+
+    const resolved = await resolveFileInfo("README (2).md", { wsPath: ctx.wsPath, includeDigest: true });
+    expect(resolved?.id).toBe(second.id);
+  });
+
   it("populates searchable_text for text files", async () => {
     const src = join(ctx.baseDir, "search.md");
     await writeFile(src, "This is searchable content for testing");
@@ -227,20 +277,21 @@ describe("store", () => {
     expect(Array.from(imageRow?.vector ?? []).some((value) => value !== 0)).toBe(true);
   });
 
-  it("marks unsupported binaries as failed instead of embedding metadata text", async () => {
+  it("stores unsupported binaries without embeddings instead of failing the import", async () => {
     const src = join(ctx.baseDir, "payload.bin");
     await writeFile(src, Buffer.from([0, 159, 146, 150]));
 
-    await expect(store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder })).rejects.toThrow(
-      "Unsupported file type for Gemini embeddings",
-    );
+    const result = await store({ sourcePath: src }, { wsPath: ctx.wsPath, embedder });
+    expect(result.status).toBe("stored");
+    expect(result.indexed).toBe(false);
+    expect(result.indexError).toContain("Unsupported file type for Gemini embeddings");
 
     const db = await createDatabase(join(ctx.wsPath, "db"));
     const table = await getFilesTable(db);
     const rows = await queryFiles(table);
     const failedRow = rows.find((row) => row.original_name === "payload.bin");
 
-    expect(failedRow?.status).toBe("failed");
+    expect(failedRow?.status).toBe("stored");
     expect(failedRow?.error_message).toContain("Unsupported file type for Gemini embeddings");
   });
 

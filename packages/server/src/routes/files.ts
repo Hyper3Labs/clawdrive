@@ -134,6 +134,7 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
       const tags = parseTags(req.body.tags);
       const tldr = parseOptionalText(req.body.tldr);
       const digest = parseOptionalText(req.body.digest);
+      const displayName = parseOptionalText(req.body.displayName);
       const abstract = parseOptionalText(req.body.abstract);
       const description = parseOptionalText(req.body.description);
 
@@ -144,6 +145,7 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
           tags,
           tldr: typeof tldr === "string" ? tldr : undefined,
           digest: typeof digest === "string" ? digest : undefined,
+          displayName: typeof displayName === "string" ? displayName : undefined,
           abstract: typeof abstract === "string" ? abstract : undefined,
           description: typeof description === "string" ? description : undefined,
         },
@@ -227,7 +229,7 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
   // PATCH /api/files/:id — Update metadata
   router.patch("/:id", async (req, res, next) => {
     try {
-      const changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; abstract?: string | null } = {};
+      const changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; displayName?: string | null; abstract?: string | null } = {};
       if (req.body.tags !== undefined) {
         changes.tags = req.body.tags;
       }
@@ -239,6 +241,9 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
       }
       if (req.body.digest !== undefined) {
         changes.digest = parseOptionalText(req.body.digest);
+      }
+      if (req.body.displayName !== undefined) {
+        changes.displayName = parseOptionalText(req.body.displayName);
       }
       if (req.body.abstract !== undefined) {
         changes.abstract = parseOptionalText(req.body.abstract);

@@ -103,7 +103,7 @@ export async function renamePot(
     const oldTag = buildPotTag(oldSlug);
     const newTag = buildPotTag(newSlug);
     const db = await createDatabase(join(opts.wsPath, "db"));
-    const table = await getFilesTable(db);
+    const table = await getFilesTable(db, opts.wsPath);
     const rows = await table.query().where("deleted_at IS NULL AND parent_id IS NULL").limit(1_000_000).toArray();
     const members = rows.map((row) => toFileRecord(row as Record<string, unknown>)).filter((file) => file.tags.includes(oldTag));
     for (const file of members) {
@@ -137,7 +137,7 @@ export async function listPotFiles(ref: string, opts: PotOptions): Promise<FileR
   const pot = await requirePot(ref, opts);
   const potTag = buildPotTag(pot.slug);
   const db = await createDatabase(join(opts.wsPath, "db"));
-  const table = await getFilesTable(db);
+  const table = await getFilesTable(db, opts.wsPath);
 
   const rows = await table
     .query()

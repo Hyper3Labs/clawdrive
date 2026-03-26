@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { Command } from "commander";
-import { getFileInfo, getFilePath, getShare, resolveShare } from "@clawdrive/core";
+import { getFileInfo, getFilePath, getShare, resolveFileInfo, resolveShare } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
 import { getGlobalOptions, setupWorkspaceContext } from "../helpers.js";
 
@@ -19,14 +19,14 @@ function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vect
 
 export function registerGetCommand(program: Command) {
   program
-    .command("get <ref>")
-    .description("Resolve a file ref or share ref to content")
-    .action(async (ref: string, _cmdOpts, cmd) => {
+    .command("get <target>")
+    .description("Resolve a file name or share to content")
+    .action(async (target: string, _cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupWorkspaceContext(globalOpts);
 
       try {
-        const share = await getShare(ref, { wsPath: ctx.wsPath });
+        const share = await getShare(target, { wsPath: ctx.wsPath });
         if (share) {
           if (share.status !== "active") {
             if (globalOpts.json) {
@@ -37,9 +37,9 @@ export function registerGetCommand(program: Command) {
             process.exit(1);
           }
 
-          const resolved = await resolveShare(ref, { wsPath: ctx.wsPath });
+          const resolved = await resolveShare(target, { wsPath: ctx.wsPath });
           if (!resolved) {
-            console.error(`Share not found: ${ref}`);
+            console.error(`Share not found: ${target}`);
             process.exit(1);
           }
 
@@ -60,20 +60,20 @@ export function registerGetCommand(program: Command) {
           }
           console.log(`Files: ${resolved.files.length}`);
           for (const file of resolved.files) {
-            console.log(`- ${file.original_name} ${file.id}`);
+            console.log(`- ${file.display_name ?? file.original_name}`);
           }
           return;
         }
 
-        const info = await getFileInfo(ref, { wsPath: ctx.wsPath, includeDigest: true });
+        const info = await resolveFileInfo(target, { wsPath: ctx.wsPath, includeDigest: true });
         if (!info) {
-          console.error(`Ref not found: ${ref}`);
+          console.error(`File not found: ${target}`);
           process.exit(1);
         }
 
         const filePath = await getFilePath(info.id, { wsPath: ctx.wsPath });
         if (!filePath) {
-          console.error(`File path not found: ${ref}`);
+          console.error(`File path not found: ${target}`);
           process.exit(1);
         }
 
@@ -93,7 +93,7 @@ export function registerGetCommand(program: Command) {
 
         console.log(filePath);
       } catch (err) {
-        console.error(`Error resolving ${ref}: ${(err as Error).message}`);
+        console.error(`Error resolving ${target}: ${(err as Error).message}`);
         process.exit(1);
       }
     });

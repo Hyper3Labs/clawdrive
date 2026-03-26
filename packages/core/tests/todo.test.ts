@@ -19,7 +19,7 @@ describe("todo", () => {
     await ctx.cleanup();
   });
 
-  it("lists files missing tldr and digest", async () => {
+  it("lists files missing tldr, digest, and display_name", async () => {
     const missingSrc = join(ctx.baseDir, "missing.md");
     const tldrOnlySrc = join(ctx.baseDir, "tldr-only.md");
     const completeSrc = join(ctx.baseDir, "complete.md");
@@ -41,6 +41,7 @@ describe("todo", () => {
         sourcePath: completeSrc,
         tldr: "Short summary for the complete file.",
         digest: "# Digest\n\nOpening paragraph.\n\n## Quick Navigation\n- One\n\n## Detailed Description\nDone.",
+        displayName: "Complete file",
       },
       { wsPath: ctx.wsPath, embedder },
     );
@@ -52,8 +53,8 @@ describe("todo", () => {
     const missingItem = result.items.find((item) => item.id === missing.id);
     const tldrOnlyItem = result.items.find((item) => item.id === tldrOnly.id);
 
-    expect(missingItem?.missing).toEqual(["tldr", "digest"]);
-    expect(tldrOnlyItem?.missing).toEqual(["digest"]);
+    expect(missingItem?.missing).toEqual(["tldr", "digest", "display_name"]);
+    expect(tldrOnlyItem?.missing).toEqual(["digest", "display_name"]);
   });
 
   it("filters by kind and paginates todo items", async () => {
@@ -81,5 +82,39 @@ describe("todo", () => {
     );
     expect(page2.items).toHaveLength(1);
     expect(page2.nextCursor).toBeUndefined();
+  });
+
+  it("filters display_name todos independently", async () => {
+    const missingDisplayNameSrc = join(ctx.baseDir, "missing-display-name.md");
+    const completeSrc = join(ctx.baseDir, "named.md");
+
+    await writeFile(missingDisplayNameSrc, "first file content");
+    await writeFile(completeSrc, "second file content");
+
+    const missingDisplayName = await store(
+      {
+        sourcePath: missingDisplayNameSrc,
+        tldr: "Short summary for the unnamed file.",
+        digest: "# Digest\n\nOpening paragraph.\n\n## Quick Navigation\n- One\n\n## Detailed Description\nDone.",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    await store(
+      {
+        sourcePath: completeSrc,
+        tldr: "Short summary for the named file.",
+        digest: "# Digest\n\nOpening paragraph.\n\n## Quick Navigation\n- One\n\n## Detailed Description\nDone.",
+        displayName: "Named file",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const result = await listTodos({ kinds: ["display_name"], limit: 10 }, { wsPath: ctx.wsPath });
+
+    expect(result.total).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.id).toBe(missingDisplayName.id);
+    expect(result.items[0]?.missing).toEqual(["display_name"]);
   });
 });

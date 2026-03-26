@@ -4,7 +4,9 @@ const MANIFEST_FILE_NAME = "manifest.json";
 
 export interface PublicShareManifestItem {
   id: string;
+  name: string;
   original_name: string;
+  display_name?: string;
   content_type: string;
   file_size: number;
   created_at: number;

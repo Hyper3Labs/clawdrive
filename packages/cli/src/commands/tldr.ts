@@ -4,6 +4,7 @@ import {
   TLDR_RECOMMENDED_MIN_WORDS,
   countWords,
   getFileInfo,
+  resolveFileInfo,
   update,
 } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
@@ -35,12 +36,12 @@ function buildTldrPayload(info: { id: string; tldr?: string | null; abstract?: s
 
 export function registerTldrCommand(program: Command) {
   program
-    .command("tldr <ref>")
+    .command("tldr <file>")
     .alias("abstract")
     .description("Show or update the short TL;DR for a stored file")
     .option("--set <text>", "Set the TL;DR text")
     .option("--clear", "Clear the TL;DR")
-    .action(async (ref: string, cmdOpts, cmd) => {
+    .action(async (file: string, cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupWorkspaceContext(globalOpts);
 
@@ -50,9 +51,9 @@ export function registerTldrCommand(program: Command) {
       }
 
       try {
-        const existing = await getFileInfo(ref, { wsPath: ctx.wsPath });
+        const existing = await resolveFileInfo(file, { wsPath: ctx.wsPath });
         if (!existing) {
-          console.error(`File not found: ${ref}`);
+          console.error(`File not found: ${file}`);
           process.exit(1);
         }
 
@@ -65,7 +66,7 @@ export function registerTldrCommand(program: Command) {
 
           const updated = await getFileInfo(existing.id, { wsPath: ctx.wsPath });
           if (!updated) {
-            console.error(`File not found after update: ${existing.id}`);
+            console.error(`File disappeared after update: ${file}`);
             process.exit(1);
           }
 
@@ -78,12 +79,12 @@ export function registerTldrCommand(program: Command) {
           }
 
           if (cmdOpts.clear) {
-            console.log(`Cleared TL;DR for ${updated.original_name} (${updated.id})`);
+            console.log(`Cleared TL;DR for ${updated.display_name ?? updated.original_name}`);
             return;
           }
 
           const payload = buildTldrPayload(updated);
-          console.log(`Updated TL;DR for ${updated.original_name} (${payload.wordCount} words)`);
+          console.log(`Updated TL;DR for ${updated.display_name ?? updated.original_name} (${payload.wordCount} words)`);
           process.stdout.write(`${payload.tldr}\n`);
           return;
         }
@@ -95,7 +96,7 @@ export function registerTldrCommand(program: Command) {
         }
 
         if (!payload.tldr) {
-          console.error(`No TL;DR set for ${existing.original_name} (${existing.id})`);
+          console.error(`No TL;DR set for ${existing.display_name ?? existing.original_name}`);
           process.exit(1);
         }
 

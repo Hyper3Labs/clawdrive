@@ -97,7 +97,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
       {isImage ? (
         <img
           src={`/api/files/${file.id}/content`}
-          alt={file.original_name}
+          alt={file.name}
           style={{ width: "100%", display: "block" }}
           loading="lazy"
         />
@@ -157,9 +157,9 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
             fontSize: 12, color: MAP_THEME.text,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}
-          title={file.original_name}
+          title={file.name}
         >
-          {file.original_name}
+          {file.name}
         </div>
         <div style={{ fontSize: 11, opacity: 0.35, marginTop: 4 }}>{formatSize(file.file_size)}</div>
       </div>
@@ -171,9 +171,9 @@ function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
   const sorted = [...files];
   switch (mode) {
     case "name":
-      return sorted.sort((a, b) => a.original_name.localeCompare(b.original_name));
+      return sorted.sort((a, b) => a.name.localeCompare(b.name));
     case "type":
-      return sorted.sort((a, b) => a.content_type.localeCompare(b.content_type) || a.original_name.localeCompare(b.original_name));
+      return sorted.sort((a, b) => a.content_type.localeCompare(b.content_type) || a.name.localeCompare(b.name));
     case "size":
       return sorted.sort((a, b) => b.file_size - a.file_size);
     case "recent":
@@ -281,17 +281,17 @@ export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }
           items={[
             {
               label: "Download",
-              onClick: () => downloadFile(ctxMenu.file.id, ctxMenu.file.original_name),
+              onClick: () => downloadFile(ctxMenu.file.id, ctxMenu.file.name),
             },
             {
               label: "Delete",
               danger: true,
               onClick: () => {
-                const { id, original_name } = ctxMenu.file;
-                scheduleDelete(id, original_name, () => {
+                const { id, name } = ctxMenu.file;
+                scheduleDelete(id, name, () => {
                   setDeletedCount((c) => c + 1);
                 });
-                show(`${original_name} deleted`, {
+                show(`${name} deleted`, {
                   type: "info",
                   action: {
                     label: "Undo",

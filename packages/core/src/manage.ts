@@ -2,13 +2,26 @@
 import { join } from "node:path";
 import { readFile, appendFile, stat, readdir, unlink } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
-import { createDatabase, getFilesTable, toFileRecord, insertFileRecord } from "./storage/db.js";
+import { createDatabase, getFilesTable, toFileRecord, insertFileRecord, queryFiles } from "./storage/db.js";
 import { acquireLock } from "./lock.js";
 import { normalizeTldr } from "./metadata.js";
-import { setDigest } from "./digests.js";
+import { normalizeDigest } from "./digests.js";
+import { ensureUniqueFileName, getFileName, normalizeDisplayName } from "./display-names.js";
 
 export interface ManageOptions {
   wsPath: string;
+}
+
+async function allocateDisplayName(
+  table: Awaited<ReturnType<typeof getFilesTable>>,
+  desiredName: string,
+  excludedId: string,
+): Promise<string> {
+  const usedNames = (await queryFiles(table))
+    .filter((row) => row.parent_id === null && row.id !== excludedId)
+    .map((row) => getFileName(row));
+
+  return ensureUniqueFileName(desiredName, usedNames);
 }
 
 /**
@@ -23,7 +36,7 @@ export async function remove(
   const release = await acquireLock(wsPath);
   try {
     const db = await createDatabase(dbPath);
-    const table = await getFilesTable(db);
+    const table = await getFilesTable(db, wsPath);
     const now = Date.now();
 
     // Soft-delete the parent row
@@ -47,7 +60,7 @@ export async function remove(
  */
 export async function update(
   id: string,
-  changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; abstract?: string | null },
+  changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; displayName?: string | null; abstract?: string | null },
   opts: ManageOptions,
 ): Promise<void> {
   const { wsPath } = opts;
@@ -55,7 +68,13 @@ export async function update(
   const release = await acquireLock(wsPath);
   try {
     const db = await createDatabase(dbPath);
-    const table = await getFilesTable(db);
+    const table = await getFilesTable(db, wsPath);
+    const currentRows = await table.query().where(`id = '${id}' AND deleted_at IS NULL`).limit(1).toArray();
+    if (currentRows.length === 0) {
+      return;
+    }
+
+    const current = toFileRecord(currentRows[0] as Record<string, unknown>);
 
     const values: Record<string, string | number | string[] | null> = {
       updated_at: Date.now(),
@@ -70,6 +89,12 @@ export async function update(
       values.description = normalizeTldr(changes.abstract);
     } else if (changes.description !== undefined) {
       values.description = normalizeTldr(changes.description);
+    }
+    if (changes.displayName !== undefined) {
+      const normalized = normalizeDisplayName(changes.displayName);
+      const desiredName = normalized ?? current.original_name;
+      const uniqueName = await allocateDisplayName(table, desiredName, id);
+      values.display_name = uniqueName === current.original_name ? null : uniqueName;
     }
 
     // LanceDB table.update() silently fails when updating List<Utf8> columns
@@ -96,13 +121,20 @@ export async function update(
         });
       }
     }
+
+    if (changes.digest !== undefined) {
+      await table.update({
+        where: `id = '${id}' AND deleted_at IS NULL`,
+        values: {
+          digest: normalizeDigest(changes.digest),
+          updated_at: Date.now(),
+        },
+      });
+    }
   } finally {
     await release();
   }
 
-  if (changes.digest !== undefined) {
-    await setDigest(id, changes.digest, { wsPath });
-  }
 }
 
 /**
@@ -154,7 +186,7 @@ export async function gc(
   const release = await acquireLock(wsPath);
   try {
     const db = await createDatabase(dbPath);
-    const table = await getFilesTable(db);
+    const table = await getFilesTable(db, wsPath);
 
     // Find all soft-deleted rows
     const deletedRows = await table
@@ -214,7 +246,7 @@ export async function doctor(
 
   try {
     const db = await createDatabase(dbPath);
-    const table = await getFilesTable(db);
+    const table = await getFilesTable(db, wsPath);
 
     // Check for pending rows
     const pendingRows = await table
@@ -225,13 +257,13 @@ export async function doctor(
       issues.push(`${pendingRows.length} file(s) with status "pending"`);
     }
 
-    // Check for failed rows
-    const failedRows = await table
+    // Check for rows whose content is stored but still missing embeddings.
+    const unindexedRows = await table
       .query()
-      .where("status = 'failed' AND deleted_at IS NULL")
+      .where("(status = 'stored' OR status = 'failed') AND deleted_at IS NULL AND error_message IS NOT NULL")
       .toArray();
-    if (failedRows.length > 0) {
-      issues.push(`${failedRows.length} file(s) with status "failed"`);
+    if (unindexedRows.length > 0) {
+      issues.push(`${unindexedRows.length} stored file(s) missing embeddings`);
     }
 
     // Check for orphaned files on disk not in DB
@@ -302,7 +334,7 @@ export async function listFiles(
   const limit = input.limit ?? 20;
 
   const db = await createDatabase(dbPath);
-  const table = await getFilesTable(db);
+  const table = await getFilesTable(db, wsPath);
 
   // Build filters — count unique files, not chunks
   const filters: string[] = [

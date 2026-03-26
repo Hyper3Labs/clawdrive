@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { countWords, getFileInfo, resolveFileInfo, update } from "@clawdrive/core";
+import { getFileInfo, resolveFileInfo, update } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
 import { getGlobalOptions, setupWorkspaceContext } from "../helpers.js";
 
@@ -8,20 +8,12 @@ function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vect
   return rest;
 }
 
-function buildDigestPayload(info: { id: string; digest: string | null }) {
-  return {
-    id: info.id,
-    digest: info.digest,
-    wordCount: countWords(info.digest),
-  };
-}
-
-export function registerDigestCommand(program: Command) {
+export function registerRenameCommand(program: Command) {
   program
-    .command("digest <file>")
-    .description("Show or update the structured digest for a stored file")
-    .option("--set <text>", "Set the digest markdown")
-    .option("--clear", "Clear the digest")
+    .command("rename <file>")
+    .description("Show or update the canonical name for a stored file")
+    .option("--set <name>", "Set the canonical file name")
+    .option("--clear", "Clear the canonical override and fall back to the source name")
     .action(async (file: string, cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupWorkspaceContext(globalOpts);
@@ -41,7 +33,7 @@ export function registerDigestCommand(program: Command) {
         if (cmdOpts.set || cmdOpts.clear) {
           await update(
             existing.id,
-            { digest: cmdOpts.clear ? null : cmdOpts.set },
+            { displayName: cmdOpts.clear ? null : cmdOpts.set },
             { wsPath: ctx.wsPath },
           );
 
@@ -54,36 +46,38 @@ export function registerDigestCommand(program: Command) {
           if (globalOpts.json) {
             console.log(formatJson({
               file: withoutVector(updated),
-              digest: buildDigestPayload(updated),
+              displayName: updated.display_name,
+              originalName: updated.original_name,
             }));
             return;
           }
 
           if (cmdOpts.clear) {
-            console.log(`Cleared digest for ${updated.display_name ?? updated.original_name}`);
+            console.log(`Canonical name is now ${updated.display_name ?? updated.original_name}`);
             return;
           }
 
-          const payload = buildDigestPayload(updated);
-          console.log(`Updated digest for ${updated.display_name ?? updated.original_name} (${payload.wordCount} words)`);
-          process.stdout.write(`${payload.digest}\n`);
+          console.log(`Renamed ${existing.display_name ?? existing.original_name} to ${updated.display_name ?? updated.original_name}`);
           return;
         }
 
-        const payload = buildDigestPayload(existing);
+        // Show current canonical name
         if (globalOpts.json) {
-          console.log(formatJson(payload));
+          console.log(formatJson({
+            id: existing.id,
+            displayName: existing.display_name,
+            originalName: existing.original_name,
+          }));
           return;
         }
 
-        if (!payload.digest) {
-          console.error(`No digest set for ${existing.display_name ?? existing.original_name}`);
-          process.exit(1);
+        if (existing.display_name) {
+          console.log(`${existing.display_name} (original: ${existing.original_name})`);
+        } else {
+          console.log(`${existing.original_name} (using source name)`);
         }
-
-        process.stdout.write(`${payload.digest}\n`);
       } catch (err) {
-        console.error(`Digest command error: ${(err as Error).message}`);
+        console.error(`Rename error: ${(err as Error).message}`);
         process.exit(1);
       }
     });

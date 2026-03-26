@@ -8,7 +8,7 @@ import { formatSearchResults } from "../formatters/human.js";
 export function registerSearchCommand(program: Command) {
   program
     .command("search [query]")
-    .description("Search by meaning across the workspace or a single pot")
+    .description("Search by meaning across all files or a single pot")
     .option("--file <path>", "Image, PDF, audio, or video file to use as query input")
     .option("--image <path>", "Image file to use as query input")
     .option("--pot <pot>", "Limit search to a pot")

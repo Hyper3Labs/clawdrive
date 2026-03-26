@@ -20,6 +20,7 @@ export interface PotImportSource {
   sourceUrl?: string;
   tldr?: string | null;
   digest?: string | null;
+  displayName?: string | null;
 }
 
 export interface PotImportResult {
@@ -69,6 +70,7 @@ export async function importSourceToPot(
       sourceUrl: source.sourceUrl,
       ...(source.tldr != null ? { tldr: source.tldr } : {}),
       ...(source.digest != null ? { digest: source.digest } : {}),
+      ...(source.displayName != null ? { displayName: source.displayName } : {}),
     },
     opts,
   );

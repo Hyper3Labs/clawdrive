@@ -96,10 +96,10 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
     <div style={panelStyle}>
       <div style={headerStyle}>
         <span style={{ fontWeight: "bold", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
-          {file.original_name}
+          {file.name}
         </span>
         <button
-          onClick={() => downloadFile(fileId, file.original_name)}
+          onClick={() => downloadFile(fileId, file.name)}
           style={closeStyle}
           title="Download"
         >
@@ -198,7 +198,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
         {isImage && (
           <img
             src={`/api/files/${fileId}/content`}
-            alt={file.original_name}
+            alt={file.name}
             style={{ maxWidth: "100%", borderRadius: 6 }}
           />
         )}
@@ -234,7 +234,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
               width: "100%", height: "100%", border: "none",
               borderRadius: 6, background: "#fff",
             }}
-            title={file.original_name}
+            title={file.name}
           />
         )}
         {!isImage && !isVideo && !isAudio && !isText && !isPdf && (

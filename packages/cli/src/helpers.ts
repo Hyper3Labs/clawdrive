@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { loadConfig, resolveApiKey, resolveWorkspacePath, initWorkspace, GeminiEmbeddingProvider } from "@clawdrive/core";
 
 export interface GlobalCliOptions {
-  workspace: string;
   json?: boolean;
 }
 
@@ -21,19 +20,25 @@ export function getGlobalOptions(cmd: {
   return (cmd.parent?.opts?.() ?? {}) as unknown as GlobalCliOptions;
 }
 
-export async function setupWorkspaceContext(opts: { workspace: string; json?: boolean }) {
+export async function setupWorkspaceContext(
+  opts: { json?: boolean },
+  workspaceName?: string,
+) {
   const baseDir = getBaseDir();
   const configPath = join(baseDir, "config.json");
   const config = await loadConfig(configPath);
-  const wsName = opts.workspace ?? config.default_workspace;
+  const wsName = workspaceName ?? config.default_workspace;
   const wsPath = resolveWorkspacePath(baseDir, wsName);
   await initWorkspace(wsPath);
 
   return { config, wsPath, baseDir };
 }
 
-export async function setupContext(opts: { workspace: string; json?: boolean }) {
-  const { config, wsPath, baseDir } = await setupWorkspaceContext(opts);
+export async function setupContext(
+  opts: { json?: boolean },
+  workspaceName?: string,
+) {
+  const { config, wsPath, baseDir } = await setupWorkspaceContext(opts, workspaceName);
 
   const apiKey = resolveApiKey(process.env.GEMINI_API_KEY, config.gemini_api_key);
   if (!apiKey) {

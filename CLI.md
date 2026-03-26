@@ -10,17 +10,23 @@ All commands accept `--json` for machine-readable output.
 
 ## Concepts
 
-**Pot** — a named collection of files and links. Every file in ClawDrive lives in a pot. Think of it as a shared folder with semantic search and access control. You reference a pot by its slug (e.g. `acme-dd`).
+**Pot** — a named collection of files and links. Files can optionally belong to one or more pots for organization and sharing. You reference a pot by its slug (e.g. `acme-dd`).
 
-**Ref** — a file identifier. This is a UUIDv7 assigned when the file is stored (e.g. `018e7a3f-9c2b-7000-8a1d-4e5f6a7b8c9d`). Filenames aren't used as identifiers because the same name can appear in multiple pots. You get refs from `cdrive search`, `cdrive todo`, or the REST API.
-
-**Workspace** — an isolated storage directory (`~/.clawdrive/workspaces/<name>/`) that holds the vector database, blob storage, and pot registry. The default workspace is `default`. You almost never need to switch; `--workspace <name>` exists for multi-tenant setups.
+**File name** — the canonical name for a stored file. File names are unique. If an imported name would collide, cdrive assigns a suffix like `README (2).md`.
 
 ---
 
 ## Adding files
 
-Files always go into a pot. This is the primary way to get data into ClawDrive.
+Files are stored directly. You can leave them unfiled or attach them to a pot during ingest.
+
+### `cdrive add <sources...>`
+
+Add local files, directories, or HTTP URLs. Directories are walked recursively. URLs become `.url.md` stub files.
+
+| Option | Description |
+|---|---|
+| `--pot <pot>` | Also attach imported files to a pot |
 
 ### `cdrive pot create <name>`
 
@@ -32,7 +38,7 @@ Create a new pot.
 
 ### `cdrive pot add <pot> <sources...>`
 
-Add local files, directories, or HTTP URLs to a pot. Directories are walked recursively. URLs become `.url.md` stub files.
+Compatibility alias for `cdrive add --pot <pot> <sources...>`.
 
 ---
 
@@ -40,7 +46,7 @@ Add local files, directories, or HTTP URLs to a pot. Directories are walked recu
 
 ### `cdrive search <query>`
 
-Vector search across the workspace or a single pot.
+Vector search across all files or a single pot.
 
 | Option | Description | Default |
 |---|---|---|
@@ -52,19 +58,19 @@ Vector search across the workspace or a single pot.
 | `--after <date>` | Created after (ISO 8601) | — |
 | `--before <date>` | Created before (ISO 8601) | — |
 
-### `cdrive get <ref>`
+### `cdrive get <target>`
 
-Read a file by its ref. Text files are streamed to stdout; binary files print the local blob path. If `<ref>` is a share token, lists the pot and its files instead.
+Read a file by its canonical name. Text files are streamed to stdout; binary files print the local blob path. If `<target>` is a share id or token, lists the pot and its files instead.
 
 This is the "cat" primitive — how an agent reads file content without knowing where blobs live on disk.
 
 ### `cdrive todo`
 
-List files missing agent-authored metadata (`tldr` and/or `digest`).
+List files missing agent-authored metadata (`tldr`, `digest`, and/or `display_name`).
 
 | Option | Description | Default |
 |---|---|---|
-| `--kind <kinds>` | Comma-separated: `tldr`, `digest` | both |
+| `--kind <kinds>` | Comma-separated: `tldr`, `digest`, `display_name` | all |
 | `--limit <n>` | Max items | `50` |
 | `--cursor <id>` | Resume after a previous item id | — |
 
@@ -72,7 +78,7 @@ List files missing agent-authored metadata (`tldr` and/or `digest`).
 
 ## Metadata
 
-### `cdrive tldr <ref>`
+### `cdrive tldr <file>`
 
 Show or update the short TL;DR for a file. Alias: `abstract`.
 
@@ -83,7 +89,7 @@ Show or update the short TL;DR for a file. Alias: `abstract`.
 
 Reports word count and whether it falls within the recommended range.
 
-### `cdrive digest <ref>`
+### `cdrive digest <file>`
 
 Show or update the structured markdown digest for a file.
 
@@ -161,7 +167,7 @@ Start the REST API and web UI.
 
 ```bash
 cdrive pot create acme-dd
-cdrive pot add acme-dd ./contracts ./docs https://docs.google.com/...
+cdrive add --pot acme-dd ./contracts ./docs https://docs.google.com/...
 cdrive search "the nda we sent acme" --pot acme-dd
 cdrive share pot acme-dd --to claude-code --role read --expires 24h
 cdrive serve

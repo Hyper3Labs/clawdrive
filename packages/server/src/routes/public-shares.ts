@@ -227,17 +227,18 @@ function renderSharePage(manifest: ReturnType<typeof buildManifest>, token: stri
       ? `<div class="file-tldr">${escapeHtml(item.tldr)}</div>`
       : "";
 
+    const itemName = item.name;
     return `
       <div class="file-card">
         <div class="thumb" style="position:relative">
-          <img src="${thumbUrl}" data-relative-href="${escapeHtml(item.thumbnail_url)}" alt="${escapeHtml(item.original_name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <img src="${thumbUrl}" data-relative-href="${escapeHtml(item.thumbnail_url)}" alt="${escapeHtml(itemName)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <div class="thumb-fallback" style="display:none;height:120px;background:${style.gradient};align-items:center;justify-content:center">
             <span style="color:${style.color};font-size:12px;font-family:'SF Mono','Fira Code',monospace;letter-spacing:1px">${label}</span>
           </div>
           <span class="modality-badge" style="color:${style.color};border-color:${style.borderColor};background:${style.background}">${label}</span>
         </div>
         <div class="card-body">
-          <div class="file-name">${escapeHtml(item.original_name)}</div>
+          <div class="file-name">${escapeHtml(itemName)}</div>
           <div class="file-meta">${escapeHtml(item.content_type)} &middot; ${formatBytes(item.file_size)}</div>
           ${tldrHtml}
           <a class="download-btn" href="${contentUrl}" data-relative-href="${escapeHtml(item.content_url)}" download>&#8595; Download</a>

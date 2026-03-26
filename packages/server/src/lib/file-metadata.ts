@@ -2,10 +2,11 @@ import type { FileRecord, ShareItemRecord } from "@clawdrive/core";
 
 export interface FileMetadataRecord {
   id: string;
+  name: string;
   original_name: string;
+  display_name?: string;
   content_type: string;
   file_size: number;
-  tags: string[];
   created_at: number;
   updated_at: number;
   tldr?: string;
@@ -21,6 +22,7 @@ export interface FileTagRecord {
 interface FileMetadataSource {
   id: string;
   original_name: string;
+  display_name?: string | null;
   content_type: string;
   file_size: number;
   tags: string[];
@@ -41,10 +43,11 @@ export function toFileMetadataRecord(
 
   return {
     id: record.id,
+    name: record.display_name ?? record.original_name,
     original_name: record.original_name,
+    ...(record.display_name != null ? { display_name: record.display_name } : {}),
     content_type: record.content_type,
     file_size: record.file_size,
-    tags: [...record.tags],
     created_at: record.created_at,
     updated_at: record.updated_at,
     ...(tldr != null ? { tldr } : {}),

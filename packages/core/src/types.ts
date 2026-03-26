@@ -6,7 +6,7 @@ export type TaskType =
   | "QUESTION_ANSWERING"
   | "FACT_VERIFICATION"
   | "CLUSTERING";
-export type FileStatus = "pending" | "embedded" | "failed";
+export type FileStatus = "pending" | "stored" | "embedded" | "failed";
 
 export interface FileRecord {
   id: string;
@@ -18,6 +18,7 @@ export interface FileRecord {
   file_size: number;
   tldr: string | null;
   digest: string | null;
+  display_name: string | null;
   abstract?: string | null;
   description: string | null;
   tags: string[];
@@ -42,6 +43,7 @@ export interface StoreInput {
   tags?: string[];
   tldr?: string;
   digest?: string;
+  displayName?: string;
   abstract?: string;
   description?: string;
   workspaceId?: string;
@@ -55,6 +57,8 @@ export interface StoreResult {
   duplicateId?: string;
   chunks: number;
   tokensUsed: number;
+  indexed: boolean;
+  indexError?: string;
 }
 
 export interface SearchInput {
@@ -127,6 +131,7 @@ export interface ShareItemRecord {
   share_id: string;
   file_id: string;
   original_name: string;
+  display_name: string | null;
   content_type: string;
   file_size: number;
   tldr: string | null;

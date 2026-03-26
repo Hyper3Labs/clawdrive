@@ -29,7 +29,7 @@ export async function getProjections(wsPath: string): Promise<ProjectionPoint[]>
     }
     // Count parent files only (same as what we cache)
     const db = await createDatabase(join(wsPath, "db"));
-    const table = await getFilesTable(db);
+    const table = await getFilesTable(db, wsPath);
     const allFiles = await queryFiles(table);
     const parentCount = allFiles.filter(f => f.parent_id === null).length;
     // Serve cache if parent file count hasn't changed by more than 10%
@@ -60,7 +60,7 @@ function seededRandom(seed: number) {
 
 export async function recomputeProjections(wsPath: string): Promise<ProjectionPoint[]> {
   const db = await createDatabase(join(wsPath, "db"));
-  const table = await getFilesTable(db);
+  const table = await getFilesTable(db, wsPath);
   const files = await queryFiles(table);
 
   // Filter to parent rows only (no chunks) for cleaner visualization
@@ -71,7 +71,7 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
     return [{
       id: parentFiles[0].id,
       x: 0, y: 0, z: 0,
-      fileName: parentFiles[0].original_name,
+      fileName: parentFiles[0].display_name ?? parentFiles[0].original_name,
       contentType: parentFiles[0].content_type,
       tags: parentFiles[0].tags,
       previewUrl: previewUrlFor(parentFiles[0].id),
@@ -106,7 +106,7 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
     x: (embedding[i][0] - cx) * scale,
     y: (embedding[i][1] - cy) * scale,
     z: (embedding[i][2] - cz) * scale,
-    fileName: f.original_name,
+    fileName: f.display_name ?? f.original_name,
     contentType: f.content_type,
     tags: f.tags,
     previewUrl: previewUrlFor(f.id),

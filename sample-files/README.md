@@ -2,7 +2,7 @@
 
 This folder tracks the generic import manifest for the NASA demo bundle.
 
-The heavyweight NASA media is no longer committed to the repo. When you run `cdrive serve --demo nasa`, the CLI downloads the referenced assets into the gitignored cache at `context/demo-datasets/nasa` and seeds a dedicated `nasa-demo` workspace by default.
+The heavyweight NASA media is no longer committed to the repo. When you run `cdrive serve --demo nasa`, the CLI downloads the referenced assets into the gitignored cache at `context/demo-datasets/nasa` and seeds a dedicated demo dataset by default.
 
 ## Bundle counts
 

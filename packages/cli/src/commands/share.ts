@@ -43,7 +43,7 @@ function renderShareItems(items: PublicShareManifestItem[], includeTldr: boolean
   return items
     .map((item) => {
       const summary = includeTldr && item.tldr ? `\n  ${item.tldr}` : "";
-      return `${item.id} ${item.original_name} (${item.content_type}, ${formatBytes(item.file_size)})${summary}`;
+      return `${item.id} ${item.name} (${item.content_type}, ${formatBytes(item.file_size)})${summary}`;
     })
     .join("\n");
 }
@@ -196,7 +196,7 @@ export function registerShareCommand(program: Command) {
             await downloadShareItem(new URL(item.content_url, loaded.manifestUrl), destinationPath);
             const result = await importSourceToPot(
               {
-                source: `${item.id} ${item.original_name}`,
+                source: `${item.id} ${item.name}`,
                 path: destinationPath,
                 sourceUrl: item.source_url,
                 tldr: item.tldr ?? undefined,
@@ -207,7 +207,7 @@ export function registerShareCommand(program: Command) {
             results.push(result);
           } catch (err) {
             results.push({
-              source: `${item.id} ${item.original_name}`,
+              source: `${item.id} ${item.name}`,
               status: "error",
               error: (err as Error).message,
             });
@@ -238,7 +238,7 @@ export function registerShareCommand(program: Command) {
           if (result.status === "error") {
             console.log(`- ${result.status} ${result.source}: ${result.error}`);
           } else {
-            console.log(`- ${result.status} ${result.source} -> ${result.id}`);
+            console.log(`- ${result.status} ${result.source}`);
           }
         }
 
@@ -333,14 +333,14 @@ export function registerShareCommand(program: Command) {
     });
 
   share
-    .command("approve <ref>")
+    .command("approve <share>")
     .description("Approve a pending link share")
-    .action(async (ref: string, _cmdOpts, cmd) => {
+    .action(async (share: string, _cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupWorkspaceContext(globalOpts);
 
       try {
-        const approved = await approveShare(ref, { wsPath: ctx.wsPath });
+        const approved = await approveShare(share, { wsPath: ctx.wsPath });
         if (globalOpts.json) {
           console.log(formatJson(approved));
           return;
@@ -357,14 +357,14 @@ export function registerShareCommand(program: Command) {
     });
 
   share
-    .command("revoke <ref>")
+    .command("revoke <share>")
     .description("Revoke an active or pending share")
-    .action(async (ref: string, _cmdOpts, cmd) => {
+    .action(async (share: string, _cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupWorkspaceContext(globalOpts);
 
       try {
-        const revoked = await revokeShare(ref, { wsPath: ctx.wsPath });
+        const revoked = await revokeShare(share, { wsPath: ctx.wsPath });
         if (globalOpts.json) {
           console.log(formatJson(revoked));
           return;
