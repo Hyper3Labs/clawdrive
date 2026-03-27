@@ -5,6 +5,7 @@ dist/
 context/
 .vscode/
 .claude/
+.internal/
 .superpowers/
 .agents/
 .playwright-cli/
