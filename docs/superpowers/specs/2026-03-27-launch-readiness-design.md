@@ -98,7 +98,7 @@ Test every route the CLI and web UI depend on using Supertest against the Expres
 - `GET /api/projections` — 3D coordinates
 
 ### Approach
-- Supertest against `createServer()` with mock embedder
+- Native `fetch` against `createServer()` started on port 0 with mock embedder
 - Matches existing `metadata-routes.test.ts` pattern
 - Seed test data via direct core function calls
 
@@ -110,7 +110,7 @@ One comprehensive test proving the launch demo flow works end-to-end.
 
 ### Flow:
 1. Start server with mock embedder
-2. `POST /api/files/store` — upload a text file and a PDF
+2. `POST /api/files/store` — upload two text files (PDF chunking is tested in core)
 3. `GET /api/files` — verify both appear
 4. `GET /api/search?q=...` — search finds the right file
 5. `POST /api/pots` — create a pot
