@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { MAP_THEME } from "../../theme";
-import { TaxonomySidebar } from "./TaxonomySidebar";
 import { FileGrid } from "./FileGrid";
 import type { SortMode } from "./FileGrid";
-import { Breadcrumb } from "./Breadcrumb";
 import { FilePreview } from "./FilePreview";
 import { DropZone } from "../shared/DropZone";
 import { useUploadQueue } from "../../hooks/useUploadQueue";
@@ -16,31 +14,21 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "size", label: "Size" },
 ];
 
-interface TaxonomyBrowserProps {
+interface FilesBrowserProps {
   refreshKey?: number;
 }
 
-export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: TaxonomyBrowserProps) {
-  const [selectedPath, setSelectedPath] = useState<string[]>([]);
+export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowserProps) {
   const [selectedPotSlug, setSelectedPotSlug] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [sort, setSort] = useState<SortMode>("recent");
   const [refreshKey, setRefreshKey] = useState(0);
   const { enqueue } = useUploadQueue({ onComplete: () => setRefreshKey(k => k + 1) });
-  function handleSelectPot(slug: string | null) {
-    setSelectedPotSlug(slug);
-    setSelectedPath([]);
-  }
-
-  function handleSelectPath(path: string[]) {
-    setSelectedPath(path);
-    setSelectedPotSlug(null);
-  }
 
   return (
     <DropZone onDrop={enqueue}>
     <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}>
-      {/* Sidebar */}
+      {/* Sidebar — pots only */}
       <div
         style={{
           width: 240,
@@ -48,13 +36,14 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
           borderRight: "1px solid rgba(255,255,255,0.1)",
           display: "flex",
           flexDirection: "column",
-          overflowY: "hidden",
+          overflowY: "auto",
         }}
       >
-        <PotsSidebar selectedSlug={selectedPotSlug} onSelectPot={handleSelectPot} onPotContentChanged={() => setRefreshKey((k) => k + 1)} />
-        <div style={{ flex: 1, overflowY: "auto", borderTop: `1px solid ${MAP_THEME.borderSubtle}` }}>
-          <TaxonomySidebar selectedPath={selectedPath} onSelect={handleSelectPath} />
-        </div>
+        <PotsSidebar
+          selectedSlug={selectedPotSlug}
+          onSelectPot={setSelectedPotSlug}
+          onPotContentChanged={() => setRefreshKey((k) => k + 1)}
+        />
       </div>
 
       {/* Main content */}
@@ -66,7 +55,9 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
           alignItems: "center",
           justifyContent: "space-between",
         }}>
-          <Breadcrumb path={selectedPotSlug ? [`pot: ${selectedPotSlug}`] : selectedPath} onNavigate={handleSelectPath} />
+          <span style={{ fontSize: 14, fontWeight: 500, color: MAP_THEME.text }}>
+            {selectedPotSlug ? `pot: ${selectedPotSlug}` : "All"}
+          </span>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
             <span style={{ fontSize: 11, opacity: 0.35 }}>Sort:</span>
             <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.04)", borderRadius: 5, padding: 2 }}>
@@ -93,7 +84,12 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
           </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          <FileGrid key={`${refreshKey}-${externalRefreshKey}`} selectedPath={selectedPath} potSlug={selectedPotSlug ?? undefined} onFileClick={setPreviewFileId} sort={sort} />
+          <FileGrid
+            key={`${refreshKey}-${externalRefreshKey}`}
+            potSlug={selectedPotSlug ?? undefined}
+            onFileClick={setPreviewFileId}
+            sort={sort}
+          />
         </div>
       </div>
 
@@ -105,3 +101,5 @@ export function TaxonomyBrowser({ refreshKey: externalRefreshKey = 0 }: Taxonomy
     </DropZone>
   );
 }
+
+export { FilesBrowser as TaxonomyBrowser };
