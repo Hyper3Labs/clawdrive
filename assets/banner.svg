@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 400" width="1200" height="400">
+  <rect width="1200" height="400" fill="#061018"/>
+  <image href="logo.svg" x="60" y="40" width="320" height="320"/>
+  <text x="440" y="190" font-family="Futura, 'Trebuchet MS', -apple-system, Helvetica, Arial, sans-serif" font-size="96" font-weight="500" fill="#E6F0F7" letter-spacing="2">ClawDrive</text>
+  <text x="444" y="250" font-family="Futura, 'Trebuchet MS', -apple-system, Helvetica, Arial, sans-serif" font-size="30" fill="#6EE7FF" letter-spacing="1">Google Drive for AI agents</text>
+</svg>
