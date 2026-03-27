@@ -1,10 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.svg" alt="ClawDrive" width="280" />
-
-### Google Drive for AI agents.
-
-Store any file — PDFs, images, video, audio, text — and search by meaning across modalities.
+<img src="assets/banner.png" alt="ClawDrive — Google Drive for AI agents" width="600" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 <!-- [![npm version](https://img.shields.io/npm/v/clawdrive?style=flat-square&color=CB3837&logo=npm)](https://www.npmjs.com/package/clawdrive) -->
