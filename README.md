@@ -1,10 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.svg" />
-  <img src="assets/logo-dark.svg" alt="ClawDrive" width="280" />
-</picture>
+<img src="assets/logo.png" alt="ClawDrive" width="280" />
 
 ### Google Drive for AI agents.
 
