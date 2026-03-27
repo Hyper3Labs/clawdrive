@@ -1,72 +1,77 @@
 # ClawDrive
 
-Agent-native local file storage with multimodal semantic search. Store any file — PDFs, images, video, audio, text — and search by meaning across modalities.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Requirements
+**Google Drive for AI agents.** Store any file -- PDFs, images, video, audio, text -- and search by meaning across modalities.
 
-- Node.js 18+
-- `ffmpeg` for video and audio processing
+ClawDrive is an agent-native local file storage system with multimodal semantic search. Agents (and humans) can add files, organize them into shareable pots, and find anything with natural-language or cross-modal queries. A built-in 3D visualization renders your entire file cloud in the browser so you can explore clusters, fly into search results, and see real file previews in context.
 
 ## Quick Start
 
 ```bash
-npm install && npm run build
+# Install globally
+npm install -g clawdrive
 
 # Set your Gemini API key
 export GEMINI_API_KEY="your-key-here"
 
-# Launch the curated NASA demo (downloads ~248 MB on first run)
-cdrive serve --demo nasa
-
-# Or work with your own files
-cdrive pot create acme-dd
-cdrive add --pot acme-dd ./contracts/nda.pdf ./context https://docs.google.com/...
-cdrive search "the nda we sent acme" --pot acme-dd
-cdrive get <file-or-share-ref>
+# Launch the web UI with a curated NASA demo (~248 MB on first run)
+clawdrive serve --demo nasa
 ```
 
-Both `cdrive` and `clawdrive` work as the CLI binary name.
+Or run directly with npx:
 
-## CLI
+```bash
+npx clawdrive serve --demo nasa
+```
 
-| Command          | Description                                       |
-|------------------|---------------------------------------------------|
-| `add`            | Add files, folders, or URLs                        |
-| `pot create`     | Create a pot (shared folder with smart retrieval)  |
-| `pot add`        | Add files to a pot (compatibility alias)           |
-| `search`         | Semantic search across all files or a single pot   |
-| `get`            | Resolve a file name or share to content            |
-| `share pot`      | Share a pot via link or to a specific principal     |
-| `share inbox`    | Show pending share approvals                       |
-| `share approve`  | Approve a pending share                            |
-| `share revoke`   | Revoke a share                                     |
-| `serve`          | Start API server + web UI                          |
+## Core Workflow
 
-`search` supports `--image <path>` for cross-modal queries (e.g. find documents related to a photo).
+```bash
+# Create a pot (a named, shareable collection)
+clawdrive pot create acme-dd
 
-## NASA Demo
+# Add files, folders, or URLs
+clawdrive add --pot acme-dd ./contracts ./docs https://docs.google.com/...
 
-`cdrive serve --demo nasa` launches a curated multimodal demo.
+# Search by meaning
+clawdrive search "the nda we sent acme" --pot acme-dd
 
-- First run downloads ~248 MB of NASA media into `context/demo-datasets/nasa` (gitignored)
-- Uses an isolated demo dataset so your normal files stay untouched
-- The manifest and theme notes live in `sample-files/`
+# Cross-modal search: find documents related to a photo
+clawdrive search --image ./photo.jpg
+
+# Share with another agent or person
+clawdrive share pot acme-dd --to claude-code --role read --expires 24h
+
+# Start the API server and 3D web UI
+clawdrive serve
+```
+
+Both `clawdrive` and `cdrive` work as the CLI binary name.
+
+## Requirements
+
+- **Node.js 18+**
+- **ffmpeg** -- required for video and audio processing
+- **Gemini API key** -- used for multimodal embeddings ([get one here](https://aistudio.google.com/apikey))
 
 ## Architecture
 
 Monorepo with four packages:
 
 | Package | Role |
-|-|-|
+|---|---|
 | **@clawdrive/core** | Storage, embedding, search, taxonomy, pots, shares |
 | **@clawdrive/server** | Express REST API |
-| **@clawdrive/web** | Vite + React frontend |
-| **clawdrive** | CLI |
+| **@clawdrive/web** | Vite + React 3D frontend |
+| **clawdrive** | CLI entry point |
 
 LanceDB for vector storage. Gemini Embedding for multimodal embeddings.
 
-## Future Roadmap
+## CLI Reference
 
-- Share index portability: when sender and receiver use compatible CLI embedding settings, transfer chunk and file embeddings with shared pots to avoid re-embedding on download, with local fallback when incompatible.
-- Full agent-authored taxonomy: keep the current clustering-based hierarchy as the bootstrap, make clustering quality and stability reliable, then add an agent todo/review loop that can refine labels and propose or apply taxonomy moves safely.
-- Binary file handling: split raw blob storage from semantic indexing so arbitrary binaries can still be stored, named, shared, and tracked even when Gemini cannot embed them, with clear unsupported status plus a path to extractor/transcoder plugins for formats we can later make searchable.
+See [CLI.md](CLI.md) for the full command reference.
+
+## License
+
+[MIT](LICENSE)
