@@ -20,7 +20,7 @@ import { acquireLock } from "./lock.js";
 import { normalizeTldr } from "./metadata.js";
 import { createDatabase, getFilesTable, insertFileRecord, queryFiles } from "./storage/db.js";
 import { hashFile, storeFile } from "./storage/files.js";
-import { assignToTaxonomy } from "./taxonomy.js";
+
 import type { FileRecord, StoreInput, StoreResult } from "./types.js";
 
 export interface StoreOptions {
@@ -327,11 +327,7 @@ async function completeIndexing(
     await release();
   }
 
-  try {
-    await assignToTaxonomy(parentVector, target.id, target.originalName, { wsPath: opts.wsPath });
-  } catch (taxErr) {
-    console.error("[taxonomy] assignment failed:", taxErr instanceof Error ? taxErr.message : String(taxErr));
-  }
+  // Taxonomy assignment disabled for v1 — redesign planned for v1.1
 
   return {
     chunks: chunks.length,

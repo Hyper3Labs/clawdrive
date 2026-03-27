@@ -104,11 +104,9 @@ describe("taxonomy and projection routes", () => {
     const res = await fetch(`${listener.baseUrl}/api/taxonomy`);
     expect(res.status).toBe(200);
 
+    // Taxonomy assignment disabled for v1 — tree should be null
     const tree = await res.json() as { id: string; label: string; itemCount: number } | null;
-    expect(tree).not.toBeNull();
-    expect(tree!.id).toBeDefined();
-    expect(tree!.label).toBeDefined();
-    expect(typeof tree!.label).toBe("string");
+    expect(tree).toBeNull();
   });
 
   it("GET /api/projections — after storing files, returns array with x/y/z coordinates", async () => {

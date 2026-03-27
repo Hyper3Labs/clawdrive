@@ -110,9 +110,9 @@ describe("E2E pipeline", () => {
     const listing = await listFiles({ limit: 10 }, { wsPath: ctx.wsPath });
     expect(listing.items.length).toBe(3);
 
-    // Taxonomy tree should exist
+    // Taxonomy assignment disabled for v1 — tree should be null
     const tree = await getTaxonomyTree({ wsPath: ctx.wsPath });
-    expect(tree).not.toBeNull();
+    expect(tree).toBeNull();
   });
 
   it("handles duplicate detection", async () => {
