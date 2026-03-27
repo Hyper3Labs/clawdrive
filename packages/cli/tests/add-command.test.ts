@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Command } from "commander";
@@ -186,5 +186,51 @@ describe("CLI add commands", () => {
     const potFiles = await listPotFiles(pot.slug, { wsPath: ctx.wsPath });
     expect(potFiles).toHaveLength(1);
     expect(potFiles[0]?.original_name).toBe("brief.md");
+  });
+
+  it("stores a file with --tldr and persists the summary", async () => {
+    const src = join(ctx.baseDir, "report.md");
+    await writeFile(src, "# Report\n\nQuarterly revenue analysis.");
+
+    const program = createProgram();
+    registerAddCommand(program);
+
+    const result = await runCommand(program, ["add", "--tldr", "Short summary of the report", src]);
+    expect(result.errors).toEqual([]);
+    expect(result.logs).toHaveLength(1);
+
+    const output = JSON.parse(result.logs[0]);
+    expect(output).toMatchObject({
+      total: 1,
+      stored: 1,
+    });
+
+    const fileId = output.results[0]?.id;
+    expect(fileId).toBeTruthy();
+
+    const info = await getFileInfo(fileId, { wsPath: ctx.wsPath });
+    expect(info?.tldr).toBe("Short summary of the report");
+  });
+
+  it("adds an entire directory and stores all contained files", async () => {
+    const dir = join(ctx.baseDir, "docs-dir");
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "alpha.md"), "# Alpha\n\nFirst doc.");
+    await writeFile(join(dir, "beta.md"), "# Beta\n\nSecond doc.");
+
+    const program = createProgram();
+    registerAddCommand(program);
+
+    const result = await runCommand(program, ["add", dir]);
+    expect(result.errors).toEqual([]);
+    expect(result.logs).toHaveLength(1);
+
+    const output = JSON.parse(result.logs[0]);
+    expect(output.total).toBe(2);
+    expect(output.stored).toBe(2);
+
+    const listing = await listFiles({ limit: 10 }, { wsPath: ctx.wsPath });
+    const names = listing.items.map((f) => f.original_name).sort();
+    expect(names).toEqual(["alpha.md", "beta.md"]);
   });
 });

@@ -10,6 +10,7 @@ export function registerAddCommand(program: Command) {
     .command("add <sources...>")
     .description("Add local files, folders, or links")
     .option("--pot <pot>", "Also attach imported files to a pot")
+    .option("--tldr <text>", "Set TL;DR text on imported files")
     .action(async (sources: string[], cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupContext(globalOpts);
@@ -22,6 +23,7 @@ export function registerAddCommand(program: Command) {
           sources,
           { wsPath: ctx.wsPath, embedder: ctx.embedder },
           potRecord?.slug,
+          { tldr: cmdOpts.tldr },
         );
         const summary = summarizeImportResults(results);
 
