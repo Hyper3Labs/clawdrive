@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getTaxonomy } from "../../api";
+import { getTaxonomy, listFiles } from "../../api";
 import type { TaxonomyNode } from "../../types";
 
 function getTotalCount(node: TaxonomyNode): number {
@@ -14,14 +14,20 @@ interface TaxonomySidebarProps {
 
 export function TaxonomySidebar({ selectedPath, onSelect }: TaxonomySidebarProps) {
   const [tree, setTree] = useState<TaxonomyNode[]>([]);
+  const [fileTotal, setFileTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getTaxonomy()
-      .then((res: TaxonomyNode | TaxonomyNode[] | null) => {
-        if (!res) setTree([]);
-        else if (Array.isArray(res)) setTree(res);
-        else setTree([res]); // single root node — wrap in array
+    Promise.all([
+      getTaxonomy(),
+      listFiles({ limit: 1 }),
+    ])
+      .then(([taxRes, filesRes]: [TaxonomyNode | TaxonomyNode[] | null, { total?: number }]) => {
+        if (!taxRes) setTree([]);
+        else if (Array.isArray(taxRes)) setTree(taxRes);
+        else setTree([taxRes]);
+
+        if (typeof filesRes.total === "number") setFileTotal(filesRes.total);
       })
       .catch(() => setTree([]))
       .finally(() => setLoading(false));
@@ -49,6 +55,7 @@ export function TaxonomySidebar({ selectedPath, onSelect }: TaxonomySidebarProps
           selectedPath={selectedPath}
           onSelect={onSelect}
           parentPath={[]}
+          overrideCount={fileTotal}
         />
       ))}
     </div>
@@ -61,9 +68,10 @@ interface TreeNodeProps {
   selectedPath: string[];
   onSelect: (path: string[]) => void;
   parentPath: string[];
+  overrideCount?: number | null;
 }
 
-function TreeNode({ node, depth, selectedPath, onSelect, parentPath }: TreeNodeProps) {
+function TreeNode({ node, depth, selectedPath, onSelect, parentPath, overrideCount }: TreeNodeProps) {
   const [expanded, setExpanded] = useState(depth < 1);
   const currentPath = [...parentPath, node.label];
   const hasChildren = node.children && node.children.length > 0;
@@ -115,7 +123,7 @@ function TreeNode({ node, depth, selectedPath, onSelect, parentPath }: TreeNodeP
         <span style={{ flex: 1, color: isSelected ? "#e4e4e7" : "rgba(255,255,255,0.7)" }}>
           {node.label}
         </span>
-        <span style={{ fontSize: 11, opacity: 0.35, marginLeft: 8 }}>{getTotalCount(node)}</span>
+        <span style={{ fontSize: 11, opacity: 0.35, marginLeft: 8 }}>{overrideCount ?? getTotalCount(node)}</span>
       </div>
 
       {hasChildren && expanded && (
