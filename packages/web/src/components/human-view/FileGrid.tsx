@@ -21,7 +21,6 @@ function downloadFile(fileId: string, fileName: string) {
 export type SortMode = "recent" | "name" | "type" | "size";
 
 interface FileGridProps {
-  selectedPath: string[];
   potSlug?: string;
   onFileClick?: (fileId: string) => void;
   sort?: SortMode;
@@ -182,7 +181,7 @@ function sortFiles(files: FileInfo[], mode: SortMode): FileInfo[] {
   }
 }
 
-export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }: FileGridProps) {
+export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProps) {
   const [allFiles, setAllFiles] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const onFileClickRef = useRef(onFileClick);
@@ -210,7 +209,6 @@ export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }
         const res: { items?: FileInfo[]; nextCursor?: string } = await listFiles({
           limit: 100,
           cursor,
-          taxonomyPath: selectedPath.length > 1 ? selectedPath : undefined,
         });
         const items = res.items ?? [];
         files.push(...items);
@@ -239,7 +237,7 @@ export function FileGrid({ selectedPath, potSlug, onFileClick, sort = "recent" }
     return () => {
       cancelled = true;
     };
-  }, [selectedPath, potSlug, deletedCount]);
+  }, [potSlug, deletedCount]);
 
   // Sort in memory after server-side filtering. Filter out pending deletes.
   const displayFiles = useMemo(() => {
