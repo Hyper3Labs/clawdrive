@@ -15,7 +15,7 @@
 [demo gif here]
 -->
 
-## 🐾 What is ClawDrive?
+## What is ClawDrive?
 
 ClawDrive is an agent-native local file storage system with **multimodal semantic search**. Agents (and humans) can add files, organize them into shareable collections called _pots_, and find anything with natural-language or cross-modal queries.
 
@@ -30,7 +30,7 @@ A built-in **3D visualization** renders your entire file cloud in the browser �
   </tr>
 </table> -->
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
 # Install globally
@@ -51,17 +51,17 @@ npx clawdrive serve --demo nasa
 
 > Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
-## ✨ Features
+## Features
 
-- 🔍 **Multimodal semantic search** — query across text, images, video, and audio with a single natural-language prompt
-- 🔀 **Cross-modal retrieval** — find documents related to a photo, or videos matching a text description
-- 🪣 **Pots** — named, shareable file collections with fine-grained access control
-- 🌐 **3D file cloud** — interactive Three.js visualization with UMAP-projected embeddings
-- 🤖 **Agent-native sharing** — time-limited shares with read/write roles, built for AI agent workflows
-- 🔌 **REST API** — full programmatic access for integration with any tool or agent
-- 💻 **CLI-first** — every feature accessible from the terminal, with `--json` output for scripting
+- **Multimodal semantic search** — query across text, images, video, and audio with a single natural-language prompt
+- **Cross-modal retrieval** — find documents related to a photo, or videos matching a text description
+- **Pots** — named, shareable file collections with fine-grained access control
+- **3D file cloud** — interactive Three.js visualization with UMAP-projected embeddings
+- **Agent-native sharing** — time-limited shares with read/write roles, built for AI agent workflows
+- **REST API** — full programmatic access for integration with any tool or agent
+- **CLI-first** — every feature accessible from the terminal, with `--json` output for scripting
 
-## 🛠 Usage
+## Usage
 
 ```bash
 # Create a pot (a named, shareable collection)
@@ -85,7 +85,7 @@ clawdrive serve
 
 Both `clawdrive` and `cdrive` work as the CLI command. See **[CLI.md](CLI.md)** for the full command reference.
 
-## 🏗 How It Works
+## How It Works
 
 ClawDrive is a TypeScript monorepo with four packages:
 
@@ -98,7 +98,7 @@ ClawDrive is a TypeScript monorepo with four packages:
 
 Files are embedded with the Gemini multimodal embedding API, stored in [LanceDB](https://lancedb.com), and projected into 3D space using UMAP. The web frontend streams those projections via the REST API and renders them with Three.js / React Three Fiber.
 
-## 🔌 API
+## API
 
 All endpoints accept and return JSON. The CLI supports `--json` for machine-readable output.
 
@@ -112,7 +112,7 @@ All endpoints accept and return JSON. The CLI supports `--json` for machine-read
 | `POST` | `/api/shares/pot/:pot` | Create a share link for a pot |
 | `GET` | `/api/projections` | Fetch UMAP projections for 3D view |
 
-## 📋 Requirements
+## Requirements
 
 | Dependency | Version | Purpose |
 |---|---|---|
@@ -120,7 +120,7 @@ All endpoints accept and return JSON. The CLI supports `--json` for machine-read
 | [ffmpeg](https://ffmpeg.org) | any | Video and audio processing |
 | [Gemini API key](https://aistudio.google.com/apikey) | — | Multimodal embeddings |
 
-## 🧑‍💻 Development
+## Development
 
 ```bash
 # Clone the repo
@@ -140,15 +140,15 @@ npm test
 npm run build
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## 🔒 Security
+## Security
 
 To report a vulnerability, please see [SECURITY.md](SECURITY.md).
 
-## 📄 License
+## License
 
 [MIT](LICENSE) — Copyright 2026 Hyper3 Labs
 
