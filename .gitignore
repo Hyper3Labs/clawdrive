@@ -8,3 +8,8 @@ context/
 .agents/
 docs/logo-concepts/
 .playwright-cli/
+
+# Internal planning docs
+docs/superpowers/
+PUBLIC_LAUNCH.md
+TASK.md
