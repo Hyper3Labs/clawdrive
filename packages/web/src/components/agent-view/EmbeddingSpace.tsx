@@ -1,9 +1,9 @@
 import { Canvas } from "@react-three/fiber";
 import { CameraControls } from "@react-three/drei";
 import { PointCloud } from "./PointCloud";
-import { ClusterLabels } from "./ClusterLabels";
+
 import { ExpandablePreview } from "./ExpandablePreview";
-import { PotsSidebar } from "./PotsSidebar";
+
 import { useVisualizationStore } from "./useVisualizationStore";
 import { FilePreviewLayer } from "./FilePreviewLayer";
 import { MapCameraRig } from "./MapCameraRig";
@@ -104,7 +104,6 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
           "radial-gradient(circle at 20% 10%, rgba(32, 70, 90, 0.45) 0%, rgba(6, 16, 24, 0.96) 45%, rgba(3, 9, 14, 1) 100%)",
       }}
     >
-      <PotsSidebar />
       <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => {
         // Guard: don't clear when modal is open — HTML overlays trigger onPointerMissed
         if (!useVisualizationStore.getState().clickedFileId) {
@@ -119,7 +118,6 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
 
         <PointCloud points={points} />
         <FilePreviewLayer points={points} />
-        <ClusterLabels points={points} />
 
         <MapCameraRig
           focusTarget={focusTarget}
