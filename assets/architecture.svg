@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" fill="none">
+  <style>
+    text { font-family: -apple-system, 'Segoe UI', sans-serif; fill: #E6F0F7; }
+    .box { fill: #0E1A24; stroke: #1F3647; stroke-width: 2; rx: 8; }
+    .box-accent { fill: #0E1A24; stroke: #6EE7FF; stroke-width: 2; rx: 8; }
+    .box-gold { fill: #0E1A24; stroke: #FFB84D; stroke-width: 2; rx: 8; }
+    .arrow { stroke: #1F3647; stroke-width: 2; marker-end: url(#arrowhead); }
+    .label { font-size: 16px; font-weight: 600; text-anchor: middle; }
+    .sublabel { font-size: 11px; fill: #6EE7FF; text-anchor: middle; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1F3647"/>
+    </marker>
+  </defs>
+
+  <!-- CLI box -->
+  <rect class="box" x="330" y="20" width="140" height="60"/>
+  <text class="label" x="400" y="48">CLI</text>
+  <text class="sublabel" x="400" y="65">Commander.js</text>
+
+  <!-- Web box -->
+  <rect class="box-accent" x="80" y="140" width="140" height="60"/>
+  <text class="label" x="150" y="168">Web</text>
+  <text class="sublabel" x="150" y="185">React + Three.js</text>
+
+  <!-- Server box -->
+  <rect class="box" x="330" y="140" width="140" height="60"/>
+  <text class="label" x="400" y="168">Server</text>
+  <text class="sublabel" x="400" y="185">Express REST API</text>
+
+  <!-- Core box -->
+  <rect class="box-gold" x="580" y="140" width="140" height="60"/>
+  <text class="label" x="650" y="168">Core</text>
+  <text class="sublabel" x="650" y="185">Storage + Search</text>
+
+  <!-- Storage box -->
+  <rect class="box" x="505" y="300" width="140" height="60"/>
+  <text class="label" x="575" y="328">LanceDB</text>
+  <text class="sublabel" x="575" y="345">Vector Store</text>
+
+  <!-- Gemini box -->
+  <rect class="box" x="680" y="300" width="140" height="60"/>
+  <text class="label" x="750" y="328">Gemini</text>
+  <text class="sublabel" x="750" y="345">Embeddings</text>
+
+  <!-- Arrows -->
+  <line class="arrow" x1="400" y1="80" x2="400" y2="138"/>
+  <line class="arrow" x1="220" y1="170" x2="328" y2="170"/>
+  <line class="arrow" x1="470" y1="170" x2="578" y2="170"/>
+  <line class="arrow" x1="620" y1="200" x2="575" y2="298"/>
+  <line class="arrow" x1="680" y1="200" x2="750" y2="298"/>
+</svg>
