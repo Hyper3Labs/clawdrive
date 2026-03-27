@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { TopBar } from "./components/TopBar";
 import { EmbeddingSpace } from "./components/space/EmbeddingSpace";
-import { FilesBrowser } from "./components/files/TaxonomyBrowser";
+import { FilesBrowser } from "./components/files/FilesBrowser";
 import { PotsSidebar } from "./components/files/PotsSidebar";
 import { useVisualizationStore } from "./components/space/useVisualizationStore";
 import { ToastProvider } from "./components/shared/Toast";

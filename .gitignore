@@ -1,18 +1,11 @@
-.superpowers/
 node_modules/
 dist/
 .turbo/
 *.tsbuildinfo
 context/
 .vscode/
+.claude/
+.superpowers/
 .agents/
-docs/logo-concepts/
 .playwright-cli/
-
-# Internal planning docs
-docs/superpowers/
-PUBLIC_LAUNCH.md
-TASK.md
-
-# Worktrees
-.claude/worktrees/
+docs/logo-concepts/

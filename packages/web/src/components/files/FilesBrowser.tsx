@@ -111,5 +111,3 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
     </DropZone>
   );
 }
-
-export { FilesBrowser as TaxonomyBrowser };
