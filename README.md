@@ -118,7 +118,6 @@ All endpoints accept and return JSON. The CLI supports `--json` for machine-read
 |---|---|---|
 | [Node.js](https://nodejs.org) | 18+ | Runtime |
 | [ffmpeg](https://ffmpeg.org) | any | Video and audio processing |
-| [Gemini API key](https://aistudio.google.com/apikey) | — | Multimodal embeddings |
 
 ## Development
 
