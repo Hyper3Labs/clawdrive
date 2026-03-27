@@ -104,7 +104,8 @@ export async function renamePot(
     const newTag = buildPotTag(newSlug);
     const db = await createDatabase(join(opts.wsPath, "db"));
     const table = await getFilesTable(db, opts.wsPath);
-    const rows = await table.query().where("deleted_at IS NULL AND parent_id IS NULL").limit(1_000_000).toArray();
+    const allRows = await table.query().where("deleted_at IS NULL").limit(1_000_000).toArray();
+    const rows = allRows.filter((r) => (r as Record<string, unknown>).parent_id === null);
     const members = rows.map((row) => toFileRecord(row as Record<string, unknown>)).filter((file) => file.tags.includes(oldTag));
     for (const file of members) {
       const newTags = file.tags.map((t) => (t === oldTag ? newTag : t));
@@ -139,13 +140,14 @@ export async function listPotFiles(ref: string, opts: PotOptions): Promise<FileR
   const db = await createDatabase(join(opts.wsPath, "db"));
   const table = await getFilesTable(db, opts.wsPath);
 
-  const rows = await table
+  const allRows = await table
     .query()
-    .where("deleted_at IS NULL AND parent_id IS NULL")
+    .where("deleted_at IS NULL")
     .limit(1_000_000)
     .toArray();
 
-  return rows
+  return allRows
+    .filter((r) => (r as Record<string, unknown>).parent_id === null)
     .map((row) => toFileRecord(row as Record<string, unknown>))
     .filter((file) => file.tags.includes(potTag))
     .sort((left, right) => right.created_at - left.created_at);

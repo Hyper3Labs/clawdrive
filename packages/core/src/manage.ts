@@ -332,24 +332,17 @@ export async function listFiles(
   const db = await createDatabase(dbPath);
   const table = await getFilesTable(db, wsPath);
 
-  // Build filters — count unique, fully-processed files (not chunks)
-  const filters: string[] = [
-    "deleted_at IS NULL",
-    "parent_id IS NULL",   // Only parent rows, not chunks
-    "status = 'embedded'", // Only fully-indexed files (matches taxonomy counts)
-  ];
-
-  const whereClause = filters.join(" AND ");
-
-  // Fetch all matching rows (LanceDB defaults to 10 without explicit limit)
+  // Fetch all non-deleted embedded files, then filter parents in JS
+  // (LanceDB's IS NULL doesn't reliably match all null parent_id values)
   const allRows = await table
     .query()
-    .where(whereClause)
+    .where("deleted_at IS NULL AND status = 'embedded'")
     .limit(1000000)
     .toArray();
 
-  // Convert and sort by created_at desc, then id desc for stable ordering
+  // Convert and filter to parent rows only, sort by created_at desc
   let items = allRows
+    .filter((r) => (r as Record<string, unknown>).parent_id === null)
     .map((r) => toFileRecord(r as Record<string, unknown>))
     .sort((a, b) => {
       const timeDiff = b.created_at - a.created_at;

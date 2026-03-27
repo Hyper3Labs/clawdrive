@@ -56,13 +56,15 @@ export async function resolveFileInfo(
   const db = await createDatabase(dbPath);
   const table = await getFilesTable(db, opts.wsPath);
 
-  const rows = await table
+  const allRows = await table
     .query()
-    .where("deleted_at IS NULL AND parent_id IS NULL")
+    .where("deleted_at IS NULL")
     .limit(1_000_000)
     .toArray();
 
-  const items = rows.map((row) => toFileRecord(row as Record<string, unknown>));
+  const items = allRows
+    .filter((r) => (r as Record<string, unknown>).parent_id === null)
+    .map((row) => toFileRecord(row as Record<string, unknown>));
   const exactNameMatches = items.filter((item) => getFileName(item) === selector);
 
   if (exactNameMatches.length > 1) {

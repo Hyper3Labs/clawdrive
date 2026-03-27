@@ -284,11 +284,16 @@ export async function splitNode(
   const taxPath = buildTaxonomyPath(nodeId, nodesById);
   const taxPathStr = taxPath.join("/");
 
-  // Get all non-deleted parent files (parent_id IS NULL) and find ones assigned to this node
-  const allFiles = await filesTable
+  // Get all non-deleted parent files and find ones assigned to this node
+  // (JS filter for parent_id — LanceDB IS NULL is unreliable)
+  const allRows = await filesTable
     .query()
-    .where("deleted_at IS NULL AND parent_id IS NULL")
+    .where("deleted_at IS NULL")
+    .limit(1_000_000)
     .toArray();
+  const allFiles = allRows.filter(
+    (r) => (r as Record<string, unknown>).parent_id === null,
+  );
 
   type FileRow = Record<string, unknown>;
   const nodeFiles: FileRow[] = [];
@@ -506,11 +511,16 @@ export async function rebuildTaxonomy(
 
     const filesTable = await getFilesTable(db, wsPath);
 
-    // Get all non-deleted parent files
-    const allFiles = await filesTable
+    // Get all non-deleted embedded files, then filter parents in JS
+    // (LanceDB's IS NULL doesn't reliably match all null parent_id values)
+    const allRows = await filesTable
       .query()
-      .where("deleted_at IS NULL AND parent_id IS NULL AND status = 'embedded'")
+      .where("deleted_at IS NULL AND status = 'embedded'")
+      .limit(1_000_000)
       .toArray();
+    const allFiles = allRows.filter(
+      (r) => (r as Record<string, unknown>).parent_id === null,
+    );
 
     // Release lock before re-assigning (assignToTaxonomy acquires its own lock)
     await release();
@@ -577,10 +587,15 @@ export async function mergeEmptyNodes(
       const parentPath = buildTaxonomyPath(parent.id, nodesById);
 
       // Find files assigned to this node
-      const allFiles = await filesTable
+      // (JS filter for parent_id — LanceDB IS NULL is unreliable)
+      const allFileRows = await filesTable
         .query()
-        .where("deleted_at IS NULL AND parent_id IS NULL")
+        .where("deleted_at IS NULL")
+        .limit(1_000_000)
         .toArray();
+      const allFiles = allFileRows.filter(
+        (r) => (r as Record<string, unknown>).parent_id === null,
+      );
 
       for (const rawFile of allFiles) {
         const file = rawFile as Record<string, unknown>;
