@@ -65,7 +65,7 @@ export interface SearchInput {
   query?: string;
   queryImage?: string;
   queryFile?: string;
-  contentType?: string;
+  contentType?: string | string[];
   tags?: string[];
   pot?: string;
   after?: Date;

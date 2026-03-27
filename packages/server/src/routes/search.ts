@@ -14,7 +14,10 @@ export function createSearchRoutes(wsPath: string, embedder: EmbeddingProvider):
         return;
       }
 
-      const contentType = (req.query.type as string) || undefined;
+      const rawType = (req.query.type as string) || undefined;
+      const contentType = rawType
+        ? rawType.split(",").map((t) => t.trim()).filter(Boolean)
+        : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
       const minScore = req.query.minScore
         ? parseFloat(req.query.minScore as string)

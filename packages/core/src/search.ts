@@ -31,6 +31,15 @@ function toPlainArray(val: unknown): string[] {
 }
 
 /**
+ * Validate that a MIME type filter is safe to interpolate into a WHERE clause.
+ * Accepts either a prefix like "image/" or a full MIME type like "application/pdf".
+ * Only allows alphanumeric chars, hyphens, dots, plus signs, and forward slashes.
+ */
+function isValidMimeFilter(value: string): boolean {
+  return /^[a-zA-Z0-9][a-zA-Z0-9!#$&\-^_.+]*\/[a-zA-Z0-9!#$&\-^_.+*]*$/.test(value);
+}
+
+/**
  * Search the workspace for files matching the query.
  *
  * Uses vector similarity search only.
@@ -56,7 +65,24 @@ export async function search(
     `embedding_model = '${embedder.modelId}'`,
   ];
   if (input.contentType) {
-    filters.push(`content_type = '${input.contentType}'`);
+    const types = Array.isArray(input.contentType)
+      ? input.contentType
+      : [input.contentType];
+    const clauses = types
+      .filter((t) => isValidMimeFilter(t))
+      .map((t) => {
+        if (t.endsWith("/")) {
+          const escaped = t.replace(/_/g, "\\_");
+          return `content_type LIKE '${escaped}%'`;
+        }
+        return `content_type = '${t}'`;
+      },
+      );
+    if (clauses.length === 1) {
+      filters.push(clauses[0]);
+    } else if (clauses.length > 1) {
+      filters.push(`(${clauses.join(" OR ")})`);
+    }
   }
   if (input.after) {
     filters.push(`created_at >= ${input.after.getTime()}`);
