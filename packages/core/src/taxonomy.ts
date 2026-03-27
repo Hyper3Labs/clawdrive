@@ -95,8 +95,6 @@ function findNearestLeaf(
   nodes: TaxonomyNode[],
   vector: Float32Array,
 ): TaxonomyNode {
-  // Only consider leaf nodes (nodes with itemCount > 0 or nodes with no children)
-  const nodeIds = new Set(nodes.map((n) => n.id));
   const parentIds = new Set(
     nodes.filter((n) => n.parentId).map((n) => n.parentId!),
   );
@@ -321,12 +319,11 @@ export async function splitNode(
 
   // K-means with k=2
   const k = 2;
-  // Pick 2 random initial centroids
-  const idx0 = 0;
-  const idx1 = Math.min(Math.floor(nodeFiles.length / 2), nodeFiles.length - 1);
+  // Pick 2 initial centroids: first element and midpoint
+  const midIdx = Math.min(Math.floor(nodeFiles.length / 2), nodeFiles.length - 1);
   const centroids = [
-    new Float32Array(vectors[idx0]),
-    new Float32Array(vectors[idx1 === idx0 ? (idx0 + 1) % vectors.length : idx1]),
+    new Float32Array(vectors[0]),
+    new Float32Array(vectors[midIdx]),
   ];
 
   let assignments = new Array(vectors.length).fill(0);

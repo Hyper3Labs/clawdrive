@@ -310,8 +310,6 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
 
   if (!clickedFileId) return null;
 
-  const color = point ? getModalityColor(point.contentType) : MAP_THEME.textMuted;
-
   // Expanded preview — centered modal with backdrop
   return (
     <div

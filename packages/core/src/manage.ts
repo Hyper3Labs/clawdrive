@@ -134,7 +134,6 @@ export async function update(
   } finally {
     await release();
   }
-
 }
 
 /**
@@ -154,11 +153,8 @@ async function updateRowsWithEmptyList(
   for (const raw of rows) {
     const row = { ...(raw as Record<string, unknown>) };
     // Convert Arrow types to plain JS types for reinsertion
-    if (row.vector != null && !(row.vector instanceof Float32Array) && !(row.vector instanceof Array)) {
+    if (row.vector != null && !Array.isArray(row.vector)) {
       row.vector = Array.from(row.vector as ArrayLike<number>);
-    }
-    if (row.vector instanceof Float32Array) {
-      row.vector = Array.from(row.vector);
     }
     for (const key of ["tags", "taxonomy_path"]) {
       const val = row[key];

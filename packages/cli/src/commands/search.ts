@@ -52,8 +52,8 @@ export function registerSearchCommand(program: Command) {
         } else {
           console.log(formatSearchResults(results));
         }
-      } catch (err: any) {
-        console.error(`Search error: ${err.message}`);
+      } catch (err) {
+        console.error(`Search error: ${(err as Error).message}`);
         process.exit(1);
       }
     });

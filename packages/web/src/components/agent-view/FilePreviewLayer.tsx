@@ -48,12 +48,8 @@ function PreviewCard({
 
   return (
     <div
-      onMouseEnter={() => {
-        onHover();
-      }}
-      onMouseLeave={() => {
-        onLeave();
-      }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
       onClick={(event) => {
         event.stopPropagation();
         onSelect();

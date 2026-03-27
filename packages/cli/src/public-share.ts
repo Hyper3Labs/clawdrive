@@ -1,4 +1,4 @@
-import type { PotRecord, PotShare, ShareKind, ShareRole, ShareStatus } from "@clawdrive/core";
+import type { PotRecord, ShareKind, ShareRole, ShareStatus } from "@clawdrive/core";
 
 const MANIFEST_FILE_NAME = "manifest.json";
 

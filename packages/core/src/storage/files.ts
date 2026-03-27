@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { mkdir, link, copyFile, unlink } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 
 /**
  * Compute SHA-256 hash of a file, returned as a hex string.

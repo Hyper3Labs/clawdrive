@@ -1,5 +1,5 @@
 import { Html } from "@react-three/drei";
-import React, { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import type { ProjectionPoint } from "../../types";
 import { MAP_THEME } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
@@ -39,7 +39,7 @@ function kMeansClusters(points: ProjectionPoint[], k: number) {
   });
 }
 
-const LABEL_STYLE: React.CSSProperties = {
+const LABEL_STYLE: CSSProperties = {
   opacity: 0.65, fontSize: 11, textTransform: "uppercase",
   letterSpacing: 2, whiteSpace: "nowrap",
   pointerEvents: "none", userSelect: "none",

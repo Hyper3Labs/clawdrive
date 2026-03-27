@@ -1,6 +1,6 @@
 import { UMAP } from "umap-js";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 import { createDatabase, getFilesTable, queryFiles } from "@clawdrive/core";
 
 const PROJECTION_CACHE_VERSION = 2;
@@ -31,11 +31,10 @@ export async function getProjections(wsPath: string): Promise<ProjectionPoint[]>
     const db = await createDatabase(join(wsPath, "db"));
     const table = await getFilesTable(db, wsPath);
     const allFiles = await queryFiles(table);
-    const parentCount = allFiles.filter(f => f.parent_id === null).length;
+    const parentFiles = allFiles.filter(f => f.parent_id === null);
     // Serve cache if parent file count hasn't changed by more than 10%
     // Always refresh tags from DB since they can change without affecting positions
-    if (Math.abs(parentCount - cached.fileCount) / Math.max(parentCount, 1) < 0.1) {
-      const parentFiles = allFiles.filter(f => f.parent_id === null);
+    if (Math.abs(parentFiles.length - cached.fileCount) / Math.max(parentFiles.length, 1) < 0.1) {
       const tagMap = new Map(parentFiles.map(f => [f.id, f.tags]));
       return (cached.points as ProjectionPoint[]).map((point) => ({
         ...point,
@@ -53,7 +52,7 @@ export async function getProjections(wsPath: string): Promise<ProjectionPoint[]>
 function seededRandom(seed: number) {
   let s = seed;
   return () => {
-    s = (s * 16807 + 0) % 2147483647;
+    s = (s * 16807) % 2147483647;
     return s / 2147483647;
   };
 }
@@ -112,8 +111,9 @@ export async function recomputeProjections(wsPath: string): Promise<ProjectionPo
     previewUrl: previewUrlFor(f.id),
   }));
 
-  const cachePath = join(wsPath, "projections", "umap-cache.json");
-  await mkdir(dirname(cachePath), { recursive: true });
+  const cacheDir = join(wsPath, "projections");
+  const cachePath = join(cacheDir, "umap-cache.json");
+  await mkdir(cacheDir, { recursive: true });
   await writeFile(cachePath, JSON.stringify({
     version: PROJECTION_CACHE_VERSION,
     fileCount: parentFiles.length,

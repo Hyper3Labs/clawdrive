@@ -51,9 +51,9 @@ export function countWords(value: string | null | undefined): number {
     .filter(Boolean).length;
 }
 
-  export const ABSTRACT_RECOMMENDED_MIN_WORDS = TLDR_RECOMMENDED_MIN_WORDS;
-  export const ABSTRACT_RECOMMENDED_MAX_WORDS = TLDR_RECOMMENDED_MAX_WORDS;
-  export const normalizeAbstract = normalizeTldr;
+export const ABSTRACT_RECOMMENDED_MIN_WORDS = TLDR_RECOMMENDED_MIN_WORDS;
+export const ABSTRACT_RECOMMENDED_MAX_WORDS = TLDR_RECOMMENDED_MAX_WORDS;
+export const normalizeAbstract = normalizeTldr;
 
 export async function readWorkspaceJson<T>(
   wsPath: string,

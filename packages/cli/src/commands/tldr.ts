@@ -8,12 +8,8 @@ import {
   update,
 } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
+import { withoutVector } from "../formatters/strip-vector.js";
 import { getGlobalOptions, setupWorkspaceContext } from "../helpers.js";
-
-function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vector"> {
-  const { vector: _vector, ...rest } = record;
-  return rest;
-}
 
 function buildTldrPayload(info: { id: string; tldr?: string | null; abstract?: string | null; description: string | null }) {
   const tldr = info.tldr ?? info.abstract ?? info.description ?? null;

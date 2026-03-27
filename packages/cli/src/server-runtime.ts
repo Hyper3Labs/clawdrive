@@ -1,3 +1,6 @@
+import { stat } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import type { Command } from "commander";
 import { createPublicShareServer } from "@clawdrive/server";
 import { NASA_DEMO_WORKSPACE, prepareDemoWorkspace } from "./demo/nasa.js";
@@ -43,12 +46,9 @@ export async function setupServerContext(cmd: Command, demo?: string) {
 
 export async function resolveStaticWebDir(): Promise<string | undefined> {
   try {
-    const { createRequire } = await import("node:module");
     const require = createRequire(import.meta.url);
     const webPkg = require.resolve("@clawdrive/web/package.json");
-    const { dirname, join } = await import("node:path");
     const webDist = join(dirname(webPkg), "dist");
-    const { stat } = await import("node:fs/promises");
     await stat(webDist);
     return webDist;
   } catch {

@@ -37,13 +37,12 @@ export function registerServeCommand(program: Command) {
         console.log("Press Ctrl+C to stop");
 
         if (cmdOpts.open) {
-          const platform = process.platform;
-          const openCmd =
-            platform === "darwin"
-              ? "open"
-              : platform === "win32"
-                ? "start"
-                : "xdg-open";
+          let openCmd: string;
+          switch (process.platform) {
+            case "darwin": openCmd = "open"; break;
+            case "win32": openCmd = "start"; break;
+            default: openCmd = "xdg-open"; break;
+          }
           exec(`${openCmd} ${url}`);
         }
       });

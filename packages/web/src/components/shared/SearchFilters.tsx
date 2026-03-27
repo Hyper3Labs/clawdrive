@@ -6,7 +6,6 @@ import type { PotRecord } from "../../types";
 export interface SearchFilterState {
   types: string[];
   pot: string | null;
-  tags: string[];
 }
 
 interface SearchFiltersProps {
@@ -88,4 +87,4 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
   );
 }
 
-export const EMPTY_FILTERS: SearchFilterState = { types: [], pot: null, tags: [] };
+export const EMPTY_FILTERS: SearchFilterState = { types: [], pot: null };

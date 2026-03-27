@@ -348,17 +348,15 @@ function postProcess(
   // Convert to SearchResult[]
   return deduplicated.map((row) => {
     const parentId = row.parent_id as string | null;
-    const isChunk = parentId != null;
-    const matchedChunk = isChunk
+    const fileId = (parentId ?? row.id) as string;
+    const matchedChunk = parentId != null
       ? {
           index: row.chunk_index as number,
           label: row.chunk_label as string,
         }
       : undefined;
-
-    const resultParentId = parentId ?? (row.id as string);
-    const totalChunks = chunkCountByParent.get(resultParentId) ?? 1;
-    const fileId = (parentId ?? row.id) as string;
+    const totalChunks = chunkCountByParent.get(fileId) ?? 1;
+    const desc = (row.description as string | null) ?? null;
 
     return {
       id: fileId,
@@ -371,9 +369,9 @@ function postProcess(
       matchedChunk,
       totalChunks,
       filePath: row.file_path as string,
-      tldr: (row.description as string | null) ?? null,
-      abstract: (row.description as string | null) ?? null,
-      description: (row.description as string | null) ?? null,
+      tldr: desc,
+      abstract: desc,
+      description: desc,
     };
   });
 }

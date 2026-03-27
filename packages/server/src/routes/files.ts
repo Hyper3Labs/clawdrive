@@ -74,7 +74,7 @@ async function listFilesForRoute(
     return listFiles({ limit, cursor, contentType, tags }, { wsPath });
   }
 
-  const matchingItems = [] as Awaited<ReturnType<typeof listFiles>>["items"];
+  const matchingItems: Awaited<ReturnType<typeof listFiles>>["items"] = [];
   let pageCursor: string | undefined;
 
   for (let page = 0; page < 200; page += 1) {
@@ -90,16 +90,16 @@ async function listFilesForRoute(
     pageCursor = result.nextCursor;
   }
 
-  let items = matchingItems;
+  let filtered = matchingItems;
   if (cursor) {
-    const cursorIndex = items.findIndex((item) => item.id === cursor);
+    const cursorIndex = matchingItems.findIndex((item) => item.id === cursor);
     if (cursorIndex >= 0) {
-      items = items.slice(cursorIndex + 1);
+      filtered = matchingItems.slice(cursorIndex + 1);
     }
   }
 
-  const hasMore = items.length > limit;
-  const pageItems = items.slice(0, limit);
+  const hasMore = filtered.length > limit;
+  const pageItems = filtered.slice(0, limit);
   const nextCursor = hasMore ? pageItems[pageItems.length - 1]?.id : undefined;
 
   return {

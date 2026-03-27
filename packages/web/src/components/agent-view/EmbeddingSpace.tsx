@@ -8,11 +8,11 @@ import { useVisualizationStore } from "./useVisualizationStore";
 import { FilePreviewLayer } from "./FilePreviewLayer";
 import { MapCameraRig } from "./MapCameraRig";
 import { useProjections } from "./useProjections";
-import React, { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, type CSSProperties } from "react";
 import { MAP_THEME } from "../../theme";
 import type CameraControlsImpl from "camera-controls";
 
-const STATUS_STYLE: React.CSSProperties = {
+const STATUS_STYLE: CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "center",
   flex: 1, background: "radial-gradient(circle at top, #0b1d2a 0%, #061018 60%)",
 };

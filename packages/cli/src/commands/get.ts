@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import type { Command } from "commander";
-import { getFileInfo, getFilePath, getShare, resolveFileInfo, resolveShare } from "@clawdrive/core";
+import { getFilePath, getShare, resolveFileInfo, resolveShare } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
+import { withoutVector } from "../formatters/strip-vector.js";
 import { getGlobalOptions, setupWorkspaceContext } from "../helpers.js";
 
 function isTextContentType(contentType: string): boolean {
@@ -10,11 +11,6 @@ function isTextContentType(contentType: string): boolean {
     "application/xml",
     "application/javascript",
   ].includes(contentType);
-}
-
-function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vector"> {
-  const { vector: _vector, ...rest } = record;
-  return rest;
 }
 
 export function registerGetCommand(program: Command) {

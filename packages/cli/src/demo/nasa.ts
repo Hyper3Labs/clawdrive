@@ -105,8 +105,7 @@ async function ensureDownloads(
   let downloaded = 0;
 
   for (const entry of manifest.entries) {
-    const remoteUrl = getRemoteUrl(entry);
-    if (!remoteUrl) {
+    if (!entry.sourceUrl) {
       const localPath = join(sampleDir, entry.fileName);
       if (!(await pathExists(localPath))) {
         throw new Error(`Missing local demo file: ${localPath}`);
@@ -124,7 +123,7 @@ async function ensureDownloads(
     console.log(
       `[demo:${NASA_DEMO_NAME}] downloading ${entry.fileName} (${formatMegabytes(entry.bytes)})`,
     );
-    await downloadFile(remoteUrl, destination, entry.bytes);
+    await downloadFile(entry.sourceUrl, destination, entry.bytes);
     downloaded += 1;
   }
 
@@ -265,7 +264,7 @@ async function resolveEntryPath(
   sampleDir: string,
   cacheDir: string,
 ): Promise<string> {
-  const sourcePath = getRemoteUrl(entry)
+  const sourcePath = entry.sourceUrl
     ? join(cacheDir, entry.fileName)
     : join(sampleDir, entry.fileName);
 
@@ -274,10 +273,6 @@ async function resolveEntryPath(
   }
 
   return sourcePath;
-}
-
-function getRemoteUrl(entry: NasaManifestEntry): string | null {
-  return entry.sourceUrl;
 }
 
 async function findRepoRoot(startDir: string): Promise<string> {

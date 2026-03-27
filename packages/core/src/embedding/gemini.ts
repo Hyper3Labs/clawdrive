@@ -277,11 +277,6 @@ function normalizeVector(vector: Float32Array): Float32Array {
 }
 
 function normalizeFileState(state: unknown): string | null {
-  if (typeof state === "string") {
-    const normalized = state.trim().toUpperCase();
-    return normalized.length > 0 ? normalized : null;
-  }
-
   if (state == null) {
     return null;
   }

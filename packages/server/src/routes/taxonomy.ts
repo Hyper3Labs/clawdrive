@@ -5,7 +5,7 @@ export function createTaxonomyRoutes(wsPath: string): Router {
   const router = Router();
 
   // GET /api/taxonomy — Get the taxonomy tree
-  router.get("/", async (req, res, next) => {
+  router.get("/", async (_req, res, next) => {
     try {
       const tree = await getTaxonomyTree({ wsPath });
       res.json(tree);

@@ -1,31 +1,22 @@
 import { create } from "zustand";
-import type { PotRecord, ProjectionPoint } from "../../types";
+import type { PotRecord } from "../../types";
 import * as api from "../../api";
-import { deleteFile } from "../../api";
-
-const IDLE_TIMEOUT = 30_000; // 30 seconds
 
 interface VisualizationState {
   // Pot state
   selectedPotId: string | null;
   pots: PotRecord[];
   potFileIds: Set<string>;
-  selectedPotSlugForFilesView: string | null;
 
   // File interaction state
   clickedFileId: string | null;
   hoveredFileId: string | null;
 
-  // Camera idle state
-  lastInteractionTime: number;
-
   // Actions
   selectPot: (id: string | null) => void;
-  selectPotForFilesView: (slug: string | null) => void;
   clickFile: (id: string | null) => void;
   hoverFile: (id: string | null) => void;
   recordInteraction: () => void;
-  isIdle: () => boolean;
 
   // Pot CRUD
   fetchPots: () => Promise<void>;
@@ -47,10 +38,8 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
   selectedPotId: null,
   pots: [],
   potFileIds: new Set(),
-  selectedPotSlugForFilesView: null,
   clickedFileId: null,
   hoveredFileId: null,
-  lastInteractionTime: Date.now(),
 
   selectPot: async (id) => {
     set({ selectedPotId: id, potFileIds: new Set() });
@@ -70,19 +59,11 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
     }
   },
 
-  selectPotForFilesView: (slug) => set({ selectedPotSlugForFilesView: slug }),
-
-  clickFile: (id) => {
-    set({ clickedFileId: id });
-    get().recordInteraction();
-  },
+  clickFile: (id) => set({ clickedFileId: id }),
 
   hoverFile: (id) => set({ hoveredFileId: id }),
 
-  recordInteraction: () => set({ lastInteractionTime: Date.now() }),
-
-  // Polling function for useFrame — not a reactive selector. Call inside useFrame() only.
-  isIdle: () => Date.now() - get().lastInteractionTime > IDLE_TIMEOUT,
+  recordInteraction: () => {},
 
   fetchPots: async () => {
     try {
@@ -128,7 +109,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
   scheduleDelete: (id, fileName, onComplete) => {
     const timer = setTimeout(async () => {
       try {
-        await deleteFile(id);
+        await api.deleteFile(id);
       } catch {}
       const next = new Map(get().pendingDeletes);
       next.delete(id);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { MAP_THEME, Z_INDEX } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
-import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
+import { ContextMenu } from "../shared/ContextMenu";
 
 export function PotsSidebar() {
   const pots = useVisualizationStore((s) => s.pots);
@@ -212,7 +212,7 @@ export function PotsSidebar() {
                 recordInteraction();
               },
             },
-          ] as ContextMenuItem[]}
+          ]}
           onClose={() => setContextMenu(null)}
         />
       )}

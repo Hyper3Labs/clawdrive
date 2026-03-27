@@ -13,3 +13,6 @@ docs/logo-concepts/
 docs/superpowers/
 PUBLIC_LAUNCH.md
 TASK.md
+
+# Worktrees
+.claude/worktrees/

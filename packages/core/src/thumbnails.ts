@@ -146,17 +146,13 @@ async function generatePdfThumbnail(srcPath: string, dest: string): Promise<stri
 }
 
 async function generatePlaceholder(dest: string, color: string, label: string): Promise<string> {
-  const width = THUMB_WIDTH;
-  const height = THUMB_HEIGHT;
-
   const r = parseInt(color.slice(1, 3), 16);
   const g = parseInt(color.slice(3, 5), 16);
   const b = parseInt(color.slice(5, 7), 16);
 
-  // Bright enough to be visible at small card sizes (52px)
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${width}" height="${height}" fill="rgb(${Math.round(r * 0.15)},${Math.round(g * 0.15)},${Math.round(b * 0.15)})"/>
-    <rect x="0" y="0" width="${width}" height="${height}" fill="${color}" opacity="0.12"/>
+  const svg = `<svg width="${THUMB_WIDTH}" height="${THUMB_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${THUMB_WIDTH}" height="${THUMB_HEIGHT}" fill="rgb(${Math.round(r * 0.15)},${Math.round(g * 0.15)},${Math.round(b * 0.15)})"/>
+    <rect x="0" y="0" width="${THUMB_WIDTH}" height="${THUMB_HEIGHT}" fill="${color}" opacity="0.12"/>
     <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
       font-family="sans-serif" font-size="48" font-weight="800"
       fill="${color}">${label}</text>

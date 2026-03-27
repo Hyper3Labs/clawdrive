@@ -21,7 +21,7 @@ import { normalizeTldr } from "./metadata.js";
 import { createDatabase, getFilesTable, insertFileRecord, queryFiles } from "./storage/db.js";
 import { hashFile, storeFile } from "./storage/files.js";
 import { assignToTaxonomy } from "./taxonomy.js";
-import type { FileRecord, StoreInput, StoreResult, TaskType } from "./types.js";
+import type { FileRecord, StoreInput, StoreResult } from "./types.js";
 
 export interface StoreOptions {
   wsPath: string;
@@ -176,7 +176,7 @@ export async function store(input: StoreInput, opts: StoreOptions): Promise<Stor
       tags,
       taxonomy_path: [],
       embedding_model: embedder.modelId,
-      task_type: "RETRIEVAL_DOCUMENT" as TaskType,
+      task_type: "RETRIEVAL_DOCUMENT",
       searchable_text: null,
       parent_id: null,
       chunk_index: null,
@@ -297,7 +297,7 @@ async function completeIndexing(
           tags: target.tags,
           taxonomy_path: [],
           embedding_model: opts.embedder.modelId,
-          task_type: "RETRIEVAL_DOCUMENT" as TaskType,
+          task_type: "RETRIEVAL_DOCUMENT",
           searchable_text: chunks[i].text?.slice(0, 10_000) ?? null,
           parent_id: target.id,
           chunk_index: chunks[i].index,

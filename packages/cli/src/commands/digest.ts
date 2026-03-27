@@ -1,12 +1,8 @@
 import type { Command } from "commander";
 import { countWords, getFileInfo, resolveFileInfo, update } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
+import { withoutVector } from "../formatters/strip-vector.js";
 import { getGlobalOptions, setupWorkspaceContext } from "../helpers.js";
-
-function withoutVector<T extends { vector?: unknown }>(record: T): Omit<T, "vector"> {
-  const { vector: _vector, ...rest } = record;
-  return rest;
-}
 
 function buildDigestPayload(info: { id: string; digest: string | null }) {
   return {
