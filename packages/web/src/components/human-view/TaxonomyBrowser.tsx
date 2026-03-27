@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MAP_THEME } from "../../theme";
 import { FileGrid } from "./FileGrid";
 import type { SortMode } from "./FileGrid";
@@ -24,6 +24,16 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
   const [sort, setSort] = useState<SortMode>("recent");
   const [refreshKey, setRefreshKey] = useState(0);
   const { enqueue } = useUploadQueue({ onComplete: () => setRefreshKey(k => k + 1) });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedPotSlug) {
+        setSelectedPotSlug(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedPotSlug]);
 
   return (
     <DropZone onDrop={enqueue}>

@@ -27,10 +27,13 @@ export function App() {
         e.preventDefault();
         searchRef.current?.focus();
       }
+      if (e.key === "Escape" && selectedPotId) {
+        selectPot(null);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [selectedPotId, selectPot]);
 
   return (
     <ToastProvider>
