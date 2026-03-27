@@ -102,6 +102,8 @@ export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
   const hoverFile = useVisualizationStore((s) => s.hoverFile);
   const clickFile = useVisualizationStore((s) => s.clickFile);
+  const selectedPotId = useVisualizationStore((s) => s.selectedPotId);
+  const potFileIds = useVisualizationStore((s) => s.potFileIds);
 
   const pointById = useMemo(() => {
     return new Map(points.map((point) => [point.id, point]));
@@ -113,8 +115,13 @@ export function FilePreviewLayer({ points }: FilePreviewLayerProps) {
     if (state.clock.elapsedTime - lastUpdateAt.current < PREVIEW_UPDATE_INTERVAL) return;
     lastUpdateAt.current = state.clock.elapsedTime;
 
+    // When a pot is selected, only show previews for files in that pot
+    const eligible = selectedPotId && potFileIds.size > 0
+      ? points.filter((p) => potFileIds.has(p.id))
+      : points;
+
     const cam = camera.position;
-    const nearest = points
+    const nearest = eligible
       .map((point) => {
         const dx = point.x - cam.x;
         const dy = point.y - cam.y;
