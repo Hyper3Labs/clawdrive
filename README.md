@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="ClawDrive" width="280" />
+<img src="assets/logo.svg" alt="ClawDrive" width="280" />
 
 ### Google Drive for AI agents.
 
