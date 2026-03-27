@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { TopBar } from "./components/TopBar";
-import { EmbeddingSpace } from "./components/agent-view/EmbeddingSpace";
-import { FilesBrowser } from "./components/human-view/TaxonomyBrowser";
-import { PotsSidebar } from "./components/human-view/PotsSidebar";
-import { useVisualizationStore } from "./components/agent-view/useVisualizationStore";
+import { EmbeddingSpace } from "./components/space/EmbeddingSpace";
+import { FilesBrowser } from "./components/files/TaxonomyBrowser";
+import { PotsSidebar } from "./components/files/PotsSidebar";
+import { useVisualizationStore } from "./components/space/useVisualizationStore";
 import { ToastProvider } from "./components/shared/Toast";
 import type { ViewMode } from "./types";
 import type { InlineSearchHandle } from "./components/InlineSearch";

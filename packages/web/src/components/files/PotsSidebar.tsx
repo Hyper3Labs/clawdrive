@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useVisualizationStore } from "../agent-view/useVisualizationStore";
+import { useVisualizationStore } from "../space/useVisualizationStore";
 import { ContextMenu } from "../shared/ContextMenu";
 import { FileSearchPicker } from "../shared/FileSearchPicker";
 import { useToast } from "../shared/Toast";

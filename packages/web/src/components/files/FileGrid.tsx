@@ -5,7 +5,7 @@ import type { FileInfo } from "../../types";
 import { MAP_THEME } from "../../theme";
 import { PdfThumbnail } from "./PdfThumbnail";
 import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
-import { useVisualizationStore } from "../agent-view/useVisualizationStore";
+import { useVisualizationStore } from "../space/useVisualizationStore";
 import { useToast } from "../shared/Toast";
 import { FileText, Video, Volume2, FileCode, Music } from "lucide-react";
 

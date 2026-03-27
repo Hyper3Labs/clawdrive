@@ -6,7 +6,7 @@ import {
   getPreviewKind,
   MAP_THEME,
 } from "../../theme";
-import { PdfThumbnail } from "../human-view/PdfThumbnail";
+import { PdfThumbnail } from "../files/PdfThumbnail";
 
 type PreviewVariant = "card" | "panel";
 
