@@ -11,8 +11,6 @@
 Store any file — PDFs, images, video, audio, text — and search by meaning across modalities.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 <!-- [![npm version](https://img.shields.io/npm/v/clawdrive?style=flat-square&color=CB3837&logo=npm)](https://www.npmjs.com/package/clawdrive) -->
 
 [Documentation](CLI.md) · [Report Bug](https://github.com/Hyper3Labs/hyperdrive/issues) · [Request Feature](https://github.com/Hyper3Labs/hyperdrive/issues)
@@ -96,10 +94,6 @@ clawdrive serve
 Both `clawdrive` and `cdrive` work as the CLI command. See **[CLI.md](CLI.md)** for the full command reference.
 
 ## 🏗 How It Works
-
-<div align="center">
-  <img src="assets/architecture.svg" alt="ClawDrive architecture" width="640" />
-</div>
 
 ClawDrive is a TypeScript monorepo with four packages:
 
