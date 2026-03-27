@@ -37,34 +37,30 @@ async function importSourceToWorkspace(
   };
 }
 
+export interface ImportSourcesOptions {
+  tldr?: string;
+}
+
 export async function importSources(
   sources: string[],
   opts: PotImportContext,
   potSlug?: string,
+  importOpts?: ImportSourcesOptions,
 ): Promise<PotImportResult[]> {
   const collected = await collectSources(sources);
   const results: PotImportResult[] = [];
 
   for (const source of collected) {
     try {
+      const sourceEntry: PotImportSource = {
+        source: source.source,
+        path: source.path,
+        sourceUrl: source.sourceUrl,
+        ...(importOpts?.tldr ? { tldr: importOpts.tldr } : {}),
+      };
       const result = potSlug
-        ? await importSourceToPot(
-          {
-            source: source.source,
-            path: source.path,
-            sourceUrl: source.sourceUrl,
-          },
-          potSlug,
-          opts,
-        )
-        : await importSourceToWorkspace(
-          {
-            source: source.source,
-            path: source.path,
-            sourceUrl: source.sourceUrl,
-          },
-          opts,
-        );
+        ? await importSourceToPot(sourceEntry, potSlug, opts)
+        : await importSourceToWorkspace(sourceEntry, opts);
       results.push(result);
     } catch (err) {
       results.push({
