@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 <!-- [![npm version](https://img.shields.io/npm/v/clawdrive?style=flat-square&color=CB3837&logo=npm)](https://www.npmjs.com/package/clawdrive) -->
 
-[Documentation](CLI.md) · [Report Bug](https://github.com/Hyper3Labs/hyperdrive/issues) · [Request Feature](https://github.com/Hyper3Labs/hyperdrive/issues)
+[Documentation](CLI.md) · [Report Bug](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=feature_request.md)
 
 </div>
 
@@ -149,7 +149,7 @@ To report a vulnerability, please see [SECURITY.md](SECURITY.md).
 
 ## License
 
-[MIT](LICENSE) — Copyright 2026 Hyper3 Labs
+[MIT](LICENSE) — Copyright 2026 Hyper3Labs
 
 <!-- ## Star History
 
