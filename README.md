@@ -3,10 +3,10 @@
 <img src="assets/banner.png" alt="ClawDrive — Google Drive for AI agents" width="600" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/Hyper3Labs/hyperdrive?style=flat-square&color=green)](https://github.com/Hyper3Labs/hyperdrive/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/Hyper3Labs/clawdrive?style=flat-square&color=green)](https://github.com/Hyper3Labs/clawdrive/releases)
 [![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97-Live%20Demo-orange?style=flat-square)](https://huggingface.co/spaces/Hyper3Labs/clawdrive)
 
-[Documentation](CLI.md) · [Live Demo](https://huggingface.co/spaces/Hyper3Labs/clawdrive) · [Report Bug](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=feature_request.md)
+[Documentation](CLI.md) · [Live Demo](https://huggingface.co/spaces/Hyper3Labs/clawdrive) · [Report Bug](https://github.com/Hyper3Labs/clawdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/Hyper3Labs/clawdrive/issues/new?template=feature_request.md)
 
 </div>
 
@@ -124,8 +124,8 @@ All endpoints accept and return JSON. The CLI supports `--json` for machine-read
 
 ```bash
 # Clone the repo
-git clone https://github.com/Hyper3Labs/hyperdrive.git
-cd hyperdrive
+git clone https://github.com/Hyper3Labs/clawdrive.git
+cd clawdrive
 
 # Install dependencies
 npm install
@@ -154,4 +154,4 @@ To report a vulnerability, please see [SECURITY.md](SECURITY.md).
 
 <!-- ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Hyper3Labs/hyperdrive&type=Date)](https://star-history.com/#Hyper3Labs/hyperdrive&Date) -->
+[![Star History Chart](https://api.star-history.com/svg?repos=Hyper3Labs/clawdrive&type=Date)](https://star-history.com/#Hyper3Labs/clawdrive&Date) -->
