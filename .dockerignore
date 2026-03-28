@@ -1,0 +1,14 @@
+.git
+.github
+.internal
+.venv
+.claude
+.superpowers
+.agents
+node_modules
+dist
+*.tsbuildinfo
+.turbo
+context
+assets
+test-results
