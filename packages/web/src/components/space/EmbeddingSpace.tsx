@@ -24,7 +24,6 @@ interface EmbeddingSpaceProps {
 export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
   const { points, loading, error } = useProjections();
   const controlsRef = useRef<CameraControlsImpl | null>(null);
-  const recordInteraction = useVisualizationStore((s) => s.recordInteraction);
   const clickFile = useVisualizationStore((s) => s.clickFile);
   const hoverFile = useVisualizationStore((s) => s.hoverFile);
   const clickedFileId = useVisualizationStore((s) => s.clickedFileId);
@@ -127,9 +126,6 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
         <CameraControls
           ref={controlsRef}
           makeDefault
-          onControlStart={() => recordInteraction()}
-          onControlEnd={() => recordInteraction()}
-          onTransitionStart={() => recordInteraction()}
         />
       </Canvas>
       <ExpandablePreview points={points} />

@@ -35,12 +35,12 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
     const controls = controlsRef.current;
     if (!controls) return;
 
+    // Only reset on actual user interaction (controlstart), not programmatic
+    // transitions like setLookAt or dollyTo which fire transitionstart
     const resetIdle = () => { idleTimer.current = 0; hasZoomedOut.current = false; };
     controls.addEventListener("controlstart", resetIdle);
-    controls.addEventListener("transitionstart", resetIdle);
     return () => {
       controls.removeEventListener("controlstart", resetIdle);
-      controls.removeEventListener("transitionstart", resetIdle);
     };
   }, [controlsRef]);
 
