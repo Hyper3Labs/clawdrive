@@ -46,7 +46,10 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
     >
       {/* Left: Logo */}
       <div style={{ flex: "0 0 auto", opacity: dimStyle, transition: "opacity 0.15s" }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: MAP_THEME.text }}>ClawDrive</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <img src="/favicon.svg" alt="" width={22} height={22} />
+          <span style={{ fontWeight: 700, fontSize: 15, color: MAP_THEME.text }}>ClawDrive</span>
+        </div>
       </div>
 
       {/* Center: Search */}
