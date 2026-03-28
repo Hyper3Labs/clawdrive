@@ -1,7 +1,16 @@
 import type { Command } from "commander";
 import { exec } from "node:child_process";
 import { createServer } from "@clawdrive/server";
+import { prepareDemoWorkspace } from "../demo/nasa.js";
 import { parseServerBindings, resolveStaticWebDir, setupServerContext, startPublicShareSurface } from "../server-runtime.js";
+
+async function seedDemo(demo: string, ctx: { wsPath: string; embedder: import("@clawdrive/core").EmbeddingProvider }) {
+  try {
+    await prepareDemoWorkspace(demo, ctx);
+  } catch (err) {
+    console.error(`[demo] seeding failed: ${err}`);
+  }
+}
 
 export function registerServeCommand(program: Command) {
   program
@@ -14,7 +23,7 @@ export function registerServeCommand(program: Command) {
     .option("--demo <dataset>", "Prepare and launch a curated demo dataset")
     .option("--open", "Open browser after starting")
     .action(async (cmdOpts, cmd) => {
-      const ctx = await setupServerContext(cmd, cmdOpts.demo);
+      const ctx = await setupServerContext(cmd);
       const bindings = parseServerBindings(cmdOpts);
       const staticDir = await resolveStaticWebDir();
 
@@ -44,6 +53,11 @@ export function registerServeCommand(program: Command) {
             default: openCmd = "xdg-open"; break;
           }
           exec(`${openCmd} ${url}`);
+        }
+
+        // Seed demo data in the background after server is listening
+        if (cmdOpts.demo) {
+          seedDemo(cmdOpts.demo, ctx);
         }
       });
 
