@@ -12,9 +12,9 @@
 
 ---
 
-<!-- DEMO_GIF: Replace with actual GIF once recorded
+<div align="center">
 <img src="assets/demo.gif" alt="ClawDrive 3D file cloud demo" width="700" />
--->
+</div>
 
 ## What is ClawDrive?
 
