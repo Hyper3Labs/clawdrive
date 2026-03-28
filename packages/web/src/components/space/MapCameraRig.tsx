@@ -28,7 +28,7 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
   const hasInitialized = useRef(false);
   const targetVec = useMemo(() => new THREE.Vector3(), []);
   const desiredVec = useMemo(() => new THREE.Vector3(), []);
-  const idleTimer = useRef(0);
+  const idleTimer = useRef(IDLE_TIMEOUT);
 
   // Reset idle timer on any user interaction (called via CameraControls events)
   useEffect(() => {
