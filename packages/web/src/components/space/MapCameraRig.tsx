@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RefObject } from "react";
 import type CameraControlsImpl from "camera-controls";
@@ -19,11 +20,31 @@ const OVERVIEW_POSITION = new THREE.Vector3(0, 0, 50);
 const OVERVIEW_TARGET = new THREE.Vector3(0, 0, 0);
 const FOCUS_OFFSET = new THREE.Vector3(9, 5.5, 13);
 
+const IDLE_TIMEOUT = 30; // seconds before auto-rotation starts
+const RAMP_DURATION = 3; // seconds to fade in rotation
+const ROTATE_SPEED = 0.06; // radians per second
+
 export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRigProps) {
   const hasInitialized = useRef(false);
   const targetVec = useMemo(() => new THREE.Vector3(), []);
   const desiredVec = useMemo(() => new THREE.Vector3(), []);
+  const idleTimer = useRef(0);
 
+  // Reset idle timer on any user interaction (called via CameraControls events)
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    const resetIdle = () => { idleTimer.current = 0; };
+    controls.addEventListener("controlstart", resetIdle);
+    controls.addEventListener("transitionstart", resetIdle);
+    return () => {
+      controls.removeEventListener("controlstart", resetIdle);
+      controls.removeEventListener("transitionstart", resetIdle);
+    };
+  }, [controlsRef]);
+
+  // Handle focus transitions
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
@@ -67,6 +88,18 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
       shouldTransition,
     );
   }, [controlsRef, desiredVec, focusKey, focusTarget, targetVec]);
+
+  // Idle auto-rotation
+  useFrame((_, delta) => {
+    const controls = controlsRef.current;
+    if (!controls || focusTarget) return;
+
+    idleTimer.current += delta;
+    if (idleTimer.current < IDLE_TIMEOUT) return;
+
+    const ramp = Math.min((idleTimer.current - IDLE_TIMEOUT) / RAMP_DURATION, 1);
+    controls.azimuthAngle += ROTATE_SPEED * delta * ramp;
+  });
 
   return null;
 }
