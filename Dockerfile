@@ -24,12 +24,9 @@ COPY --chown=user tsconfig.json turbo.json ./
 COPY --chown=user packages/ packages/
 COPY --chown=user sample-files/ sample-files/
 
-# Build all packages (web first, then TypeScript)
+# Build all packages
 RUN npm run build:web && npm run build
 
-# HF Spaces expects port 7860
-ENV PORT=7860
 EXPOSE 7860
 
-# Server starts immediately, demo seeds in the background
 CMD ["node", "packages/cli/dist/bin/clawdrive.js", "serve", "--demo", "nasa", "--host", "0.0.0.0", "--port", "7860"]
