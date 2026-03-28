@@ -35,7 +35,7 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
     const controls = controlsRef.current;
     if (!controls) return;
 
-    const resetIdle = () => { idleTimer.current = 0; };
+    const resetIdle = () => { idleTimer.current = 0; isReturning.current = false; };
     controls.addEventListener("controlstart", resetIdle);
     controls.addEventListener("transitionstart", resetIdle);
     return () => {
@@ -89,7 +89,9 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
     );
   }, [controlsRef, desiredVec, focusKey, focusTarget, targetVec]);
 
-  // Idle auto-rotation
+  // Idle auto-rotation + drift back to overview
+  const isReturning = useRef(false);
+
   useFrame((_, delta) => {
     const controls = controlsRef.current;
     if (!controls || focusTarget) return;
@@ -99,6 +101,12 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
 
     const ramp = Math.min((idleTimer.current - IDLE_TIMEOUT) / RAMP_DURATION, 1);
     controls.azimuthAngle += ROTATE_SPEED * delta * ramp;
+
+    // Once fully ramped, smoothly return to overview distance
+    if (ramp >= 1 && !isReturning.current) {
+      isReturning.current = true;
+      void controls.dollyTo(OVERVIEW_POSITION.z, true);
+    }
   });
 
   return null;
