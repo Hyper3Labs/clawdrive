@@ -1,9 +1,20 @@
 {
   "name": "@clawdrive/core",
   "version": "0.1.0",
+  "description": "Core storage, embedding, and search engine for ClawDrive",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hyper3Labs/hyperdrive.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",

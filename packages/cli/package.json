@@ -1,11 +1,23 @@
 {
   "name": "clawdrive",
   "version": "0.1.0",
+  "description": "Google Drive for AI agents. Multimodal semantic search and 3D file visualization.",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "cdrive": "dist/bin/cdrive.js",
     "clawdrive": "dist/bin/clawdrive.js"
   },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hyper3Labs/hyperdrive.git",
+    "directory": "packages/cli"
+  },
+  "keywords": [
+    "ai-agents", "semantic-search", "multimodal", "vector-search",
+    "file-storage", "3d-visualization", "embeddings", "rag", "llm-tools"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
