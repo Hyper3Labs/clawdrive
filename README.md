@@ -3,16 +3,17 @@
 <img src="assets/banner.png" alt="ClawDrive — Google Drive for AI agents" width="600" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-<!-- [![npm version](https://img.shields.io/npm/v/clawdrive?style=flat-square&color=CB3837&logo=npm)](https://www.npmjs.com/package/clawdrive) -->
+[![GitHub Release](https://img.shields.io/github/v/release/Hyper3Labs/hyperdrive?style=flat-square&color=green)](https://github.com/Hyper3Labs/hyperdrive/releases)
+[![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97-Live%20Demo-orange?style=flat-square)](https://huggingface.co/spaces/Hyper3Labs/clawdrive)
 
-[Documentation](CLI.md) · [Report Bug](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=feature_request.md)
+[Documentation](CLI.md) · [Live Demo](https://huggingface.co/spaces/Hyper3Labs/clawdrive) · [Report Bug](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/Hyper3Labs/hyperdrive/issues/new?template=feature_request.md)
 
 </div>
 
 ---
 
-<!-- ## Demo
-[demo gif here]
+<!-- DEMO_GIF: Replace with actual GIF once recorded
+<img src="assets/demo.gif" alt="ClawDrive 3D file cloud demo" width="700" />
 -->
 
 ## What is ClawDrive?
