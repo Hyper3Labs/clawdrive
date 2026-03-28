@@ -35,7 +35,7 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
     const controls = controlsRef.current;
     if (!controls) return;
 
-    const resetIdle = () => { idleTimer.current = 0; isReturning.current = false; };
+    const resetIdle = () => { idleTimer.current = 0; hasZoomedOut.current = false; };
     controls.addEventListener("controlstart", resetIdle);
     controls.addEventListener("transitionstart", resetIdle);
     return () => {
@@ -89,8 +89,10 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
     );
   }, [controlsRef, desiredVec, focusKey, focusTarget, targetVec]);
 
-  // Idle auto-rotation + drift back to overview
-  const isReturning = useRef(false);
+  // Idle: zoom out to overview, then gently rotate
+  const hasZoomedOut = useRef(false);
+  const zoomStartedAt = useRef(0);
+  const ZOOM_SETTLE = 2; // seconds to wait for dolly animation to finish
 
   useFrame((_, delta) => {
     const controls = controlsRef.current;
@@ -99,14 +101,20 @@ export function MapCameraRig({ focusTarget, focusKey, controlsRef }: MapCameraRi
     idleTimer.current += delta;
     if (idleTimer.current < IDLE_TIMEOUT) return;
 
-    const ramp = Math.min((idleTimer.current - IDLE_TIMEOUT) / RAMP_DURATION, 1);
-    controls.azimuthAngle += ROTATE_SPEED * delta * ramp;
-
-    // Once fully ramped, smoothly return to overview distance
-    if (ramp >= 1 && !isReturning.current) {
-      isReturning.current = true;
+    // Step 1: kick off zoom-out once
+    if (!hasZoomedOut.current) {
+      hasZoomedOut.current = true;
+      zoomStartedAt.current = idleTimer.current;
       void controls.dollyTo(OVERVIEW_POSITION.z, true);
+      return;
     }
+
+    // Step 2: wait for zoom to settle, then rotate
+    const sinceZoom = idleTimer.current - zoomStartedAt.current;
+    if (sinceZoom < ZOOM_SETTLE) return;
+
+    const ramp = Math.min((sinceZoom - ZOOM_SETTLE) / RAMP_DURATION, 1);
+    controls.azimuthAngle += ROTATE_SPEED * delta * ramp;
   });
 
   return null;
