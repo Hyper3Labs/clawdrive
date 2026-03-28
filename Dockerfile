@@ -15,9 +15,10 @@ COPY packages/cli/package.json packages/cli/
 
 RUN npm ci
 
-# Copy source
+# Copy source and demo manifest
 COPY tsconfig.json turbo.json ./
 COPY packages/ packages/
+COPY sample-files/ sample-files/
 
 # Build all packages (web first, then TypeScript)
 RUN npm run build:web && npm run build
