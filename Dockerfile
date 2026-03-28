@@ -23,6 +23,27 @@ COPY sample-files/ sample-files/
 # Build all packages (web first, then TypeScript)
 RUN npm run build:web && npm run build
 
+# Pre-download NASA demo files at build time so startup is fast
+RUN node -e " \
+  const {readFileSync,existsSync,mkdirSync,writeFileSync} = require('fs'); \
+  const {join,dirname} = require('path'); \
+  const manifest = JSON.parse(readFileSync('sample-files/sources.json','utf8')); \
+  const cacheDir = join('context','demo-datasets','nasa'); \
+  async function dl() { \
+    for (const e of manifest.entries) { \
+      if (!e.sourceUrl) continue; \
+      const dest = join(cacheDir, e.fileName); \
+      mkdirSync(dirname(dest), {recursive:true}); \
+      console.log('Downloading', e.fileName); \
+      const res = await fetch(e.sourceUrl); \
+      if (!res.ok) { console.error('SKIP', e.fileName, res.status); continue; } \
+      const buf = Buffer.from(await res.arrayBuffer()); \
+      writeFileSync(dest, buf); \
+    } \
+  } \
+  dl().catch(e => { console.error(e); process.exit(1); }); \
+"
+
 # HF Spaces expects port 7860
 ENV PORT=7860
 EXPOSE 7860
