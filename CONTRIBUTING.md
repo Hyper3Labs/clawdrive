@@ -54,3 +54,23 @@ Be kind, constructive, and respectful. We're all here to build something great.
 ## License
 
 By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+
+## Publishing the Skill to ClawHub
+
+The skill lives in `skills/clawdrive/`. To publish or update it on [ClawHub](https://clawhub.ai):
+
+```bash
+npm i -g clawhub            # one-time
+clawhub login               # GitHub OAuth (account must be ≥1 week old)
+clawhub publish ./skills/clawdrive --slug clawdrive --name "ClawDrive" --version <semver> --tags latest
+```
+
+To sync all local changes at once:
+
+```bash
+clawhub sync --all
+```
+
+Once published, OpenClaw users install with `openclaw skills install clawdrive`.
+
+Note: all skills on ClawHub are licensed MIT-0.

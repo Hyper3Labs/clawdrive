@@ -66,11 +66,11 @@ This is the "cat" primitive — how an agent reads file content without knowing 
 
 ### `cdrive todo`
 
-List files missing agent-authored metadata (`tldr`, `digest`, and/or `display_name`).
+List files missing agent-authored metadata (`tldr`, `transcript`, `caption`, `digest`, and/or `display_name`).
 
 | Option | Description | Default |
 |---|---|---|
-| `--kind <kinds>` | Comma-separated: `tldr`, `digest`, `display_name` | all |
+| `--kind <kinds>` | Comma-separated: `tldr`, `transcript`, `caption`, `digest`, `display_name` | all |
 | `--limit <n>` | Max items | `50` |
 | `--cursor <id>` | Resume after a previous item id | — |
 
@@ -97,6 +97,26 @@ Show or update the structured markdown digest for a file.
 |---|---|
 | `--set <text>` | Set the digest |
 | `--clear` | Clear the digest |
+
+### `cdrive transcript <file>`
+
+Show or update the transcript for an audio or video file.
+
+| Option | Description |
+|---|---|
+| `--set <text>` | Set the transcript text |
+| `--set-file <path>` | Load the transcript from a text file |
+| `--clear` | Clear the transcript |
+
+### `cdrive caption <file>`
+
+Show or update the caption for an image file.
+
+| Option | Description |
+| --- | --- |
+| `--set <text>` | Set the caption text |
+| `--set-file <path>` | Load the caption from a text file |
+| `--clear` | Clear the caption |
 
 ---
 

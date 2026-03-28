@@ -17,6 +17,8 @@ export interface FileRecord {
   file_hash: string;
   file_size: number;
   tldr: string | null;
+  transcript: string | null;
+  caption: string | null;
   digest: string | null;
   display_name: string | null;
   abstract?: string | null;
@@ -42,6 +44,8 @@ export interface StoreInput {
   originalName?: string;
   tags?: string[];
   tldr?: string;
+  transcript?: string;
+  caption?: string;
   digest?: string;
   displayName?: string;
   abstract?: string;

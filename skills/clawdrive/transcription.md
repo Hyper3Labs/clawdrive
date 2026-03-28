@@ -1,15 +1,31 @@
 # Transcribing Audio & Video
 
-ClawDrive embeds audio/video multimodally but does **not** extract text transcripts by default. To get searchable text transcripts, transcribe first, then add the transcript alongside the media.
+ClawDrive embeds audio/video multimodally but does **not** extract text transcripts by default. To get transcript metadata onto the media record, transcribe first and then set the transcript explicitly.
 
 Workflow:
 ```bash
 # 1. Transcribe the file (pick a tool below)
 whisperx meeting.mp4 --model large-v2 > meeting.txt
 
-# 2. Add both the media and transcript
-clawdrive add meeting.mp4 meeting.txt --pot meetings
+# 2. Add the media file
+cdrive add meeting.mp4 --pot meetings
+
+# 3. Store the transcript on the media record
+cdrive transcript meeting.mp4 --set-file meeting.txt
+
+# 4. Optionally also add the sidecar transcript for standalone retrieval
+cdrive add meeting.txt --pot meetings
 ```
+
+To ask an agent to fill in missing transcripts, use the todo flow:
+```bash
+cdrive todo --kind transcript
+
+# Then fill one in
+cdrive transcript meeting.mp4 --set-file meeting.txt
+```
+
+If you want transcript text to be retrievable as its own document, still add the sidecar `.txt` file. Transcript metadata on the media record does not replace a standalone transcript file.
 
 ## Transcription tools ranked by recommendation
 

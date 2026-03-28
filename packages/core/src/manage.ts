@@ -4,7 +4,7 @@ import { readFile, appendFile, stat, readdir, unlink } from "node:fs/promises";
 import type { FileRecord } from "./types.js";
 import { createDatabase, getFilesTable, toFileRecord, insertFileRecord, queryFiles } from "./storage/db.js";
 import { acquireLock } from "./lock.js";
-import { normalizeTldr } from "./metadata.js";
+import { normalizeCaption, normalizeTldr, normalizeTranscript } from "./metadata.js";
 import { normalizeDigest } from "./digests.js";
 import { ensureUniqueFileName, getFileName, normalizeDisplayName } from "./display-names.js";
 
@@ -60,7 +60,7 @@ export async function remove(
  */
 export async function update(
   id: string,
-  changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; displayName?: string | null; abstract?: string | null },
+  changes: { tags?: string[]; description?: string | null; tldr?: string | null; transcript?: string | null; caption?: string | null; digest?: string | null; displayName?: string | null; abstract?: string | null },
   opts: ManageOptions,
 ): Promise<void> {
   const { wsPath } = opts;
@@ -95,6 +95,12 @@ export async function update(
       const desiredName = normalized ?? current.original_name;
       const uniqueName = await allocateDisplayName(table, desiredName, id);
       values.display_name = uniqueName === current.original_name ? null : uniqueName;
+    }
+    if (changes.transcript !== undefined) {
+      values.transcript = normalizeTranscript(changes.transcript);
+    }
+    if (changes.caption !== undefined) {
+      values.caption = normalizeCaption(changes.caption);
     }
 
     // LanceDB table.update() silently fails when updating List<Utf8> columns

@@ -1,9 +1,9 @@
 import { normalizeDigest } from "./digests.js";
 import { getFileName, normalizeDisplayName } from "./display-names.js";
 import { listFiles, type ManageOptions } from "./manage.js";
-import { normalizeTldr } from "./metadata.js";
+import { normalizeCaption, normalizeTldr, normalizeTranscript } from "./metadata.js";
 
-export type TodoKind = "tldr" | "digest" | "display_name";
+export type TodoKind = "tldr" | "transcript" | "caption" | "digest" | "display_name";
 
 export interface TodoItem {
   id: string;
@@ -28,12 +28,23 @@ export interface ListTodosResult {
   total: number;
 }
 
-const DEFAULT_TODO_KINDS: TodoKind[] = ["tldr", "digest", "display_name"];
+const DEFAULT_TODO_KINDS: TodoKind[] = ["tldr", "transcript", "caption", "digest", "display_name"];
+
+function requiresTranscript(contentType: string): boolean {
+  return contentType.startsWith("audio/") || contentType.startsWith("video/");
+}
+
+function requiresCaption(contentType: string): boolean {
+  return contentType.startsWith("image/");
+}
 
 function getMissingKinds(
   record: {
     id: string;
+    content_type: string;
     tldr: string | null;
+    transcript: string | null;
+    caption: string | null;
     digest: string | null;
     abstract?: string | null;
     description: string | null;
@@ -42,11 +53,19 @@ function getMissingKinds(
 ): TodoKind[] {
   const missing: TodoKind[] = [];
   const tldr = normalizeTldr(record.tldr ?? record.abstract ?? record.description ?? null);
+  const transcript = normalizeTranscript(record.transcript);
+  const caption = normalizeCaption(record.caption);
   const digest = normalizeDigest(record.digest);
   const displayName = normalizeDisplayName(record.display_name);
 
   if (tldr == null) {
     missing.push("tldr");
+  }
+  if (requiresTranscript(record.content_type) && transcript == null) {
+    missing.push("transcript");
+  }
+  if (requiresCaption(record.content_type) && caption == null) {
+    missing.push("caption");
   }
   if (digest == null) {
     missing.push("digest");

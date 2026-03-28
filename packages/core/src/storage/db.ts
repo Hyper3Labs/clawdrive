@@ -16,7 +16,7 @@ import type { FileRecord } from "../types.js";
 import { ensureUniqueFileName, getFileName } from "../display-names.js";
 
 const VECTOR_DIM = 3072;
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 6;
 const FILES_TABLE = "files";
 const META_TABLE = "_meta";
 
@@ -38,6 +38,8 @@ function buildFilesSchema(): Schema {
     new Field("file_hash", new Utf8(), false),
     new Field("file_size", new Int32(), false),
     new Field("description", new Utf8(), true),
+    new Field("transcript", new Utf8(), true),
+    new Field("caption", new Utf8(), true),
     new Field("digest", new Utf8(), true),
     new Field("tags", new List(new Field("item", new Utf8())), false),
     new Field("taxonomy_path", new List(new Field("item", new Utf8())), false),
@@ -77,7 +79,7 @@ export async function createDatabase(
 
 /**
  * Returns the files table, creating it (empty) if it doesn't exist.
- * Migrates the schema if needed (e.g. adds display_name/digest columns).
+ * Migrates the schema if needed (e.g. adds display_name/transcript/caption/digest columns).
  * When wsPath is provided, migrates matching legacy sidecars into DB columns.
  */
 export async function getFilesTable(
@@ -101,10 +103,20 @@ async function migrateFilesSchema(table: lancedb.Table, wsPath?: string): Promis
   const schema = await table.schema();
   const fieldNames = new Set(schema.fields.map((f: { name: string }) => f.name));
   const missingDisplayName = !fieldNames.has("display_name");
+  const missingTranscript = !fieldNames.has("transcript");
+  const missingCaption = !fieldNames.has("caption");
   const missingDigest = !fieldNames.has("digest");
 
   if (missingDisplayName) {
     await table.addColumns([{ name: "display_name", valueSql: "cast(NULL as string)" }]);
+  }
+
+  if (missingTranscript) {
+    await table.addColumns([{ name: "transcript", valueSql: "cast(NULL as string)" }]);
+  }
+
+  if (missingCaption) {
+    await table.addColumns([{ name: "caption", valueSql: "cast(NULL as string)" }]);
   }
 
   if (missingDigest) {
@@ -269,6 +281,8 @@ export function toFileRecord(raw: Record<string, unknown>): FileRecord {
 
   row.description = (row.description as string | null) ?? null;
   row.tldr = row.description;
+  row.transcript = (row.transcript as string | null) ?? null;
+  row.caption = (row.caption as string | null) ?? null;
   row.digest = (row.digest as string | null) ?? null;
   row.display_name = (row.display_name as string | null) ?? null;
   row.abstract = row.description;

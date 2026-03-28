@@ -1,12 +1,7 @@
 ---
 name: clawdrive
-description: |
-  ClawDrive — agent-native local file platform with multimodal semantic search.
-  Use when asked to "set up clawdrive", "add files", "search files", "share a pot",
-  "open a share link", "inspect a shared pot", "download a shared file",
-  or any task involving ClawDrive file management or sharing.
-  For transcription tasks, also read transcription.md in this directory.
-  For tunnel/public-exposure tasks, also read tunnels.md in this directory.
+description: "ClawDrive — agent-native local file platform with multimodal semantic search. Use for adding files, searching, sharing pots, inspecting/downloading shares, transcription (see transcription.md), and tunnels (see tunnels.md)."
+metadata: {"openclaw": {"requires": {"env": ["GEMINI_API_KEY"], "anyBins": ["ffmpeg", "ffprobe"]}, "primaryEnv": "GEMINI_API_KEY", "homepage": "https://github.com/Hyper3Labs/clawdrive", "install": [{"kind": "node", "package": "clawdrive", "bins": ["clawdrive"], "label": "Install ClawDrive (npm)"}, {"kind": "brew", "formula": "ffmpeg", "bins": ["ffmpeg"], "label": "Install ffmpeg (brew)"}]}}
 ---
 
 # ClawDrive
@@ -65,6 +60,7 @@ clawdrive pot add research ./papers  # add files to an existing pot
 clawdrive get "README.md"            # read a file by canonical name
 clawdrive todo                       # list files missing summaries
 clawdrive tldr "report.pdf" --set "Q3 financials summary"
+clawdrive caption "photo.jpg" --set "Astronaut beside a rover on Mars"
 clawdrive digest "report.pdf"        # show/set longer markdown digest
 clawdrive rename "old.txt" --set "better-name.txt"
 ```
@@ -159,6 +155,17 @@ For raw HTTP: response is 200, file written locally, `file <path>` confirms the 
 ClawDrive embeds audio/video multimodally but does **not** extract text transcripts by default.
 
 → See [transcription.md](transcription.md) for transcription tool rankings and agent auto-detection strategy.
+
+## Captioning Images
+
+ClawDrive does not generate image captions by default. To add a human- or agent-authored caption to an image record, use:
+
+```bash
+clawdrive todo --kind caption
+clawdrive caption photo.jpg --set "Astronaut beside a rover on Mars"
+```
+
+If you want the caption text to exist as a standalone retrievable document, also add a sidecar `.txt` or `.md` file.
 
 ## API Endpoints
 

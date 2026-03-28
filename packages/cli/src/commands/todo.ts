@@ -10,7 +10,7 @@ function parseTodoKinds(value: string): TodoKind[] {
     .map((item) => item.trim())
     .filter(Boolean);
 
-  const invalid = kinds.filter((kind) => kind !== "tldr" && kind !== "digest" && kind !== "display_name");
+  const invalid = kinds.filter((kind) => kind !== "tldr" && kind !== "transcript" && kind !== "caption" && kind !== "digest" && kind !== "display_name");
   if (invalid.length > 0) {
     throw new Error(`Unsupported todo kinds: ${invalid.join(", ")}`);
   }
@@ -22,7 +22,7 @@ export function registerTodoCommand(program: Command) {
   program
     .command("todo")
     .description("List files missing agent-authored metadata")
-    .option("--kind <kinds>", "Comma-separated todo kinds: tldr,digest,display_name", parseTodoKinds)
+    .option("--kind <kinds>", "Comma-separated todo kinds: tldr,transcript,caption,digest,display_name", parseTodoKinds)
     .option("--limit <n>", "Max todo items to return", (value: string) => parseInt(value, 10), 50)
     .option("--cursor <id>", "Resume after a previous todo item id")
     .action(async (cmdOpts, cmd) => {

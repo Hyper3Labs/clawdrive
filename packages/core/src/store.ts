@@ -17,7 +17,7 @@ import {
 } from "./embedding/media.js";
 import type { EmbedInput, EmbeddingProvider } from "./embedding/types.js";
 import { acquireLock } from "./lock.js";
-import { normalizeTldr } from "./metadata.js";
+import { normalizeCaption, normalizeTranscript, normalizeTldr } from "./metadata.js";
 import { createDatabase, getFilesTable, insertFileRecord, queryFiles } from "./storage/db.js";
 import { hashFile, storeFile } from "./storage/files.js";
 
@@ -36,6 +36,8 @@ interface PendingFileRecord {
   fileHash: string;
   fileSize: number;
   tldr: string | null;
+  transcript: string | null;
+  caption: string | null;
   tags: string[];
   sourceUrl: string | null;
   displayName: string | null;
@@ -64,6 +66,8 @@ export async function store(input: StoreInput, opts: StoreOptions): Promise<Stor
   const { wsPath, embedder } = opts;
   const { sourcePath, tags = [], sourceUrl = null } = input;
   const tldr = normalizeTldr(input.tldr ?? input.abstract ?? input.description ?? null);
+  const transcript = normalizeTranscript(input.transcript);
+  const caption = normalizeCaption(input.caption);
   const digest = normalizeDigest(input.digest);
   const displayName = normalizeDisplayName(input.displayName);
   const dbPath = join(wsPath, "db");
@@ -133,6 +137,8 @@ export async function store(input: StoreInput, opts: StoreOptions): Promise<Stor
         fileHash,
         fileSize: retryable.file_size,
         tldr: retryable.tldr,
+        transcript: retryable.transcript,
+        caption: retryable.caption,
         tags: retryable.tags,
         sourceUrl: retryable.source_url,
         displayName: retryable.display_name,
@@ -172,6 +178,8 @@ export async function store(input: StoreInput, opts: StoreOptions): Promise<Stor
       file_hash: fileHash,
       file_size: fileSize,
       description: tldr,
+      transcript,
+      caption,
       digest,
       tags,
       taxonomy_path: [],
@@ -200,6 +208,8 @@ export async function store(input: StoreInput, opts: StoreOptions): Promise<Stor
       fileHash,
       fileSize,
       tldr,
+      transcript,
+      caption,
       tags,
       sourceUrl,
       displayName: storedDisplayName,
@@ -293,6 +303,8 @@ async function completeIndexing(
           file_hash: target.fileHash,
           file_size: target.fileSize,
           description: target.tldr,
+          transcript: null,
+          caption: null,
           digest: null,
           tags: target.tags,
           taxonomy_path: [],

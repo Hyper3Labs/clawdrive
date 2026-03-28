@@ -40,6 +40,30 @@ export function normalizeTldr(value: string | null | undefined): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+export function normalizeTranscript(value: string | null | undefined): string | null {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = value
+    .trim()
+    .replace(/\r\n/g, "\n");
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+export function normalizeCaption(value: string | null | undefined): string | null {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = value
+    .trim()
+    .replace(/\s+/g, " ");
+
+  return normalized.length > 0 ? normalized : null;
+}
+
 export function countWords(value: string | null | undefined): number {
   if (!value) {
     return 0;

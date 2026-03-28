@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import sharp from "sharp";
 import { store } from "../src/store.js";
 import { getFileInfo, resolveFileInfo } from "../src/read.js";
-import { createTestWorkspace } from "./helpers.js";
+import { createTestWorkspace, writeSilentWav } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 import { createDatabase, getFilesTable, queryFiles } from "../src/storage/db.js";
 import { readdir, writeFile } from "node:fs/promises";
@@ -216,6 +216,49 @@ describe("store", () => {
 
     const info = await getFileInfo(result.id, { wsPath: ctx.wsPath, includeDigest: true });
     expect(info?.digest).toContain("## Quick Navigation");
+    expect(info?.description).toBeNull();
+  });
+
+  it("stores transcript independently from tldr and digest", async () => {
+    const src = join(ctx.baseDir, "call.wav");
+    await writeSilentWav(src);
+
+    const result = await store(
+      {
+        sourcePath: src,
+        originalName: "call.wav",
+        transcript: "Speaker 1: Hello there.\nSpeaker 2: Hi.",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const info = await getFileInfo(result.id, { wsPath: ctx.wsPath, includeTranscript: true });
+    expect(info?.transcript).toContain("Speaker 1");
+    expect(info?.description).toBeNull();
+  });
+
+  it("stores caption independently from tldr and digest", async () => {
+    const src = join(ctx.baseDir, "captioned.webp");
+    await sharp({
+      create: {
+        width: 16,
+        height: 16,
+        channels: 3,
+        background: { r: 40, g: 90, b: 180 },
+      },
+    }).webp().toFile(src);
+
+    const result = await store(
+      {
+        sourcePath: src,
+        originalName: "captioned.webp",
+        caption: "Blue abstract square used as an image fixture.",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const info = await getFileInfo(result.id, { wsPath: ctx.wsPath, includeCaption: true });
+    expect(info?.caption).toContain("Blue abstract square");
     expect(info?.description).toBeNull();
   });
 

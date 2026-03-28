@@ -133,6 +133,8 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
 
       const tags = parseTags(req.body.tags);
       const tldr = parseOptionalText(req.body.tldr);
+      const transcript = parseOptionalText(req.body.transcript);
+      const caption = parseOptionalText(req.body.caption);
       const digest = parseOptionalText(req.body.digest);
       const displayName = parseOptionalText(req.body.displayName);
       const abstract = parseOptionalText(req.body.abstract);
@@ -144,6 +146,8 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
           originalName: req.file.originalname,
           tags,
           tldr: typeof tldr === "string" ? tldr : undefined,
+          transcript: typeof transcript === "string" ? transcript : undefined,
+          caption: typeof caption === "string" ? caption : undefined,
           digest: typeof digest === "string" ? digest : undefined,
           displayName: typeof displayName === "string" ? displayName : undefined,
           abstract: typeof abstract === "string" ? abstract : undefined,
@@ -215,12 +219,12 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
   // GET /api/files/:id — Get file metadata
   router.get("/:id", async (req, res, next) => {
     try {
-      const info = await getFileInfo(req.params.id, { wsPath, includeDigest: true });
+      const info = await getFileInfo(req.params.id, { wsPath, includeDigest: true, includeTranscript: true, includeCaption: true });
       if (!info) {
         res.status(404).json({ error: "File not found" });
         return;
       }
-      res.json(toFileMetadataRecord(info, { includeDigest: true }));
+      res.json(toFileMetadataRecord(info, { includeDigest: true, includeTranscript: true, includeCaption: true }));
     } catch (err) {
       next(err);
     }
@@ -229,7 +233,7 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
   // PATCH /api/files/:id — Update metadata
   router.patch("/:id", async (req, res, next) => {
     try {
-      const changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; displayName?: string | null; abstract?: string | null } = {};
+      const changes: { tags?: string[]; description?: string | null; tldr?: string | null; transcript?: string | null; caption?: string | null; digest?: string | null; displayName?: string | null; abstract?: string | null } = {};
       if (req.body.tags !== undefined) {
         changes.tags = req.body.tags;
       }
@@ -238,6 +242,12 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
       }
       if (req.body.tldr !== undefined) {
         changes.tldr = parseOptionalText(req.body.tldr);
+      }
+      if (req.body.transcript !== undefined) {
+        changes.transcript = parseOptionalText(req.body.transcript);
+      }
+      if (req.body.caption !== undefined) {
+        changes.caption = parseOptionalText(req.body.caption);
       }
       if (req.body.digest !== undefined) {
         changes.digest = parseOptionalText(req.body.digest);
@@ -252,12 +262,12 @@ export function createFileRoutes(wsPath: string, embedder: EmbeddingProvider): R
       await update(req.params.id, changes, { wsPath });
 
       // Return the updated record
-      const updated = await getFileInfo(req.params.id, { wsPath, includeDigest: true });
+      const updated = await getFileInfo(req.params.id, { wsPath, includeDigest: true, includeTranscript: true, includeCaption: true });
       if (!updated) {
         res.status(404).json({ error: "File not found" });
         return;
       }
-      res.json(toFileMetadataRecord(updated, { includeDigest: true }));
+      res.json(toFileMetadataRecord(updated, { includeDigest: true, includeTranscript: true, includeCaption: true }));
     } catch (err) {
       next(err);
     }

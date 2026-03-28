@@ -10,6 +10,8 @@ export interface FileMetadataRecord {
   created_at: number;
   updated_at: number;
   tldr?: string;
+  transcript?: string;
+  caption?: string;
   digest?: string;
   source_url?: string;
 }
@@ -30,6 +32,8 @@ interface FileMetadataSource {
   updated_at: number;
   source_url: string | null;
   abstract?: string | null;
+  transcript?: string | null;
+  caption?: string | null;
   digest?: string | null;
   tldr?: string | null;
   description?: string | null;
@@ -37,7 +41,7 @@ interface FileMetadataSource {
 
 export function toFileMetadataRecord(
   record: FileMetadataSource,
-  options?: { includeDigest?: boolean },
+  options?: { includeDigest?: boolean; includeTranscript?: boolean; includeCaption?: boolean },
 ): FileMetadataRecord {
   const tldr = record.tldr ?? record.abstract ?? record.description ?? null;
 
@@ -51,6 +55,8 @@ export function toFileMetadataRecord(
     created_at: record.created_at,
     updated_at: record.updated_at,
     ...(tldr != null ? { tldr } : {}),
+    ...(options?.includeTranscript && record.transcript != null ? { transcript: record.transcript } : {}),
+    ...(options?.includeCaption && record.caption != null ? { caption: record.caption } : {}),
     ...(options?.includeDigest && record.digest != null ? { digest: record.digest } : {}),
     ...(record.source_url != null ? { source_url: record.source_url } : {}),
   };

@@ -4,7 +4,7 @@ import { store } from "../src/store.js";
 import { search } from "../src/search.js";
 import { getFileInfo } from "../src/read.js";
 import { createDatabase, getFilesTable, insertFileRecord } from "../src/storage/db.js";
-import { createTestWorkspace } from "./helpers.js";
+import { createTestWorkspace, writeSilentWav, writeTinyPng } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -64,6 +64,30 @@ describe("manage", () => {
     const info = await getFileInfo(r.id, { wsPath: ctx.wsPath, includeDigest: true });
     expect(info!.tldr).toBe("Short summary.");
     expect(info!.digest).toContain("## Detailed Description");
+  });
+
+  it("updates transcript without changing the stored tldr", async () => {
+    const src = join(ctx.baseDir, "meeting.wav");
+    await writeSilentWav(src);
+    const r = await store({ sourcePath: src, originalName: "meeting.wav", tldr: "Call recording." }, { wsPath: ctx.wsPath, embedder });
+
+    await update(r.id, { transcript: "Speaker 1: We should renew the contract next week." }, { wsPath: ctx.wsPath });
+
+    const info = await getFileInfo(r.id, { wsPath: ctx.wsPath, includeTranscript: true });
+    expect(info!.tldr).toBe("Call recording.");
+    expect(info!.transcript).toContain("renew the contract");
+  });
+
+  it("updates caption without changing the stored tldr", async () => {
+    const src = join(ctx.baseDir, "photo.png");
+    await writeTinyPng(src);
+    const r = await store({ sourcePath: src, originalName: "photo.png", tldr: "Mission still." }, { wsPath: ctx.wsPath, embedder });
+
+    await update(r.id, { caption: "Astronaut standing beside a rover on a red plain." }, { wsPath: ctx.wsPath });
+
+    const info = await getFileInfo(r.id, { wsPath: ctx.wsPath, includeCaption: true });
+    expect(info!.tldr).toBe("Mission still.");
+    expect(info!.caption).toContain("rover");
   });
 
   it("assigns a unique canonical name when renaming into an existing file name", async () => {

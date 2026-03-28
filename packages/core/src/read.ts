@@ -8,16 +8,19 @@ import { createDatabase, getFilesTable, toFileRecord } from "./storage/db.js";
 export interface ReadOptions {
   wsPath: string;
   includeDigest?: boolean;
+  includeTranscript?: boolean;
+  includeCaption?: boolean;
 }
 
-function withDigestVisibility(record: FileRecord, includeDigest: boolean | undefined): FileRecord {
-  if (includeDigest) {
-    return record;
-  }
-
+function withMetadataVisibility(
+  record: FileRecord,
+  opts: { includeDigest?: boolean; includeTranscript?: boolean; includeCaption?: boolean },
+): FileRecord {
   return {
     ...record,
-    digest: null,
+    ...(opts.includeDigest ? {} : { digest: null }),
+    ...(opts.includeTranscript ? {} : { transcript: null }),
+    ...(opts.includeCaption ? {} : { caption: null }),
   };
 }
 
@@ -41,7 +44,7 @@ export async function getFileInfo(
   if (rows.length === 0) return null;
 
   const record = toFileRecord(rows[0] as Record<string, unknown>);
-  return withDigestVisibility(record, opts.includeDigest);
+  return withMetadataVisibility(record, opts);
 }
 
 /**
@@ -72,11 +75,11 @@ export async function resolveFileInfo(
   }
 
   if (exactNameMatches.length === 1) {
-    return withDigestVisibility(exactNameMatches[0], opts.includeDigest);
+    return withMetadataVisibility(exactNameMatches[0], opts);
   }
 
   const legacyIdMatch = items.find((item) => item.id === selector) ?? null;
-  return legacyIdMatch ? withDigestVisibility(legacyIdMatch, opts.includeDigest) : null;
+  return legacyIdMatch ? withMetadataVisibility(legacyIdMatch, opts) : null;
 }
 
 /**

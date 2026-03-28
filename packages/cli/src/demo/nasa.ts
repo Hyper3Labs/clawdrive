@@ -72,12 +72,21 @@ interface DemoContext {
   embedder: EmbeddingProvider;
 }
 
+export interface DemoInstallResult {
+  pot: string;
+  alreadyInstalled: boolean;
+  stored: number;
+  attached: number;
+  existing: number;
+  failed: number;
+}
+
 export async function prepareDemoWorkspace(
   demo: string | undefined,
   ctx: DemoContext,
-): Promise<void> {
+): Promise<DemoInstallResult | undefined> {
   if (!demo) {
-    return;
+    return undefined;
   }
 
   if (demo !== NASA_DEMO_NAME) {
@@ -94,7 +103,7 @@ export async function prepareDemoWorkspace(
     `[demo:${NASA_DEMO_NAME}] preparing ${manifest.totalMegabytes} MB NASA bundle`,
   );
   await ensureDownloads(manifest, sampleDir, cacheDir);
-  await ensureSeeded(datasetId, manifest, sampleDir, cacheDir, ctx);
+  return ensureSeeded(datasetId, manifest, sampleDir, cacheDir, ctx);
 }
 
 async function ensureDownloads(
@@ -141,9 +150,10 @@ async function ensureSeeded(
   sampleDir: string,
   cacheDir: string,
   ctx: DemoContext,
-): Promise<void> {
+): Promise<DemoInstallResult> {
   await cleanupLegacySeedData(manifest, ctx);
 
+  const potName = "NASA Demo";
   const markerPath = join(ctx.wsPath, NASA_SEED_MARKER);
   const marker = await readJsonFileOrNull<NasaSeedMarker>(markerPath);
   if (
@@ -153,11 +163,12 @@ async function ensureSeeded(
     marker.totalBytes === manifest.totalBytes
   ) {
     console.log(`[demo:${NASA_DEMO_NAME}] demo dataset already seeded`);
-    return;
+    return { pot: potName, alreadyInstalled: true, stored: 0, attached: 0, existing: manifest.entries.length, failed: 0 };
   }
 
   let stored = 0;
   let duplicates = 0;
+  let failed = 0;
 
   for (const [index, entry] of manifest.entries.entries()) {
     const sourcePath = await resolveEntryPath(entry, sampleDir, cacheDir);
@@ -199,6 +210,8 @@ async function ensureSeeded(
   console.log(
     `[demo:${NASA_DEMO_NAME}] seed complete: ${stored} stored, ${duplicates} duplicates`,
   );
+
+  return { pot: potName, alreadyInstalled: false, stored, attached: 0, existing: duplicates, failed };
 }
 
 async function cleanupLegacySeedData(

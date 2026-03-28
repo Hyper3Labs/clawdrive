@@ -3,7 +3,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { store } from "../src/store.js";
 import { listTodos } from "../src/todo.js";
-import { createTestWorkspace } from "./helpers.js";
+import { createTestWorkspace, writeSilentWav, writeTinyPng } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
 
 describe("todo", () => {
@@ -23,16 +23,38 @@ describe("todo", () => {
     const missingSrc = join(ctx.baseDir, "missing.md");
     const tldrOnlySrc = join(ctx.baseDir, "tldr-only.md");
     const completeSrc = join(ctx.baseDir, "complete.md");
+    const audioSrc = join(ctx.baseDir, "meeting.wav");
+    const transcribedAudioSrc = join(ctx.baseDir, "transcribed-meeting.wav");
+    const imageSrc = join(ctx.baseDir, "photo.png");
+    const captionedImageSrc = join(ctx.baseDir, "captioned-photo.png");
 
     await writeFile(missingSrc, "first file content");
     await writeFile(tldrOnlySrc, "second file content");
     await writeFile(completeSrc, "third file content");
+    await writeSilentWav(audioSrc);
+    await writeSilentWav(transcribedAudioSrc);
+    await writeTinyPng(imageSrc);
+    await writeTinyPng(captionedImageSrc);
 
     const missing = await store({ sourcePath: missingSrc }, { wsPath: ctx.wsPath, embedder });
     const tldrOnly = await store(
       {
         sourcePath: tldrOnlySrc,
         tldr: "Short summary for the second file.",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+    const missingTranscript = await store(
+      {
+        sourcePath: audioSrc,
+        originalName: "meeting.wav",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+    const missingCaption = await store(
+      {
+        sourcePath: imageSrc,
+        originalName: "photo.png",
       },
       { wsPath: ctx.wsPath, embedder },
     );
@@ -45,16 +67,42 @@ describe("todo", () => {
       },
       { wsPath: ctx.wsPath, embedder },
     );
+    await store(
+      {
+        sourcePath: transcribedAudioSrc,
+        originalName: "transcribed-meeting.wav",
+        transcript: "Speaker 1: Transcript is present.",
+        tldr: "Meeting audio.",
+        digest: "# Digest\n\nAudio notes.",
+        displayName: "Transcribed meeting.wav",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+    await store(
+      {
+        sourcePath: captionedImageSrc,
+        originalName: "captioned-photo.png",
+        caption: "A tiny transparent pixel used as an image fixture.",
+        tldr: "Fixture image.",
+        digest: "# Digest\n\nImage notes.",
+        displayName: "Captioned photo.png",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
 
     const result = await listTodos({ limit: 10 }, { wsPath: ctx.wsPath });
 
-    expect(result.total).toBe(2);
+    expect(result.total).toBe(4);
 
     const missingItem = result.items.find((item) => item.id === missing.id);
     const tldrOnlyItem = result.items.find((item) => item.id === tldrOnly.id);
+    const missingTranscriptItem = result.items.find((item) => item.id === missingTranscript.id);
+    const missingCaptionItem = result.items.find((item) => item.id === missingCaption.id);
 
     expect(missingItem?.missing).toEqual(["tldr", "digest", "display_name"]);
     expect(tldrOnlyItem?.missing).toEqual(["digest", "display_name"]);
+    expect(missingTranscriptItem?.missing).toEqual(["tldr", "transcript", "digest", "display_name"]);
+    expect(missingCaptionItem?.missing).toEqual(["tldr", "caption", "digest", "display_name"]);
   });
 
   it("filters by kind and paginates todo items", async () => {
@@ -116,5 +164,51 @@ describe("todo", () => {
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.id).toBe(missingDisplayName.id);
     expect(result.items[0]?.missing).toEqual(["display_name"]);
+  });
+
+  it("filters transcript todos to audio and video files", async () => {
+    const textSrc = join(ctx.baseDir, "notes.md");
+    const audioSrc = join(ctx.baseDir, "call.wav");
+
+    await writeFile(textSrc, "notes");
+    await writeSilentWav(audioSrc);
+
+    await store({ sourcePath: textSrc }, { wsPath: ctx.wsPath, embedder });
+    const audio = await store(
+      {
+        sourcePath: audioSrc,
+        originalName: "call.wav",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const result = await listTodos({ kinds: ["transcript"], limit: 10 }, { wsPath: ctx.wsPath });
+
+    expect(result.total).toBe(1);
+    expect(result.items[0]?.id).toBe(audio.id);
+    expect(result.items[0]?.missing).toEqual(["transcript"]);
+  });
+
+  it("filters caption todos to image files", async () => {
+    const textSrc = join(ctx.baseDir, "notes.md");
+    const imageSrc = join(ctx.baseDir, "photo.png");
+
+    await writeFile(textSrc, "notes");
+    await writeTinyPng(imageSrc);
+
+    await store({ sourcePath: textSrc }, { wsPath: ctx.wsPath, embedder });
+    const image = await store(
+      {
+        sourcePath: imageSrc,
+        originalName: "photo.png",
+      },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const result = await listTodos({ kinds: ["caption"], limit: 10 }, { wsPath: ctx.wsPath });
+
+    expect(result.total).toBe(1);
+    expect(result.items[0]?.id).toBe(image.id);
+    expect(result.items[0]?.missing).toEqual(["caption"]);
   });
 });
