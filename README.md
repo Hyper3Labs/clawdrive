@@ -22,15 +22,6 @@ ClawDrive is an agent-native local file storage system with **multimodal semanti
 
 A built-in **3D visualization** renders your entire file cloud in the browser — explore clusters, fly into search results, and see real file previews in spatial context.
 
-<!-- ## Screenshots
-
-<table>
-  <tr>
-    <td><img src="assets/screenshot-3d.png" alt="3D file cloud" width="400" /></td>
-    <td><img src="assets/screenshot-search.png" alt="Semantic search" width="400" /></td>
-  </tr>
-</table> -->
-
 ## Quick Start
 
 ```bash
