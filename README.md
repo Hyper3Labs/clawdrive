@@ -62,7 +62,14 @@ For local collaboration, a share is a scoped permission record. For remote colla
 
 Cheap context first, full fidelity last.
 
-![Tiered retrieval diagram](assets/tiered-retrieval.svg)
+```mermaid
+flowchart LR
+  Q[Query<br/>text or media] --> P{Pot scope}
+  P --> S[Semantic search]
+  S --> T[TLDR<br/>fast shortlist]
+  T --> D[Digest<br/>richer markdown context]
+  D --> F[Original file or matched chunk<br/>full fidelity]
+```
 
 `tldr` for routing. `digest` for context. Original file when exact wording matters.
 
