@@ -1,6 +1,6 @@
 services:
   clawdrive:
-    image: ghcr.io/hyper3labs/hyperdrive/demo:latest
+    image: ghcr.io/hyper3labs/clawdrive/demo:latest
     container_name: clawdrive-demo
     restart: unless-stopped
     networks:

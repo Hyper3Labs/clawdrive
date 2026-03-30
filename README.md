@@ -62,14 +62,7 @@ For local collaboration, a share is a scoped permission record. For remote colla
 
 Cheap context first, full fidelity last.
 
-```mermaid
-flowchart LR
-  Q[Query<br/>text or media] --> P{Pot scope}
-  P --> S[Semantic search]
-  S --> T[TLDR<br/>fast shortlist]
-  T --> D[Digest<br/>richer markdown context]
-  D --> F[Original file or matched chunk<br/>full fidelity]
-```
+![Tiered retrieval diagram](assets/tiered-retrieval.svg)
 
 `tldr` for routing. `digest` for context. Original file when exact wording matters.
 
@@ -121,6 +114,18 @@ $ clawdrive search "launch telemetry" --json
   }
 ]
 ```
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Security
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## License
+
+MIT. Copyright 2026 Hyper3Labs.
 
 ---
 

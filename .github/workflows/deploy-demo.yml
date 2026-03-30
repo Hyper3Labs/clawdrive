@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/demo
+  IMAGE_NAME: hyper3labs/clawdrive/demo
 
 jobs:
   build-and-push:
