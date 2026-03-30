@@ -1,7 +1,7 @@
 ---
 name: clawdrive
 description: "ClawDrive — agent-native local file platform with multimodal semantic search. Use for adding files, searching, sharing pots, inspecting/downloading shares, transcription (see transcription.md), and tunnels (see tunnels.md)."
-metadata: {"openclaw": {"requires": {"env": ["GEMINI_API_KEY"], "anyBins": ["ffmpeg", "ffprobe"]}, "primaryEnv": "GEMINI_API_KEY", "homepage": "https://github.com/Hyper3Labs/clawdrive", "install": [{"kind": "node", "package": "clawdrive", "bins": ["clawdrive"], "label": "Install ClawDrive (npm)"}, {"kind": "brew", "formula": "ffmpeg", "bins": ["ffmpeg"], "label": "Install ffmpeg (brew)"}]}}
+metadata: {"openclaw": {"requires": {"env": ["GEMINI_API_KEY"], "anyBins": ["ffmpeg", "ffprobe"]}, "primaryEnv": "GEMINI_API_KEY", "homepage": "https://claw3drive.com", "install": [{"kind": "node", "package": "clawdrive", "bins": ["clawdrive"], "label": "Install ClawDrive (npm)"}, {"kind": "brew", "formula": "ffmpeg", "bins": ["ffmpeg"], "label": "Install ffmpeg (brew)"}]}}
 ---
 
 # ClawDrive
@@ -21,7 +21,7 @@ Or run without installing: `npx clawdrive <command>`.
 clawdrive install-skill                      # auto-detects your agent (Claude/Codex/Copilot)
 clawdrive install-skill --agent claude       # explicit agent target
 clawdrive install-skill --project            # install into current project instead of global
-npx skills add Hyper3Labs/clawdrive          # alternative: via skills.sh
+npx skills add hyper3labs/clawdrive          # alternative: via skills.sh
 ```
 
 ## Prerequisites
@@ -186,7 +186,7 @@ If you want the caption text to exist as a standalone retrievable document, also
 ## Development
 
 ```bash
-git clone https://github.com/Hyper3Labs/clawdrive.git && cd clawdrive
+git clone https://github.com/hyper3labs/clawdrive.git && cd clawdrive
 npm install
 npm run dev          # turbo watch: tsc + Vite on :5173
 # in another terminal:

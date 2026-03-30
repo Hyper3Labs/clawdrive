@@ -2,6 +2,14 @@
   "name": "clawdrive",
   "private": true,
   "packageManager": "npm@11.6.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hyper3labs/clawdrive.git"
+  },
+  "homepage": "https://claw3drive.com",
+  "bugs": {
+    "url": "https://github.com/hyper3labs/clawdrive/issues"
+  },
   "workspaces": [
     "packages/*"
   ],

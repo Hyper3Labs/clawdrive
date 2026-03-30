@@ -11,8 +11,12 @@
   "files": ["dist", "skill"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Hyper3Labs/clawdrive.git",
+    "url": "https://github.com/hyper3labs/clawdrive.git",
     "directory": "packages/cli"
+  },
+  "homepage": "https://claw3drive.com",
+  "bugs": {
+    "url": "https://github.com/hyper3labs/clawdrive/issues"
   },
   "keywords": [
     "ai-agents", "semantic-search", "multimodal", "vector-search",
