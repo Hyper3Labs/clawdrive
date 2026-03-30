@@ -9,8 +9,12 @@
   "files": ["dist"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Hyper3Labs/clawdrive.git",
+    "url": "https://github.com/hyper3labs/clawdrive.git",
     "directory": "packages/core"
+  },
+  "homepage": "https://claw3drive.com",
+  "bugs": {
+    "url": "https://github.com/hyper3labs/clawdrive/issues"
   },
   "publishConfig": {
     "access": "public"

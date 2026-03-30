@@ -3,10 +3,9 @@
 <img src="assets/banner.png" alt="ClawDrive — Google Drive for AI agents" width="600" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/Hyper3Labs/clawdrive?style=flat-square&color=green)](https://github.com/Hyper3Labs/clawdrive/releases)
-[![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97-Live%20Demo-orange?style=flat-square)](https://huggingface.co/spaces/Hyper3Labs/clawdrive)
+[![GitHub Release](https://img.shields.io/github/v/release/hyper3labs/clawdrive?style=flat-square&color=green)](https://github.com/hyper3labs/clawdrive/releases)
 
-[Documentation](CLI.md) · [Live Demo](https://huggingface.co/spaces/Hyper3Labs/clawdrive) · [Report Bug](https://github.com/Hyper3Labs/clawdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/Hyper3Labs/clawdrive/issues/new?template=feature_request.md)
+[Website](https://claw3drive.com) · [Documentation](CLI.md) · [Live Demo](https://app.claw3drive.com/) · [Report Bug](https://github.com/hyper3labs/clawdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/hyper3labs/clawdrive/issues/new?template=feature_request.md)
 
 </div>
 
@@ -17,17 +16,27 @@
 
 <br/>
 <br/>
-The 3D file cloud lets you browse semantic neighborhoods instead of folders.
+Browse files by meaning, not folders.
 
 </div>
 
 ## What is ClawDrive?
 
-**ClawDrive** is a local-first file platform for agents and humans who need fast context from real files. It indexes text, images, audio, and video into one searchable space, then exposes that space through a CLI, REST API, and browser UI.
+**ClawDrive** indexes your files (text, images, audio, video) and makes them searchable by meaning. You interact with it through a CLI, a REST API, or a browser UI with a 3D file cloud.
 
-The core unit is a **pot**: a named collection you can build from files, folders, and URLs. Pots give you something concrete to search, hand off, and share without exposing your whole library.
+Files live in **pots**. A pot is a named collection you build from files, folders, or URLs. Search and sharing are both scoped to the pot — nothing else on your machine is visible.
 
-> Files stay on your machine. The ClawDrive server stays on your machine. Pots define what is in scope. If you want remote access, you point your own tunnel at your local server. There is no hosted ClawDrive control plane in the middle; in the default setup, the only hosted dependency is embedding computation via Gemini.
+> Everything runs on your machine. The only external call is to Gemini for embeddings. For remote access, point a tunnel at the local server.
+
+## Features
+
+- **Multimodal Shared Representation:** Text, images, audio, and video all live in the same embedding space.
+- **Cross-Modal Retrieval:** Search your files by meaning—use text to find images, or images to find text.
+- **Bring-Your-Own Transcriber:** Attach transcripts (e.g., from WhisperX) directly to audio and video files for deep indexing.
+- **Tiered Retrieval System:** Save LLM context windows. ClawDrive returns a 1-sentence `tldr` or a markdown `digest` before you fetch the full file.
+- **3D Visualization & Web UI:** Browse your files spatially with an interactive 3D frontend.
+- **Pot-Based Local Sharing:** Group files into isolated "pots". Share contexts directly peer-to-peer via local tunnels (Tailscale, Cloudflare).
+- **Auto File Naming & Organization:** Import everything cleanly without UUIDs; duplicates are automatically suffixed and organized.
 
 ## Quick Start
 
@@ -48,64 +57,48 @@ Or run directly without installing:
 npx clawdrive serve --demo nasa
 ```
 
+Prefer the hosted version? Try the live demo at [app.claw3drive.com](https://app.claw3drive.com/).
+
 > Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
-## Pots, Sharing, and Zero-Cloud Architecture
+## Pots and sharing
 
-- A **pot** is a working set for a deal room, a customer account, a research corpus, or a handoff bundle.
-- Search stays scoped to that pot instead of your entire machine.
-- Shares grant access to that pot, not to everything else in your workspace.
+A pot can be anything — a specific codebase, a side-project workspace, or a feature's design docs. All search and sharing happens at the pot level, so you never accidentally expose files outside of it.
 
-For local collaboration, a share is a scoped permission record. For remote collaboration, you can point a tunnel such as Tailscale or Cloudflare at your local ClawDrive server and keep the same pot boundary. Storage stays local, the API stays local, and sharing stays explicit.
+For remote access, put a tunnel in front of the local server (Tailscale, Cloudflare, etc.). Storage stays on your machine.
 
-## Tiered Retrieval
+## Ingest pipeline
 
-Cheap context first, full fidelity last.
+When you add files to a pot, ClawDrive turns them into something agents can actually search. Text gets chunked and summarized, audio and video get transcribed, and images become part of the same index.
 
-```mermaid
-flowchart LR
-  Q[Query<br/>text or media] --> P{Pot scope}
-  P --> S[Semantic search]
-  S --> T[TLDR<br/>fast shortlist]
-  T --> D[Digest<br/>richer markdown context]
-  D --> F[Original file or matched chunk<br/>full fidelity]
-```
+<div align="center">
+  <img src="assets/ingest-pipeline.png" alt="ClawDrive shared search space: documents, images, audio, and video map to a shared semantic space allowing cross-modal retrieval" width="1100" />
+</div>
 
-`tldr` for routing. `digest` for context. Original file when exact wording matters.
+Supported formats: PDF, Markdown, TXT, JSON, JPG, PNG, GIF, WebP, SVG, MP4, MOV, WebM, MP3, WAV.
 
-### Formats
+## Tiered retrieval
 
-| 📄 Documents | 🖼️ Images | 🎬 Video | 🎵 Audio |
-|---|---|---|---|
-| PDF, MD, TXT, JSON | JPG, PNG, GIF, WebP, SVG | MP4, MOV, WebM | MP3, WAV |
+Agents don't need to read an entire file to decide if it's relevant. ClawDrive returns a one-line `tldr` with every search hit, a longer `digest` on request, and the full original only when you actually need it.
+
+<div align="center">
+  <img src="assets/retrieval-tiers.png" alt="ClawDrive tiered retrieval: agents start with a TLDR, fetch a digest when needed, and open the original file only for exact text" width="1100" />
+</div>
 
 ## Usage
 
-```bash
-# Create a pot (a named, shareable collection)
-clawdrive pot create acme-dd
+| Command | Description | Example |
+|---------|-------------|---------|
+| `pot create` | Create a named, shareable collection | `clawdrive pot create project-nexus` |
+| `add` | Add files, folders, or URLs to a pot | `clawdrive add --pot project-nexus ./src ./docs` |
+| `search` | Search files by meaning | `clawdrive search "auth flow architecture" --pot project-nexus` |
+| `search --image` | Cross-modal search using an image | `clawdrive search --image ./diagram.png` |
+| `share pot` | Scoped share for an agent or peer | `clawdrive share pot project-nexus --to claude-code --expires 24h` |
+| `serve` | Start the API server and 3D web UI | `clawdrive serve` |
 
-# Add files, folders, or URLs
-clawdrive add --pot acme-dd ./contracts ./docs https://docs.google.com/...
+Full command reference: **[CLI.md](CLI.md)**
 
-# Search by meaning
-clawdrive search "the nda we sent acme" --pot acme-dd
-
-# Cross-modal search: find documents related to a photo
-clawdrive search --image ./photo.jpg
-
-# Create a scoped share for another agent or person
-clawdrive share pot acme-dd --to claude-code --role read --expires 24h
-
-# Start the API server and 3D web UI
-clawdrive serve
-```
-
-See **[CLI.md](CLI.md)** for the full command reference.
-
-### Agent-Friendly Output
-
-Commands support `--json` for agent pipelines:
+All commands support `--json`:
 
 ```bash
 $ clawdrive search "launch telemetry" --json
@@ -122,33 +115,23 @@ $ clawdrive search "launch telemetry" --json
 ]
 ```
 
-## Contributing
+---
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## Security
-
-To report a vulnerability, see [SECURITY.md](SECURITY.md).
-
-## License
-
-MIT. Copyright 2026 Hyper3Labs.
+[How to contribute](CONTRIBUTING.md) · [Report a vulnerability](SECURITY.md) · [MIT](LICENSE) © 2026 hyper3labs
 
 ---
 
 <div align="center">
 
-[![GitHub stars](https://img.shields.io/github/stars/Hyper3Labs/clawdrive?style=social)](https://github.com/Hyper3Labs/clawdrive)
+[![GitHub stars](https://img.shields.io/github/stars/hyper3labs/clawdrive?style=social)](https://github.com/hyper3labs/clawdrive)
 
 <br/>
 <br/>
 
-**Made by**  
-Daniil [![X: moroz_i_holod](https://img.shields.io/badge/-@moroz__i__holod-000?style=flat-square&logo=x&logoColor=white)](https://x.com/moroz_i_holod) · Matin [![X: MatinMnM](https://img.shields.io/badge/-@MatinMnM-000?style=flat-square&logo=x&logoColor=white)](https://x.com/MatinMnM)  
-Built in Berlin.
+Built by Daniil [@moroz_i_holod](https://x.com/moroz_i_holod) · Matin [@MatinMnM](https://x.com/MatinMnM)
+
+<br/>
+
+Made with 🦞 in Berlin.
 
 </div>
-
-<!-- ## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Hyper3Labs/clawdrive&type=Date)](https://star-history.com/#Hyper3Labs/clawdrive&Date) -->

@@ -5,7 +5,7 @@ Thanks for your interest in contributing! This guide will help you get started.
 ## Getting Started
 
 ```bash
-git clone https://github.com/Hyper3Labs/clawdrive.git
+git clone https://github.com/hyper3labs/clawdrive.git
 cd clawdrive
 npm install
 npm run dev
@@ -41,7 +41,7 @@ packages/
 
 ## Reporting Issues
 
-Use [GitHub Issues](https://github.com/Hyper3Labs/clawdrive/issues) to report bugs or request features. Please include:
+Use [GitHub Issues](https://github.com/hyper3labs/clawdrive/issues) to report bugs or request features. Please include:
 
 - Steps to reproduce (for bugs)
 - Expected vs. actual behavior
