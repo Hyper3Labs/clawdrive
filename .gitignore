@@ -10,3 +10,6 @@ context/
 .superpowers/
 .agents/
 .playwright-cli/
+test*.png
+*-changes*.png
+*.screenshot.png
