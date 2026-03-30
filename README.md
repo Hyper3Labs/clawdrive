@@ -48,13 +48,15 @@ npm install -g clawdrive
 export GEMINI_API_KEY="your-key-here"
 
 # Launch the web UI with a curated NASA demo (~248 MB on first run)
-clawdrive serve --demo nasa
+cdrive serve --demo nasa
 ```
+
+The npm package is `clawdrive`; the installed CLI command is `cdrive`.
 
 Or run directly without installing:
 
 ```bash
-npx clawdrive serve --demo nasa
+npx --package clawdrive cdrive serve --demo nasa
 ```
 
 Prefer the hosted version? Try the live demo at [app.claw3drive.com](https://app.claw3drive.com/).
@@ -85,23 +87,29 @@ Agents don't need to read an entire file to decide if it's relevant. ClawDrive r
   <img src="assets/retrieval-tiers.png" alt="ClawDrive tiered retrieval: agents start with a TLDR, fetch a digest when needed, and open the original file only for exact text" width="1100" />
 </div>
 
-## Usage
+## CLI quick reference
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `pot create` | Create a named, shareable collection | `clawdrive pot create project-nexus` |
-| `add` | Add files, folders, or URLs to a pot | `clawdrive add --pot project-nexus ./src ./docs` |
-| `search` | Search files by meaning | `clawdrive search "auth flow architecture" --pot project-nexus` |
-| `search --image` | Cross-modal search using an image | `clawdrive search --image ./diagram.png` |
-| `share pot` | Scoped share for an agent or peer | `clawdrive share pot project-nexus --to claude-code --expires 24h` |
-| `serve` | Start the API server and 3D web UI | `clawdrive serve` |
+| Command | Description |
+|---------|-------------|
+| `cdrive pot create <name>` | Create a pot for a project, dataset, or working set. |
+| `cdrive add --pot <pot> <sources...>` | Import files, folders, or URLs into a pot. |
+| `cdrive search [query] --pot <pot>` | Search by meaning, scoped to one pot when you want it. |
+| `cdrive search --file <path>` | Use an image, PDF, audio, or video file as the query. |
+| `cdrive get <file-or-share>` | Read a file by canonical name, or inspect a share by id or token. |
+| `cdrive todo [--kind <kinds>]` | Find files still missing agent-written metadata such as `tldr`, `digest`, or `transcript`. |
+| `cdrive tldr <file>` | Show or update the short summary attached to a file. |
+| `cdrive share pot <pot> --to <principal>` | Create a pot-scoped share for a person or agent. |
+| `cdrive share pot <pot> --link` | Create a pending link share you can approve and send out. |
+| `cdrive install-skill [--agent <name>]` | Install the bundled ClawDrive skill for Claude Code, Copilot, or Codex. |
+| `cdrive doctor` | Check the local workspace for configuration or health issues. |
+| `cdrive serve [--demo nasa]` | Start the local API and 3D web UI, optionally in demo mode. |
 
 Full command reference: **[CLI.md](CLI.md)**
 
-All commands support `--json`:
+Every command also supports `--json`:
 
 ```bash
-$ clawdrive search "launch telemetry" --json
+$ cdrive search "launch telemetry" --json
 ```
 ```json
 [
