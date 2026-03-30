@@ -6,7 +6,11 @@ cdrive <command> [options]
 
 Agent-native local file sharing and retrieval.
 
-All commands accept `--json` for machine-readable output.
+Global options:
+
+- `--json` output machine-readable JSON
+- `-V, --version` print the CLI version
+- `-h, --help` show help
 
 ## Concepts
 
@@ -14,9 +18,11 @@ All commands accept `--json` for machine-readable output.
 
 **File name** — the canonical name for a stored file. File names are unique. If an imported name would collide, cdrive assigns a suffix like `README (2).md`.
 
+**Share ref** — a share id or token. Some commands accept a share ref instead of a file name.
+
 ---
 
-## Adding files
+## Adding Files And Pots
 
 Files are stored directly. You can leave them unfiled or attach them to a pot during ingest.
 
@@ -27,6 +33,7 @@ Add local files, directories, or HTTP URLs. Directories are walked recursively. 
 | Option | Description |
 |---|---|
 | `--pot <pot>` | Also attach imported files to a pot |
+| `--tldr <text>` | Set the same TL;DR on imported files |
 
 ### `cdrive pot create <name>`
 
@@ -38,21 +45,33 @@ Create a new pot.
 
 ### `cdrive pot add <pot> <sources...>`
 
-Compatibility alias for `cdrive add --pot <pot> <sources...>`.
+Add local files, folders, or links directly to a pot.
+
+This is a compatibility command similar to `cdrive add --pot <pot>`, but it does not expose extra ingest options like `--tldr`.
+
+### `cdrive demo install <dataset>`
+
+Install curated sample content into the current workspace and create its pot.
+
+Current curated dataset: `nasa`.
 
 ---
 
-## Search and inspection
+## Search And Retrieval
 
-### `cdrive search <query>`
+### `cdrive search [query]`
 
 Vector search across all files or a single pot.
 
+You can omit `[query]` when using `--file` or `--image`.
+
 | Option | Description | Default |
 |---|---|---|
+| `--file <path>` | Image, PDF, audio, or video file to use as query input | — |
 | `--pot <pot>` | Limit to a pot | all |
 | `--image <path>` | Image file as query input | — |
 | `--type <mime>` | Filter by MIME type | — |
+| `--tags <tags>` | Comma-separated tag filter | — |
 | `--limit <n>` | Max results | `10` |
 | `--min-score <n>` | Minimum similarity threshold | — |
 | `--after <date>` | Created after (ISO 8601) | — |
@@ -60,7 +79,9 @@ Vector search across all files or a single pot.
 
 ### `cdrive get <target>`
 
-Read a file by its canonical name. Text files are streamed to stdout; binary files print the local blob path. If `<target>` is a share id or token, lists the pot and its files instead.
+Read a file by its canonical name. Text files are streamed to stdout; binary files print the local blob path.
+
+If `<target>` is a share ref, the command prints the shared pot and file list instead.
 
 This is the "cat" primitive — how an agent reads file content without knowing where blobs live on disk.
 
@@ -74,20 +95,24 @@ List files missing agent-authored metadata (`tldr`, `transcript`, `caption`, `di
 | `--limit <n>` | Max items | `50` |
 | `--cursor <id>` | Resume after a previous item id | — |
 
+### `cdrive doctor`
+
+Health-check the workspace and report issues.
+
 ---
 
 ## Metadata
 
 ### `cdrive tldr <file>`
 
-Show or update the short TL;DR for a file. Alias: `abstract`.
+Show or update the short TL;DR for a file. Alias: `cdrive abstract <file>`.
 
 | Option | Description |
 |---|---|
 | `--set <text>` | Set the TL;DR |
 | `--clear` | Clear the TL;DR |
 
-Reports word count and whether it falls within the recommended range.
+Human-mode reads print the stored TL;DR. Updates also print the updated text and word count.
 
 ### `cdrive digest <file>`
 
@@ -118,9 +143,18 @@ Show or update the caption for an image file.
 | `--set-file <path>` | Load the caption from a text file |
 | `--clear` | Clear the caption |
 
+### `cdrive rename <file>`
+
+Show or update the canonical name for a stored file.
+
+| Option | Description |
+|---|---|
+| `--set <name>` | Set the canonical file name |
+| `--clear` | Clear the override and fall back to the source name |
+
 ---
 
-## Sharing — send
+## Sharing
 
 ### `cdrive share pot <pot>`
 
@@ -128,7 +162,7 @@ Create a share for a pot. Requires either `--link` or `--to`.
 
 | Option | Description | Default |
 |---|---|---|
-| `--link` | Create a public link share | — |
+| `--link` | Create a pending link share that must be approved before use | — |
 | `--to <principal>` | Grant access to a human or agent | — |
 | `--role <role>` | `read` or `write` | `read` |
 | `--expires <duration>` | Expiry: `30m`, `24h`, `7d`, etc. | never |
@@ -137,15 +171,13 @@ Create a share for a pot. Requires either `--link` or `--to`.
 
 List pending link shares waiting for approval.
 
-### `cdrive share approve <id>`
+### `cdrive share approve <share>`
 
 Approve a pending link share. Prints the share token.
 
-### `cdrive share revoke <id>`
+### `cdrive share revoke <share>`
 
 Revoke an active or pending share.
-
-## Sharing — receive
 
 ### `cdrive share info <url>`
 
@@ -178,17 +210,40 @@ Start the REST API and web UI.
 | `--host <host>` | Bind host | `127.0.0.1` |
 | `--public-port <port>` | Share-only public surface port | — |
 | `--public-host <host>` | Share-only public surface host | — |
-| `--demo <dataset>` | Seed a curated demo dataset (e.g. `nasa`) | — |
+| `--demo <dataset>` | Prepare a curated demo dataset and run the server in read-only mode | — |
 | `--open` | Open browser after starting | — |
+
+Current curated dataset: `nasa`.
 
 ---
 
-## Quick start
+## Agent Setup
+
+### `cdrive install-skill`
+
+Install the bundled ClawDrive skill for Claude Code, Copilot, or Codex.
+
+If `--agent` is omitted, the command auto-detects supported agents. The default scope is global.
+
+| Option | Description |
+|---|---|
+| `--agent <name>` | Target agent: `claude`, `copilot`, or `codex` |
+| `--global` | Install under the home directory |
+| `--project` | Install into the current project directory |
+
+---
+
+## Quick Start
 
 ```bash
-cdrive pot create acme-dd
-cdrive add --pot acme-dd ./contracts ./docs https://docs.google.com/...
-cdrive search "the nda we sent acme" --pot acme-dd
-cdrive share pot acme-dd --to claude-code --role read --expires 24h
-cdrive serve
+cdrive pot create apt-search --desc "Berlin apartment hunt"
+cdrive add --pot apt-search --tldr "Application materials" ./paystubs ./schufa https://docs.google.com/spreadsheets/d/...
+cdrive search "landlord email about pets" --pot apt-search
+cdrive search --file ./floorplan-ideal.pdf --pot apt-search
+cdrive rename "notes.txt" --set "Viewing questions.txt"
+cdrive share pot apt-search --link --expires 24h
+cdrive share inbox
+cdrive share approve <share>
+cdrive demo install nasa
+cdrive serve --demo nasa
 ```
