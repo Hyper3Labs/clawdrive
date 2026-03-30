@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MAP_THEME } from "../../theme";
+import { cx, ui } from "./ui";
 
 interface InlineEditProps {
   value: string;
@@ -32,14 +32,7 @@ export function InlineEdit({ value, placeholder, onSave }: InlineEditProps) {
     return (
       <div
         onClick={() => setEditing(true)}
-        style={{
-          cursor: "pointer",
-          color: value ? MAP_THEME.text : MAP_THEME.textMuted,
-          fontSize: 12,
-          lineHeight: 1.6,
-          opacity: value ? 0.7 : 0.4,
-          fontStyle: value ? "normal" : "italic",
-        }}
+        className={`cursor-pointer text-xs leading-[1.6] ${value ? 'text-[var(--text)] opacity-70 not-italic' : 'text-[var(--textMuted)] opacity-40 italic'}`}
       >
         {value || placeholder || "Click to edit..."}
       </div>
@@ -60,21 +53,10 @@ export function InlineEdit({ value, placeholder, onSave }: InlineEditProps) {
         if (e.key === "Escape") { setDraft(value); setEditing(false); }
         if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSave();
       }}
-      style={{
-        width: "100%",
-        background: "rgba(255,255,255,0.05)",
-        border: `1px solid ${MAP_THEME.accentPrimary}`,
-        borderRadius: 4,
-        color: MAP_THEME.text,
-        fontSize: 12,
-        lineHeight: 1.6,
-        padding: "4px 8px",
-        resize: "none",
-        overflow: "hidden",
-        fontFamily: "inherit",
-        outline: "none",
-        boxSizing: "border-box",
-      }}
+      className={cx(
+        ui.input,
+        "box-border resize-none overflow-hidden border-[var(--accent-primary)] px-2 py-1 text-xs leading-[1.6]",
+      )}
       rows={1}
     />
   );

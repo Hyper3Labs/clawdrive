@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { listShareInbox, approveShare, revokeShare } from "../../api";
 import { useToast } from "./Toast";
-import { MAP_THEME, Z_INDEX } from "../../theme";
+import { Z_INDEX } from "../../theme";
 import type { PotShare } from "../../types";
 import { Link } from "lucide-react";
+import { cx, ui } from "./ui";
 
 export function ShareInbox() {
   const [open, setOpen] = useState(false);
@@ -63,97 +64,60 @@ export function ShareInbox() {
   }
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        style={{
-          background: "rgba(255,255,255,0.06)",
-          border: `1px solid ${MAP_THEME.border}`,
-          borderRadius: 6,
-          padding: "6px 12px",
-          color: MAP_THEME.text,
-          fontSize: 12,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontFamily: "inherit",
-          position: "relative",
-        }}
+        className={cx(ui.subtleButton, "relative")}
         title="Share inbox"
       >
         <Link size={14} />
         Shares
         {items.length > 0 && (
-          <span style={{
-            background: MAP_THEME.accentWarm,
-            color: MAP_THEME.background,
-            fontSize: 9, fontWeight: 700,
-            minWidth: 16, height: 16, borderRadius: "50%",
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            padding: "0 4px",
-          }}>
+          <span className="bg-[var(--accent-warm)] text-[var(--background)] text-[9px] font-bold min-w-[16px] h-4 rounded-full inline-flex items-center justify-center px-1">
             {items.length}
           </span>
         )}
       </button>
       {open && (
-        <div style={{
-          position: "absolute",
-          right: 0,
-          top: "100%",
-          marginTop: 4,
-          width: 280,
-          zIndex: Z_INDEX.contextMenu,
-          background: MAP_THEME.panel,
-          border: `1px solid ${MAP_THEME.border}`,
-          borderRadius: 8,
-          padding: 12,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: MAP_THEME.text, marginBottom: 8 }}>
+        <div
+          style={{ zIndex: Z_INDEX.contextMenu }}
+          className={cx(ui.popover, "absolute right-0 top-full mt-2 w-[320px] overflow-hidden rounded-xl p-0")}
+        >
+          <div className="border-b border-white/5 px-4 py-3 text-[13px] font-semibold text-[var(--text)]">
             Pending Shares
           </div>
           {items.length === 0 ? (
-            <div style={{ fontSize: 11, opacity: 0.4, textAlign: "center", padding: 12 }}>
+            <div className={cx(ui.emptyState, "py-6 text-[12px]")}>
               No pending shares
             </div>
           ) : (
             items.map((s) => (
               <div
                 key={s.id}
-                style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.05)",
-                  fontSize: 12, color: MAP_THEME.text,
-                }}
+                className="border-b border-white/5 px-4 py-3 text-[12px] text-[var(--text)] last:border-0"
               >
-                <span style={{ flex: 1 }}>
-                  {s.pot_slug}
-                  <span style={{ opacity: 0.4, marginLeft: 6, fontSize: 10 }}>
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-medium">
+                    {s.pot_slug}
+                  </span>
+                  <span className="shrink-0 text-[10px] text-[var(--textMuted)]">
                     {new Date(s.created_at).toLocaleDateString()}
                   </span>
-                </span>
-                <button
-                  onClick={() => handleApprove(s.id)}
-                  style={{
-                    background: "rgba(123,211,137,0.15)", border: "none", borderRadius: 4,
-                    color: MAP_THEME.accentSecondary, fontSize: 11, padding: "2px 8px",
-                    cursor: "pointer", fontFamily: "inherit",
-                  }}
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => handleReject(s.id)}
-                  style={{
-                    background: "rgba(255,141,141,0.15)", border: "none", borderRadius: 4,
-                    color: MAP_THEME.accentDanger, fontSize: 11, padding: "2px 8px",
-                    cursor: "pointer", fontFamily: "inherit",
-                  }}
-                >
-                  Reject
-                </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleApprove(s.id)}
+                    className="inline-flex items-center rounded-md border border-[rgba(123,211,137,0.24)] bg-[rgba(123,211,137,0.12)] px-2.5 py-1 text-[11px] font-medium text-[var(--accent-secondary)] transition-opacity hover:opacity-90"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleReject(s.id)}
+                    className="inline-flex items-center rounded-md border border-[rgba(255,141,141,0.24)] bg-[rgba(255,141,141,0.12)] px-2.5 py-1 text-[11px] font-medium text-[var(--accent-danger)] transition-opacity hover:opacity-90"
+                  >
+                    Reject
+                  </button>
+                </div>
               </div>
             ))
           )}

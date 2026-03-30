@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MAP_THEME } from "../../theme";
+import { cx, ui } from "./ui";
 
 interface TagEditorProps {
   tags: string[];
@@ -26,30 +26,21 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
   }
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
+    <div className="flex flex-wrap gap-1 items-center">
       {tags.map((tag) => (
         <span
           key={tag}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            padding: "2px 8px",
-            borderRadius: 4,
-            fontSize: 11,
-            background: isPotTag(tag) ? "rgba(123, 211, 137, 0.15)" : "rgba(255,255,255,0.06)",
-            color: isPotTag(tag) ? MAP_THEME.accentSecondary : MAP_THEME.text,
-            border: `1px solid ${isPotTag(tag) ? "rgba(123,211,137,0.3)" : "rgba(255,255,255,0.1)"}`,
-          }}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border ${
+            isPotTag(tag) 
+              ? 'bg-[rgba(123,211,137,0.15)] text-[var(--accent-secondary)] border-[rgba(123,211,137,0.3)]' 
+              : 'bg-white/5 text-[var(--text)] border-white/10'
+          }`}
         >
           {tag}
           {!isPotTag(tag) && (
             <button
               onClick={() => handleRemove(tag)}
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                color: MAP_THEME.textMuted, fontSize: 14, padding: 0, lineHeight: 1,
-              }}
+              className="bg-transparent border-none cursor-pointer text-[var(--textMuted)] text-sm p-0 leading-none hover:text-white transition-colors"
             >
               ×
             </button>
@@ -67,31 +58,12 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
           }}
           onBlur={handleAdd}
           placeholder="tag name"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: `1px solid ${MAP_THEME.accentPrimary}`,
-            borderRadius: 4,
-            color: MAP_THEME.text,
-            fontSize: 11,
-            padding: "2px 8px",
-            outline: "none",
-            width: 80,
-            fontFamily: "inherit",
-          }}
+          className={cx(ui.input, "w-20 border-[var(--accent-primary)] px-2 py-0.5 text-[11px]")}
         />
       ) : (
         <button
           onClick={() => setAdding(true)}
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px dashed rgba(255,255,255,0.15)",
-            borderRadius: 4,
-            color: MAP_THEME.textMuted,
-            fontSize: 11,
-            padding: "2px 8px",
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
+          className="cursor-pointer rounded border border-dashed border-white/15 bg-white/5 px-2 py-0.5 text-[11px] text-[var(--textMuted)] transition-colors hover:bg-white/10 hover:text-white"
         >
           + tag
         </button>

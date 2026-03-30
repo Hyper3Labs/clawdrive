@@ -100,6 +100,15 @@ export async function listPotFiles(potSlug: string) {
 export const fileContentUrl = (id: string) => `/api/files/${encodeURIComponent(id)}/content`;
 export const fileThumbnailUrl = (id: string) => `/api/files/${encodeURIComponent(id)}/thumbnail`;
 
+export function downloadFileContent(id: string, fileName: string) {
+  const anchor = document.createElement("a");
+  anchor.href = fileContentUrl(id);
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+}
+
 export async function updateFile(id: string, changes: { tags?: string[]; description?: string | null; tldr?: string | null; digest?: string | null; abstract?: string | null }) {
   const res = await fetch(`${BASE}/files/${encodeURIComponent(id)}`, {
     method: "PATCH",

@@ -1,5 +1,5 @@
-import { MAP_THEME } from "../theme";
 import type { ViewMode } from "../types";
+import { cx } from "./shared/ui";
 
 interface ViewTabsProps {
   activeView: ViewMode;
@@ -7,33 +7,20 @@ interface ViewTabsProps {
 }
 
 export function ViewTabs({ activeView, onViewChange }: ViewTabsProps) {
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: "6px 16px",
-    borderRadius: 5,
-    border: "none",
-    cursor: "pointer",
-    background: active ? "rgba(110, 231, 255, 0.22)" : "transparent",
-    color: MAP_THEME.text,
-    fontSize: 13,
-    fontWeight: active ? 600 : 400,
-    transition: "background 0.15s",
-  });
+  const getTabClass = (active: boolean) =>
+    cx(
+      "rounded-lg px-5 py-2.5 text-[13px] font-bold leading-none transition-all duration-200",
+      active
+        ? "bg-[#6ee7ff]/20 text-[#6ee7ff] shadow-sm transform scale-105"
+        : "bg-transparent text-[#6b8a9e] hover:bg-white/10 hover:text-white"
+    );
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 2,
-        background: "rgba(14, 26, 36, 0.8)",
-        border: `1px solid ${MAP_THEME.border}`,
-        borderRadius: 6,
-        padding: 2,
-      }}
-    >
-      <button style={tabStyle(activeView === "space")} onClick={() => onViewChange("space")}>
+    <div className="inline-flex items-center gap-2 rounded-xl border border-[#1f3647]/50 bg-[#0e1a24] p-1.5 shadow-inner">
+      <button className={getTabClass(activeView === "space")} onClick={() => onViewChange("space")}>
         Space
       </button>
-      <button style={tabStyle(activeView === "files")} onClick={() => onViewChange("files")}>
+      <button className={getTabClass(activeView === "files")} onClick={() => onViewChange("files")}>
         Files
       </button>
     </div>

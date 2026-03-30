@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { MAP_THEME, Z_INDEX } from "../../theme";
+import { Z_INDEX } from "../../theme";
+import { cx, ui } from "./ui";
 
 interface DigestModalProps {
   value: string;
@@ -20,80 +21,34 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
 
   return (
     <div
-      style={{
-        position: "fixed", inset: 0, zIndex: Z_INDEX.modal,
-        background: "rgba(0,0,0,0.6)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}
+      style={{ zIndex: Z_INDEX.modal }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: MAP_THEME.panel,
-          border: `1px solid ${MAP_THEME.border}`,
-          borderRadius: 12,
-          width: 600,
-          maxHeight: "70vh",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
-        }}
+        className={cx(ui.panel, "flex max-h-[70vh] w-[600px] flex-col")}
       >
-        <div style={{
-          padding: "12px 16px",
-          borderBottom: `1px solid ${MAP_THEME.border}`,
-          fontWeight: 600,
-          fontSize: 14,
-          color: MAP_THEME.text,
-        }}>
+        <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm text-[var(--text)]">
           Edit Digest
         </div>
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           autoFocus
-          style={{
-            flex: 1,
-            minHeight: 200,
-            margin: 16,
-            padding: 12,
-            background: "rgba(255,255,255,0.05)",
-            border: `1px solid ${MAP_THEME.border}`,
-            borderRadius: 8,
-            color: MAP_THEME.text,
-            fontSize: 13,
-            lineHeight: 1.6,
-            fontFamily: "'SF Mono', 'Fira Code', monospace",
-            resize: "vertical",
-            outline: "none",
-          }}
+          className="flex-1 min-h-[200px] m-4 p-3 bg-white/5 border border-[var(--border)] rounded-lg text-[var(--text)] text-[13px] leading-[1.6] font-mono resize-y outline-none focus:border-[var(--accent-primary)] transition-colors"
           placeholder="Write markdown digest..."
         />
-        <div style={{
-          padding: "12px 16px",
-          borderTop: `1px solid ${MAP_THEME.border}`,
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 8,
-        }}>
+        <div className="px-4 py-3 border-t border-[var(--border)] flex justify-end gap-2">
           <button
             onClick={onClose}
-            style={{
-              padding: "6px 16px", borderRadius: 6, border: `1px solid ${MAP_THEME.border}`,
-              background: "transparent", color: MAP_THEME.text, cursor: "pointer",
-              fontSize: 13, fontFamily: "inherit",
-            }}
+            className={cx(ui.subtleButton, "bg-transparent px-4 text-[13px]")}
           >
             Cancel
           </button>
           <button
             onClick={() => { onSave(draft); onClose(); }}
-            style={{
-              padding: "6px 16px", borderRadius: 6, border: "none",
-              background: MAP_THEME.accentPrimary, color: MAP_THEME.background,
-              cursor: "pointer", fontWeight: 600, fontSize: 13, fontFamily: "inherit",
-            }}
+            className="cursor-pointer rounded-md border-none bg-[var(--accent-primary)] px-4 py-1.5 text-[13px] font-semibold text-[var(--background)] transition-opacity hover:opacity-90"
           >
             Save
           </button>

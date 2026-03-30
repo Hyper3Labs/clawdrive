@@ -4,7 +4,6 @@ import {
   getModalityColor,
   getModalityLabel,
   getPreviewKind,
-  MAP_THEME,
 } from "../../theme";
 import { PdfThumbnail } from "../files/PdfThumbnail";
 
@@ -85,26 +84,15 @@ export function MapPreviewSurface({ point, variant }: MapPreviewSurfaceProps) {
         alt={point.fileName}
         loading="lazy"
         onError={() => setImageFailed(true)}
-        style={{
-          width: "100%",
-          height,
-          objectFit: "cover",
-          display: "block",
-          background: "rgba(8, 18, 26, 0.85)",
-        }}
+        className="block w-full object-cover bg-[rgba(8,18,26,0.85)]"
+        style={{ height }}
       />
     );
   }
 
   if (kind === "pdf") {
     return (
-      <div
-        style={{
-          height,
-          overflow: "hidden",
-          background: "#f3f7fb",
-        }}
-      >
+      <div className="overflow-hidden bg-[#f3f7fb]" style={{ height }}>
         <PdfThumbnail
           url={previewUrl}
           desiredWidth={variant === "card" ? 160 : 320}
@@ -126,13 +114,8 @@ export function MapPreviewSurface({ point, variant }: MapPreviewSurfaceProps) {
             video.currentTime = Math.min(0.15, video.duration / 4);
           }
         }}
-        style={{
-          width: "100%",
-          height,
-          objectFit: "cover",
-          display: "block",
-          background: "#04090d",
-        }}
+        className="block w-full object-cover bg-[#04090d]"
+        style={{ height }}
       />
     );
   }
@@ -140,24 +123,20 @@ export function MapPreviewSurface({ point, variant }: MapPreviewSurfaceProps) {
   if (kind === "audio") {
     return (
       <div
+        className="flex items-center justify-center bg-[linear-gradient(135deg,rgba(18,28,36,0.96),rgba(9,16,24,0.94))]"
         style={{
           height,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           gap: variant === "card" ? 2 : 3,
           padding: variant === "card" ? "0 10px" : "0 16px",
-          background:
-            "linear-gradient(135deg, rgba(18, 28, 36, 0.96), rgba(9, 16, 24, 0.94))",
         }}
       >
         {waveform.map((bar, index) => (
           <span
             key={`${point.id}-${index}`}
+            className="rounded-full"
             style={{
               width: variant === "card" ? 4 : 5,
               height: `${bar}%`,
-              borderRadius: 999,
               background: `${color}${variant === "card" ? "cc" : "dd"}`,
               opacity: 0.5 + ((index % 5) * 0.08),
             }}
@@ -170,17 +149,12 @@ export function MapPreviewSurface({ point, variant }: MapPreviewSurfaceProps) {
   if (kind === "text" && textSnippet) {
     return (
       <div
+        className="overflow-hidden break-words bg-[linear-gradient(135deg,rgba(13,24,35,0.96),rgba(7,15,23,0.94))] font-mono text-[rgba(230,240,247,0.78)]"
         style={{
           height,
           padding: variant === "card" ? "10px 10px 8px" : "12px 14px",
-          background:
-            "linear-gradient(135deg, rgba(13, 24, 35, 0.96), rgba(7, 15, 23, 0.94))",
-          color: "rgba(230, 240, 247, 0.78)",
-          fontFamily: "'SF Mono', 'Fira Code', monospace",
           fontSize: variant === "card" ? 9 : 11,
           lineHeight: variant === "card" ? 1.45 : 1.55,
-          overflow: "hidden",
-          wordBreak: "break-word",
         }}
       >
         {textSnippet}
@@ -190,35 +164,16 @@ export function MapPreviewSurface({ point, variant }: MapPreviewSurfaceProps) {
 
   return (
     <div
+      className="flex flex-col items-center justify-center gap-1.5 bg-[linear-gradient(135deg,rgba(13,24,35,0.96),rgba(7,15,23,0.94))]"
       style={{
         height,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        background:
-          "linear-gradient(135deg, rgba(13, 24, 35, 0.96), rgba(7, 15, 23, 0.94))",
         color,
       }}
     >
-      <div
-        style={{
-          fontSize: variant === "card" ? 16 : 18,
-          letterSpacing: 1,
-          fontWeight: 700,
-        }}
-      >
+      <div className="font-bold tracking-[1px]" style={{ fontSize: variant === "card" ? 16 : 18 }}>
         {label}
       </div>
-      <div
-        style={{
-          fontSize: variant === "card" ? 9 : 10,
-          letterSpacing: 0.8,
-          color: MAP_THEME.text,
-          opacity: 0.62,
-        }}
-      >
+      <div className="text-[var(--text)] opacity-60 tracking-[0.8px]" style={{ fontSize: variant === "card" ? 9 : 10 }}>
         Preview unavailable
       </div>
     </div>

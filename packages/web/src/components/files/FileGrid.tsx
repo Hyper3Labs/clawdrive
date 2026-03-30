@@ -1,22 +1,13 @@
 import { useEffect, useState, useMemo, memo, useRef } from "react";
 import type { ReactNode } from "react";
-import { listFiles, listPotFiles } from "../../api";
+import { downloadFileContent, listFiles, listPotFiles } from "../../api";
 import type { FileInfo } from "../../types";
-import { MAP_THEME } from "../../theme";
 import { PdfThumbnail } from "./PdfThumbnail";
 import { ContextMenu, type ContextMenuItem } from "../shared/ContextMenu";
 import { useVisualizationStore } from "../space/useVisualizationStore";
 import { useToast } from "../shared/Toast";
 import { FileText, Video, Volume2, FileCode, Music } from "lucide-react";
-
-function downloadFile(fileId: string, fileName: string) {
-  const a = document.createElement("a");
-  a.href = `/api/files/${encodeURIComponent(fileId)}/content`;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+import { formatFileSize, isTextLikeContentType } from "../../utils/files";
 
 export type SortMode = "recent" | "name" | "type" | "size";
 
@@ -33,12 +24,6 @@ function contentTypeIcon(ct: string, size = 16): ReactNode {
   return <FileCode size={size} />;
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 // Global snippet cache — survives re-renders and re-mounts
 const snippetCache = new Map<string, string>();
 
@@ -47,7 +32,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
   const isVideo = file.content_type.startsWith("video/");
   const isAudio = file.content_type.startsWith("audio/");
   const isPdf = file.content_type === "application/pdf";
-  const isText = file.content_type.startsWith("text/") || file.content_type === "application/json" || file.content_type === "application/yaml";
+  const isText = isTextLikeContentType(file.content_type);
   const [textSnippet, setTextSnippet] = useState<string | null>(
     snippetCache.get(file.id) ?? null
   );
@@ -67,28 +52,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
 
   return (
     <div
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 8,
-        cursor: "pointer",
-        transition: "background 0.15s, border-color 0.15s, transform 0.15s",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        breakInside: "avoid",
-        marginBottom: 12,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
-        e.currentTarget.style.transform = "translateY(-2px)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
-        e.currentTarget.style.transform = "translateY(0)";
-      }}
+      className="bg-[#0e1a24] border border-[#1f3647]/50 shadow-md shadow-black/20 rounded-xl cursor-pointer flex flex-col overflow-hidden mb-4 break-inside-avoid transition-all duration-200 hover:bg-[#1f3647]/40 hover:border-[#6ee7ff]/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
@@ -97,7 +61,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
         <img
           src={`/api/files/${file.id}/content`}
           alt={file.name}
-          style={{ width: "100%", display: "block" }}
+          className="w-full block"
           loading="lazy"
         />
       ) : isVideo ? (
@@ -106,61 +70,41 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
           muted
           playsInline
           preload="metadata"
-          style={{ width: "100%", display: "block", background: "#000" }}
+          className="w-full block bg-black"
           onMouseEnter={(e) => (e.target as HTMLVideoElement).play().catch(() => {})}
           onMouseLeave={(e) => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0; }}
         />
       ) : isAudio ? (
-        <div style={{
-          height: 80, display: "flex", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(135deg, rgba(251,191,36,0.1), rgba(251,191,36,0.05))",
-          gap: 8,
-        }}>
+        <div className="h-20 flex items-center justify-center bg-gradient-to-br from-[rgba(251,191,36,0.1)] to-[rgba(251,191,36,0.05)] gap-2">
           <Music size={28} />
           <audio
             src={`/api/files/${file.id}/content`}
             controls
             preload="metadata"
-            style={{ width: "70%", height: 32 }}
+            className="w-[70%] h-8"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
       ) : isPdf ? (
         <PdfThumbnail url={`/api/files/${file.id}/content`} />
       ) : isText && textSnippet ? (
-        <div style={{ background: "rgba(0,0,0,0.25)", padding: 12 }}>
-          <pre style={{
-            fontSize: 10, lineHeight: 1.5,
-            color: "rgba(255,255,255,0.5)", margin: 0,
-            overflow: "hidden",
-            whiteSpace: "pre-wrap", wordBreak: "break-word",
-            fontFamily: "'SF Mono', 'Fira Code', monospace",
-            maxHeight: 160,
-          }}>
+        <div className="bg-black/25 p-3">
+          <pre className="text-[10px] leading-relaxed text-white/50 m-0 overflow-hidden whitespace-pre-wrap break-words max-h-40 font-mono">
             {textSnippet}
           </pre>
         </div>
       ) : (
-        <div style={{
-          height: 80, display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.2)",
-        }}>
-          <div style={{ opacity: 0.3 }}>{contentTypeIcon(file.content_type, 36)}</div>
+        <div className="h-20 flex items-center justify-center bg-black/20">
+          <div className="opacity-30">{contentTypeIcon(file.content_type, 36)}</div>
         </div>
       )}
 
       {/* File info */}
-      <div style={{ padding: "10px 12px" }}>
-        <div
-          style={{
-            fontSize: 12, color: MAP_THEME.text,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}
-          title={file.name}
-        >
+      <div className="px-3 py-2.5">
+        <div className="overflow-hidden text-ellipsis whitespace-nowrap text-xs text-[var(--text)]" title={file.name}>
           {file.name}
         </div>
-        <div style={{ fontSize: 11, opacity: 0.35, marginTop: 4 }}>{formatSize(file.file_size)}</div>
+        <div className="mt-1 text-[11px] text-white/35">{formatFileSize(file.file_size)}</div>
       </div>
     </div>
   );
@@ -246,20 +190,31 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
   }, [allFiles, sort, pendingDeletes]);
 
   if (loading) {
-    return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>Loading files...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-64 p-12 text-[#6b8a9e] bg-[#0e1a24] rounded-2xl border border-dashed border-[#1f3647]">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-8 w-8 mb-4 border-2 border-t-transparent border-[#6ee7ff] rounded-full animate-spin"></div>
+          <span className="text-[14px] font-medium tracking-wide">Loading files...</span>
+        </div>
+      </div>
+    );
   }
 
   if (displayFiles.length === 0) {
-    return <div style={{ padding: 24, opacity: 0.4, fontSize: 13, textAlign: "center" }}>No files found</div>;
+    return (
+      <div className="flex flex-col items-center justify-center p-16 mt-8 mx-auto max-w-lg text-center bg-[#0e1a24] rounded-2xl border border-dashed border-[#1f3647]">
+        <div className="w-16 h-16 mb-4 rounded-full bg-[#1f3647]/50 flex items-center justify-center opacity-50">
+          <FileText size={24} className="text-[#6b8a9e]" />
+        </div>
+        <h3 className="text-[16px] font-bold text-[#e6f0f7] mb-2">No files found</h3>
+        <p className="text-[14px] text-[#6b8a9e]">Use the Upload button or CLI to add some files to this workspace.</p>
+      </div>
+    );
   }
 
   return (
     <>
-      <div style={{
-        columnCount: 4,
-        columnGap: 12,
-        padding: "4px 0",
-      }}>
+      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-5 py-2">
         {displayFiles.map((f) => (
           <FileCard
             key={f.id}
@@ -279,7 +234,7 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
           items={[
             {
               label: "Download",
-              onClick: () => downloadFile(ctxMenu.file.id, ctxMenu.file.name),
+              onClick: () => downloadFileContent(ctxMenu.file.id, ctxMenu.file.name),
             },
             {
               label: "Delete",

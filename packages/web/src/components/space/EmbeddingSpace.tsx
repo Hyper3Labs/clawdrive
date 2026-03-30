@@ -8,14 +8,11 @@ import { useVisualizationStore } from "./useVisualizationStore";
 import { FilePreviewLayer } from "./FilePreviewLayer";
 import { MapCameraRig } from "./MapCameraRig";
 import { useProjections } from "./useProjections";
-import { useMemo, useRef, useEffect, type CSSProperties } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { MAP_THEME } from "../../theme";
 import type CameraControlsImpl from "camera-controls";
 
-const STATUS_STYLE: CSSProperties = {
-  display: "flex", alignItems: "center", justifyContent: "center",
-  flex: 1, background: "radial-gradient(circle at top, #0b1d2a 0%, #061018 60%)",
-};
+const STATUS_CLASS = "flex flex-1 items-center justify-center bg-[radial-gradient(circle_at_top,#0b1d2a_0%,#061018_60%)]";
 
 interface EmbeddingSpaceProps {
   focusFileId: string | null;
@@ -76,33 +73,25 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
 
   if (loading)
     return (
-      <div style={{ ...STATUS_STYLE, opacity: 0.7, color: MAP_THEME.text }}>
+      <div className={`${STATUS_CLASS} text-[var(--text)]`} style={{ opacity: 0.7 }}>
         Loading projections...
       </div>
     );
   if (error)
     return (
-      <div style={{ ...STATUS_STYLE, color: "#ff8d8d" }}>
+      <div className={STATUS_CLASS} style={{ color: "#ff8d8d" }}>
         Error: {error}
       </div>
     );
   if (points.length === 0)
     return (
-      <div style={{ ...STATUS_STYLE, opacity: 0.72, color: MAP_THEME.text }}>
+      <div className={`${STATUS_CLASS} text-[var(--text)]`} style={{ opacity: 0.72 }}>
         No files added yet. Use cdrive add or cdrive serve --demo nasa.
       </div>
     );
 
   return (
-    <div
-      style={{
-        flex: 1,
-        position: "relative",
-        minHeight: 0,
-        background:
-          "radial-gradient(circle at 20% 10%, rgba(32, 70, 90, 0.45) 0%, rgba(6, 16, 24, 0.96) 45%, rgba(3, 9, 14, 1) 100%)",
-      }}
-    >
+    <div className="relative min-h-0 flex-1 bg-[radial-gradient(circle_at_20%_10%,rgba(32,70,90,0.45)_0%,rgba(6,16,24,0.96)_45%,rgba(3,9,14,1)_100%)]">
       <Canvas camera={{ position: [0, 0, 50], fov: 60 }} onPointerMissed={() => {
         // Guard: don't clear when modal is open — HTML overlays trigger onPointerMissed
         if (!useVisualizationStore.getState().clickedFileId) {

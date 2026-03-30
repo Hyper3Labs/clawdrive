@@ -3,10 +3,10 @@ import { ViewTabs } from "./ViewTabs";
 import { InlineSearch, type InlineSearchHandle } from "./InlineSearch";
 import { ShareInbox } from "./shared/ShareInbox";
 import { listFiles } from "../api";
-import { MAP_THEME } from "../theme";
 import type { ViewMode, SearchResult } from "../types";
 import { useUploadQueue } from "../hooks/useUploadQueue";
 import { Upload } from "lucide-react";
+import { cx, ui } from "./shared/ui";
 
 interface TopBarProps {
   activeView: ViewMode;
@@ -30,30 +30,23 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
       .catch(() => {});
   }, []);
 
-  const dimStyle = searchActive ? 0.4 : 1;
-
   return (
     <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "12px 20px",
-        borderBottom: `1px solid ${MAP_THEME.border}`,
-        background:
-          "linear-gradient(180deg, rgba(8, 21, 31, 0.95) 0%, rgba(6, 16, 24, 0.95) 100%)",
-        flexShrink: 0,
-      }}
+      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[#0a0a0f] px-8 py-5 shadow-sm"
     >
       {/* Left: Logo */}
-      <div style={{ flex: "0 0 auto", opacity: dimStyle, transition: "opacity 0.15s" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <img src="/favicon.svg" alt="" width={22} height={22} />
-          <span style={{ fontWeight: 700, fontSize: 15, color: MAP_THEME.text }}>ClawDrive</span>
+      <div className={cx("min-w-0 transition-opacity duration-150 flex-shrink-0 w-[240px]", searchActive ? "opacity-[0.55]" : "opacity-100")}>
+        <div className="flex items-center gap-3">
+          <img src="/favicon.svg" alt="" width={26} height={26} className="shrink-0" />
+          <div className="min-w-0 leading-none">
+            <div className="font-bold text-[16px] text-[var(--text)] tracking-tight">ClawDrive</div>
+            <div className="mt-1.5 text-[10px] uppercase font-medium tracking-[0.15em] text-[var(--textMuted)]">Workspace</div>
+          </div>
         </div>
       </div>
 
       {/* Center: Search */}
-      <div style={{ flex: 1, display: "flex", justifyContent: "center", padding: "0 30px" }}>
+      <div className="flex-1 max-w-[500px] min-w-0">
         <InlineSearch
           ref={searchRef}
           onSelectResult={onSelectResult}
@@ -63,32 +56,16 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
 
       {/* Right: Tabs + Count */}
       <div
-        style={{
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          opacity: dimStyle,
-          transition: "opacity 0.15s",
-        }}
+        className={cx(
+          "flex min-w-0 items-center justify-end gap-4 transition-opacity duration-150 flex-shrink-0 w-[380px]",
+          searchActive ? "opacity-[0.55]" : "opacity-100",
+        )}
       >
         <ViewTabs activeView={activeView} onViewChange={onViewChange} />
         <ShareInbox />
         <button
           onClick={() => fileInputRef.current?.click()}
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: `1px solid ${MAP_THEME.border}`,
-            borderRadius: 6,
-            padding: "6px 12px",
-            color: MAP_THEME.text,
-            fontSize: 12,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontFamily: "inherit",
-          }}
+          className={cx(ui.subtleButton, "gap-2 px-3.5 py-2 text-[12px]")}
           title="Upload files"
         >
           <Upload size={14} /> Upload
@@ -97,7 +74,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
           ref={fileInputRef}
           type="file"
           multiple
-          style={{ display: "none" }}
+          className="hidden"
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
             if (files.length > 0) enqueue(files);
@@ -105,7 +82,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
           }}
         />
         {fileCount !== null && (
-          <span style={{ fontSize: 12, opacity: 0.55, color: MAP_THEME.text }}>
+          <span className="rounded-full border border-white/8 bg-white/[0.04] px-2.5 py-1 text-[11px] text-[var(--textMuted)]">
             {fileCount.toLocaleString()} file{fileCount !== 1 ? "s" : ""}
           </span>
         )}

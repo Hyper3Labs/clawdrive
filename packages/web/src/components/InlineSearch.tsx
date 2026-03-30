@@ -2,9 +2,9 @@ import { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHand
 import type { ReactNode } from "react";
 import { searchFiles } from "../api";
 import type { SearchResult } from "../types";
-import { MAP_THEME } from "../theme";
 import { SearchFilters, EMPTY_FILTERS, type SearchFilterState } from "./shared/SearchFilters";
 import { Search, FileText, Image, Video, Volume2, FileCode } from "lucide-react";
+import { cx } from "./shared/ui";
 
 export interface InlineSearchHandle {
   focus: () => void;
@@ -24,20 +24,13 @@ function contentTypeIcon(ct: string): ReactNode {
 }
 
 function scoreColor(score: number): string {
-  if (score > 0.9) return MAP_THEME.accentSecondary;
-  if (score > 0.7) return MAP_THEME.accentWarm;
+  if (score > 0.9) return "var(--accent-secondary)";
+  if (score > 0.7) return "var(--accent-warm)";
   return "rgba(255,255,255,0.4)";
 }
 
-const kbdStyle: React.CSSProperties = {
-  display: "inline-block",
-  padding: "1px 5px",
-  margin: "0 3px",
-  border: "1px solid rgba(255,255,255,0.15)",
-  borderRadius: 3,
-  fontSize: 10,
-  lineHeight: "16px",
-};
+const kbdClassName =
+  "mx-[3px] inline-block rounded border border-white/15 px-[5px] py-px text-[10px] leading-4";
 
 export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
   function InlineSearch({ onSelectResult, onActiveChange }, ref) {
@@ -167,22 +160,17 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
     const showDropdown = dropdownOpen && (results.length > 0 || (query.trim() !== "" && !loading));
 
     return (
-      <div ref={containerRef} style={{ position: "relative", width: "100%", maxWidth: 420 }}>
+      <div ref={containerRef} className="relative w-full max-w-[560px] xl:max-w-[620px] mx-auto">
         {/* Search input */}
         <div
-          style={{
-            background: "rgba(14, 26, 36, 0.85)",
-            border: `1px solid ${showDropdown || focused ? "rgba(110, 231, 255, 0.35)" : MAP_THEME.border}`,
-            borderRadius: showDropdown ? "8px 8px 0 0" : 8,
-            padding: "8px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            transition: "border-color 0.15s",
-          }}
+          className={cx(
+            "flex items-center gap-3 border bg-[#0e1a24] px-5 py-3 transition-all duration-200",
+            showDropdown ? "rounded-t-2xl border-b-transparent shadow-xl" : "rounded-2xl",
+            showDropdown || focused ? "border-[#6ee7ff]/40 ring-1 ring-[#6ee7ff]/10" : "border-[#1f3647]/50 shadow-inner",
+          )}
         >
-          <span style={{ opacity: 0.4, color: MAP_THEME.text, display: "flex", alignItems: "center" }}>
-            <Search size={14} />
+          <span className={cx("flex items-center transition-colors", focused ? "text-[#6ee7ff]" : "text-[#6b8a9e]")}>
+            <Search size={16} />
           </span>
           <input
             ref={inputRef}
@@ -192,57 +180,29 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
-            style={{
-              flex: 1,
-              background: "transparent",
-              border: "none",
-              outline: "none",
-              color: MAP_THEME.text,
-              fontSize: 13,
-              fontFamily: "inherit",
-            }}
+            className="min-w-0 flex-1 border-none bg-transparent text-[15px] font-medium text-[#e6f0f7] outline-none placeholder:text-[#6b8a9e]/60"
           />
           {loading && (
-            <span style={{ fontSize: 12, opacity: 0.4, color: MAP_THEME.text }}>searching...</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#6ee7ff]/80">searching...</span>
           )}
           {!loading && !dropdownOpen && (
-            <span style={{ fontSize: 11, opacity: 0.3, color: MAP_THEME.text }}>&#8984;K</span>
+            <span className="text-[11px] font-semibold tracking-wider text-[#6b8a9e] border border-white/10 px-2 py-0.5 rounded bg-white/5">&#8984;K</span>
           )}
           {dropdownOpen && (
-            <span style={{ fontSize: 11, opacity: 0.3, color: MAP_THEME.text }}>Esc</span>
+            <span className="text-[11px] font-semibold tracking-wider text-[#6b8a9e] border border-white/10 px-2 py-0.5 rounded bg-white/5">Esc</span>
           )}
         </div>
 
         {/* Results dropdown */}
         {showDropdown && (
-          <div
-            style={{
-              position: "absolute",
-              top: "100%",
-              left: 0,
-              right: 0,
-              zIndex: 1000,
-              background: "rgba(10, 21, 32, 0.98)",
-              border: `1px solid rgba(110, 231, 255, 0.2)`,
-              borderTop: "none",
-              borderRadius: "0 0 8px 8px",
-              maxHeight: "60vh",
-              overflowY: "auto",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.4)",
-            }}
-          >
+          <div className="absolute top-full left-0 right-0 z-[1000] max-h-[68vh] overflow-y-auto rounded-b-xl border border-[rgba(110,231,255,0.18)] border-t-transparent bg-[rgba(9,20,31,0.98)] shadow-[0_22px_54px_rgba(0,0,0,0.48)] backdrop-blur">
             {/* Filter row */}
-            <div
-              style={{
-                padding: "6px 12px",
-                borderBottom: "1px solid rgba(31, 54, 71, 0.4)",
-              }}
-            >
+            <div className="border-b border-[rgba(31,54,71,0.45)] px-4 py-2.5">
               <SearchFilters value={filters} onChange={handleFiltersChange} />
             </div>
 
             {results.length === 0 && query.trim() && !loading && (
-              <div style={{ padding: "20px 16px", textAlign: "center", opacity: 0.4, fontSize: 13 }}>
+              <div className="px-4 py-6 text-center text-[13px] text-[var(--textMuted)]">
                 No results found
               </div>
             )}
@@ -250,56 +210,37 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             {results.map((r, idx) => (
               <div
                 key={`${r.id}-${idx}`}
-                style={{
-                  padding: "10px 16px",
-                  cursor: "pointer",
-                  background: idx === selectedIdx ? "rgba(110, 231, 255, 0.06)" : "transparent",
-                  borderBottom: idx < results.length - 1 ? "1px solid rgba(31, 54, 71, 0.4)" : "none",
-                  transition: "background 0.1s",
-                }}
+                className={`cursor-pointer px-4 py-3 transition-colors duration-100 ${
+                  idx === selectedIdx ? "bg-[rgba(110,231,255,0.06)]" : "bg-transparent"
+                } ${
+                  idx < results.length - 1 ? "border-b border-[rgba(31,54,71,0.4)]" : "border-none"
+                }`}
                 onMouseEnter={() => setSelectedIdx(idx)}
                 onClick={() => handleSelect(r)}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 14 }}>{contentTypeIcon(r.contentType)}</span>
-                  <span style={{ fontSize: 13, color: MAP_THEME.text, fontWeight: 600 }}>
+                <div className="mb-1.5 flex items-center gap-2.5">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/[0.04] text-[var(--textMuted)]">
+                    {contentTypeIcon(r.contentType)}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-[var(--text)]">
                     {r.file}
                   </span>
                   <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: scoreColor(r.score),
-                      background: "rgba(110, 231, 255, 0.12)",
-                      padding: "1px 6px",
-                      borderRadius: 3,
-                    }}
+                    className="ml-2 shrink-0 rounded-[4px] bg-[rgba(110,231,255,0.12)] px-1.5 py-[2px] text-[10px] font-semibold"
+                    style={{ color: scoreColor(r.score) }}
                   >
                     {r.score.toFixed(2)}
                   </span>
                 </div>
 
                 {r.taxonomyPath && r.taxonomyPath.length > 0 && (
-                  <div style={{ fontSize: 11, color: "rgba(230, 240, 247, 0.4)", marginBottom: 5 }}>
+                  <div className="mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[rgba(230,240,247,0.4)]">
                     {r.taxonomyPath.join(" \u203A ")}
                   </div>
                 )}
 
                 {(r.matchedChunk || r.tldr || r.description) && (
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: "rgba(230, 240, 247, 0.55)",
-                      background: "rgba(14, 26, 36, 0.6)",
-                      padding: "5px 8px",
-                      borderRadius: 4,
-                      borderLeft: "2px solid rgba(110, 231, 255, 0.3)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <div className="max-h-[3.35em] overflow-hidden rounded-md border-l-2 border-[rgba(110,231,255,0.3)] bg-[rgba(14,26,36,0.6)] px-2.5 py-2 text-[12px] leading-[1.4] text-[rgba(230,240,247,0.58)] whitespace-normal">
                     {r.matchedChunk ? r.matchedChunk.label : (r.tldr ?? r.description)}
                   </div>
                 )}
@@ -307,23 +248,12 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             ))}
 
             {/* Footer */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "6px 16px",
-                borderTop: "1px solid rgba(31, 54, 71, 0.4)",
-                background: "rgba(14, 26, 36, 0.5)",
-                fontSize: 11,
-                opacity: 0.4,
-              }}
-            >
+            <div className="flex items-center justify-between border-t border-[rgba(31,54,71,0.4)] bg-[rgba(14,26,36,0.5)] px-4 py-2 text-[11px] text-[rgba(230,240,247,0.42)]">
               <span>
-                <kbd style={kbdStyle}>{"\u2191"}</kbd>
-                <kbd style={kbdStyle}>{"\u2193"}</kbd> navigate{" "}
-                <kbd style={kbdStyle}>Enter</kbd> select{" "}
-                <kbd style={kbdStyle}>Esc</kbd> close
+                <kbd className={kbdClassName}>{"\u2191"}</kbd>
+                <kbd className={kbdClassName}>{"\u2193"}</kbd> navigate{" "}
+                <kbd className={kbdClassName}>Enter</kbd> select{" "}
+                <kbd className={kbdClassName}>Esc</kbd> close
               </span>
               <span>
                 {results.length} result{results.length !== 1 ? "s" : ""}

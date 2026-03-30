@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { listPots } from "../../api";
-import { MAP_THEME, MODALITY_COLORS } from "../../theme";
+import { MODALITY_COLORS } from "../../theme";
 import type { PotRecord } from "../../types";
+import { cx, ui } from "./ui";
 
 export interface SearchFilterState {
   types: string[];
@@ -40,7 +41,7 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
   }
 
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", padding: "4px 0" }}>
+    <div className="flex flex-wrap items-center gap-2 py-0.5">
       {TYPE_OPTIONS.map((opt) => {
         const active = value.types.includes(opt.value);
         return (
@@ -48,15 +49,11 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
             key={opt.value}
             onClick={() => toggleType(opt.value)}
             style={{
-              padding: "2px 8px",
-              borderRadius: 4,
-              border: `1px solid ${active ? opt.color : "rgba(255,255,255,0.1)"}`,
-              background: active ? `${opt.color}20` : "transparent",
-              color: active ? opt.color : MAP_THEME.textMuted,
-              fontSize: 10,
-              cursor: "pointer",
-              fontFamily: "inherit",
+              borderColor: active ? opt.color : "rgba(255,255,255,0.1)",
+              background: active ? `${opt.color}20` : "rgba(255,255,255,0.03)",
+              color: active ? opt.color : "var(--textMuted)",
             }}
+            className="cursor-pointer rounded-md border px-2.5 py-1 text-[11px] font-medium tracking-[0.02em] transition-opacity hover:opacity-90"
           >
             {opt.label}
           </button>
@@ -66,16 +63,7 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
         <select
           value={value.pot ?? ""}
           onChange={(e) => setPot(e.target.value || null)}
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: `1px solid ${MAP_THEME.border}`,
-            borderRadius: 4,
-            color: MAP_THEME.text,
-            fontSize: 10,
-            padding: "2px 6px",
-            outline: "none",
-            fontFamily: "inherit",
-          }}
+          className={cx(ui.input, "h-8 min-w-[128px] w-auto rounded-md px-2.5 py-1 text-[11px]")}
         >
           <option value="">All pots</option>
           {pots.map((p) => (

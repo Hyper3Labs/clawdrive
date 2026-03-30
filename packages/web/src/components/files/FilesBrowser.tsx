@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { MAP_THEME } from "../../theme";
 import { FileGrid } from "./FileGrid";
 import type { SortMode } from "./FileGrid";
 import { FilePreview } from "./FilePreview";
 import { DropZone } from "../shared/DropZone";
 import { useUploadQueue } from "../../hooks/useUploadQueue";
 import { PotsSidebar } from "./PotsSidebar";
+import { cx } from "../shared/ui";
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "recent", label: "Recent" },
@@ -37,18 +37,9 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
 
   return (
     <DropZone onDrop={enqueue}>
-    <div style={{ display: "flex", flex: 1, overflow: "hidden", minHeight: 0 }}>
+    <div className="flex flex-1 overflow-hidden min-h-0 w-full">
       {/* Sidebar — pots only */}
-      <div
-        style={{
-          width: 240,
-          flexShrink: 0,
-          borderRight: "1px solid rgba(255,255,255,0.1)",
-          display: "flex",
-          flexDirection: "column",
-          overflowY: "auto",
-        }}
-      >
+      <div className="w-72 shrink-0 border-r border-[#1f3647]/50 bg-[#061018]/50 flex flex-col overflow-y-auto">
         <PotsSidebar
           selectedSlug={selectedPotSlug}
           onSelectPot={setSelectedPotSlug}
@@ -57,35 +48,29 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <div style={{
-          padding: "10px 20px",
-          borderBottom: `1px solid ${MAP_THEME.borderSubtle}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}>
-          <span style={{ fontSize: 14, fontWeight: 500, color: MAP_THEME.text }}>
-            {selectedPotSlug ? `pot: ${selectedPotSlug}` : "All"}
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            <span style={{ fontSize: 11, opacity: 0.35 }}>Sort:</span>
-            <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.04)", borderRadius: 5, padding: 2 }}>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0a0f]">
+        <div className="flex items-center justify-between border-b border-[#1f3647]/50 px-8 py-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#6b8a9e]">
+              Scope
+            </span>
+            <span className="truncate text-lg font-bold text-[#e6f0f7]">
+              {selectedPotSlug ? `pot: ${selectedPotSlug}` : "All files"}
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center gap-4">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-[#6b8a9e]">Sort</span>
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#0e1a24] p-1.5">
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setSort(opt.value)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: 4,
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 11,
-                    color: sort === opt.value ? MAP_THEME.text : "rgba(255,255,255,0.4)",
-                    background: sort === opt.value ? "rgba(110,231,255,0.22)" : "transparent",
-                    transition: "all 0.15s",
-                    fontFamily: "inherit",
-                  }}
+                  className={cx(
+                    "rounded-lg border-none px-4 py-2 text-[13px] font-semibold transition-all duration-150",
+                    sort === opt.value
+                      ? "bg-[#6ee7ff]/20 text-[#e6f0f7] shadow-sm transform scale-105"
+                      : "bg-transparent text-[#6b8a9e] hover:bg-white/10 hover:text-white",
+                  )}
                 >
                   {opt.label}
                 </button>
@@ -93,7 +78,7 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
             </div>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+        <div className="flex-1 overflow-y-auto px-8 py-6">
           <FileGrid
             key={`${refreshKey}-${externalRefreshKey}`}
             potSlug={selectedPotSlug ?? undefined}

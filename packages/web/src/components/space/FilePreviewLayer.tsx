@@ -6,11 +6,11 @@ import type { ProjectionPoint } from "../../types";
 import {
   getModalityColor,
   getModalityLabel,
-  MAP_THEME,
   MINI_CARD_Z_RANGE,
 } from "../../theme";
 import { useVisualizationStore } from "./useVisualizationStore";
 import { MapPreviewSurface } from "./MapPreviewSurface";
+import { cx, ui } from "../shared/ui";
 
 const MAX_PREVIEWS = 6;
 const PREVIEW_DISTANCE = 15;
@@ -54,39 +54,25 @@ function PreviewCard({
         event.stopPropagation();
         onSelect();
       }}
-      style={{ padding: 8, margin: -8, cursor: "pointer" }}
+      className="-m-2 cursor-pointer p-2"
     >
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+      <div className="flex flex-col items-center gap-[3px]">
         <div
+          className={cx(ui.previewFrame, "w-32 rounded-[10px] bg-[rgba(8,20,29,0.96)] transition-transform duration-150")}
           style={{
-            width: 128,
-            borderRadius: 10,
-            border: `1px solid ${active ? color : MAP_THEME.border}`,
-            overflow: "hidden",
-            background: "rgba(8, 20, 29, 0.96)",
+            borderColor: active ? color : "var(--border)",
             boxShadow: active
               ? `0 10px 24px rgba(0,0,0,0.38), 0 0 0 1px ${color}44`
               : "0 8px 16px rgba(0,0,0,0.28)",
-            transition: "transform 120ms ease, border-color 120ms ease",
             transform: active ? "translateY(-2px) scale(1.02)" : "none",
           }}
         >
           <MapPreviewSurface point={point} variant="card" />
         </div>
-        <div style={{
-          padding: "1px 6px",
-          borderRadius: 3,
-          background: "rgba(6, 16, 24, 0.75)",
-          fontSize: 8,
-          color: color,
-          lineHeight: 1.2,
-          whiteSpace: "nowrap",
-          maxWidth: 140,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          fontWeight: 700,
-          letterSpacing: 0.5,
-        }}>
+        <div
+          className="max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap rounded-[3px] bg-[rgba(6,16,24,0.75)] px-1.5 py-px text-[8px] font-bold leading-[1.2] tracking-[0.5px]"
+          style={{ color }}
+        >
           {label} · {point.fileName.replace(/\.[^.]+$/, "")}
         </div>
       </div>

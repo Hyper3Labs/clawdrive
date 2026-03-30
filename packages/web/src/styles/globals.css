@@ -1,12 +1,33 @@
+@import "tailwindcss";
+
 :root {
-  --bg: #061018;
-  --bg-secondary: #0e1a24;
+  --background: #061018;
+  --bg: var(--background);
+  --panel: #0e1a24;
+  --bg-secondary: var(--panel);
   --border: #1f3647;
+  --borderSubtle: rgba(255, 255, 255, 0.07);
+  --border-subtle: var(--borderSubtle);
   --text: #e6f0f7;
+  --textMuted: #6b8a9e;
+  --text-muted: var(--textMuted);
   --text-dim: rgba(230, 240, 247, 0.58);
   --accent-primary: #6ee7ff;
   --accent-secondary: #7bd389;
   --accent-warm: #ffb84d;
+  --accent-danger: #ff8d8d;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 * {
@@ -16,11 +37,20 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background: var(--background);
   color: var(--text);
   font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 button {
   font-family: inherit;
+}
+
+@keyframes toast-in { 
+  from { opacity: 0; transform: translateY(10px); } 
+  to { opacity: 1; transform: translateY(0); } 
 }

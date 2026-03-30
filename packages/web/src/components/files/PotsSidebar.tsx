@@ -3,9 +3,10 @@ import { useVisualizationStore } from "../space/useVisualizationStore";
 import { ContextMenu } from "../shared/ContextMenu";
 import { FileSearchPicker } from "../shared/FileSearchPicker";
 import { useToast } from "../shared/Toast";
-import { MAP_THEME } from "../../theme";
 import { getFileTags, listPotFiles } from "../../api";
 import type { PotRecord } from "../../types";
+import { Plus } from "lucide-react";
+import { cx, ui } from "../shared/ui";
 
 interface PotsSidebarProps {
   selectedSlug: string | null;
@@ -59,29 +60,24 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
   }
 
   return (
-    <div style={{ padding: "8px 0" }}>
+    <div className="space-y-2 px-6 py-6">
       {/* Header */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "4px 12px", marginBottom: 4,
-      }}>
-        <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.4, color: MAP_THEME.text }}>
+      <div className="flex items-center justify-between px-2 pb-3 border-b border-white/5 mb-4">
+        <span className={cx(ui.eyebrow, "text-[12px] font-bold tracking-[0.2em] text-[#6b8a9e]")}>
           Pots
         </span>
         <button
           onClick={() => setCreating(true)}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            color: MAP_THEME.accentPrimary, fontSize: 14, padding: 0, lineHeight: 1,
-          }}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-[#6ee7ff] transition-all hover:bg-[#6ee7ff]/10 hover:border-[#6ee7ff]/30 hover:-translate-y-0.5"
+          title="Create pot"
         >
-          +
+          <Plus size={16} />
         </button>
       </div>
 
       {/* Create input */}
       {creating && (
-        <div style={{ padding: "0 12px", marginBottom: 4 }}>
+        <div className="px-2 pb-1">
           <input
             autoFocus
             value={newPotName}
@@ -96,93 +92,70 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             }}
             onBlur={() => { setNewPotName(""); setCreating(false); }}
             placeholder="Pot name..."
-            style={{
-              width: "100%", background: "rgba(255,255,255,0.05)",
-              border: `1px solid ${MAP_THEME.accentPrimary}`, borderRadius: 4,
-              color: MAP_THEME.text, fontSize: 12, padding: "4px 8px",
-              outline: "none", fontFamily: "inherit", boxSizing: "border-box",
-            }}
+            className="block box-border w-full rounded-xl border border-[rgba(110,231,255,0.28)] bg-white/[0.04] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[rgba(230,240,247,0.3)]"
           />
         </div>
       )}
 
       {/* Pot list */}
       {pots.length === 0 && !creating && (
-        <div style={{ padding: "4px 12px", fontSize: 11, opacity: 0.3, color: MAP_THEME.text }}>
-          No pots yet
+        <div className="rounded-xl border border-dashed border-[#1f3647]/50 bg-[#0e1a24]/50 px-5 py-6 text-center text-[13px] text-[#6b8a9e] m-2">
+          No pots yet.<br/><span className="text-[11px] opacity-70 mt-1 block">Create one to organize files.</span>
         </div>
       )}
-      {pots.map((pot) => (
-        <div
-          key={pot.id}
-          onClick={() => onSelectPot(selectedSlug === pot.slug ? null : pot.slug)}
-          onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, pot }); }}
-          style={{
-            padding: "5px 12px",
-            cursor: "pointer",
-            fontSize: 12,
-            color: selectedSlug === pot.slug ? MAP_THEME.accentPrimary : MAP_THEME.text,
-            background: selectedSlug === pot.slug ? "rgba(110,231,255,0.08)" : "transparent",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-          onMouseEnter={(e) => {
-            if (selectedSlug !== pot.slug) e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-          }}
-          onMouseLeave={(e) => {
-            if (selectedSlug !== pot.slug) e.currentTarget.style.background = "transparent";
-          }}
-        >
-          {renamingId === pot.id ? (
-            <input
-              autoFocus
-              value={renameValue}
-              onChange={(e) => setRenameValue(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && renameValue.trim()) {
-                  renamePot(pot.id, renameValue.trim());
-                  setRenamingId(null);
-                }
-                if (e.key === "Escape") setRenamingId(null);
-              }}
-              onBlur={() => setRenamingId(null)}
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                border: `1px solid ${MAP_THEME.accentPrimary}`,
-                borderRadius: 3, color: MAP_THEME.text, fontSize: 12,
-                padding: "1px 4px", outline: "none", fontFamily: "inherit",
-                width: "100%",
-              }}
-            />
-          ) : (
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {pot.name}
-            </span>
-          )}
-        </div>
-      ))}
+      {pots.map((pot) => {
+        const isSelected = selectedSlug === pot.slug;
+        return (
+          <div
+            key={pot.id}
+            onClick={() => onSelectPot(isSelected ? null : pot.slug)}
+            onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, pot }); }}
+            className={`mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-[14px] font-medium transition-all duration-200 ${
+              isSelected
+                ? "border-[#6ee7ff]/40 bg-[linear-gradient(180deg,rgba(110,231,255,0.15)_0%,rgba(110,231,255,0.05)_100%)] text-[#e6f0f7] shadow-md shadow-[#6ee7ff]/10"
+                : "border-white/5 bg-white/5 text-[#6b8a9e] hover:border-white/20 hover:bg-white/10 hover:text-white hover:-translate-y-0.5"
+            }`}
+          >
+            {renamingId === pot.id ? (
+              <input
+                autoFocus
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && renameValue.trim()) {
+                    renamePot(pot.id, renameValue.trim());
+                    setRenamingId(null);
+                  }
+                  if (e.key === "Escape") setRenamingId(null);
+                }}
+                onBlur={() => setRenamingId(null)}
+                className="w-full rounded-md border border-[rgba(110,231,255,0.28)] bg-white/[0.04] px-2 py-1.5 text-[13px] text-[var(--text)] outline-none"
+              />
+            ) : (
+              <span className="block w-full overflow-hidden text-ellipsis whitespace-nowrap font-medium">
+                {pot.name}
+              </span>
+            )}
+            {isSelected && renamingId !== pot.id && (
+              <span className="ml-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-primary)]" />
+            )}
+          </div>
+        );
+      })}
 
       {/* Add files button when pot selected */}
       {selectedSlug && (
-        <div style={{ padding: "6px 12px" }}>
+        <div className="px-2 pt-1">
           <button
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               setPickerAnchor(pickerAnchor ? null : { x: rect.right + 4, y: rect.top });
             }}
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px dashed rgba(255,255,255,0.15)",
-              borderRadius: 4,
-              color: MAP_THEME.textMuted,
-              fontSize: 11,
-              padding: "4px 8px",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              width: "100%",
-            }}
+            className={cx(
+              ui.subtleButton,
+              "w-full justify-center rounded-lg border-dashed py-1.5 text-[11px] text-[var(--textMuted)] hover:text-[var(--text)]",
+            )}
           >
             + Add files
           </button>

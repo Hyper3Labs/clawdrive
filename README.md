@@ -14,13 +14,20 @@
 
 <div align="center">
 <img src="assets/demo.gif" alt="ClawDrive 3D file cloud demo" width="700" />
+
+<br/>
+<br/>
+The 3D file cloud lets you browse semantic neighborhoods instead of folders.
+
 </div>
 
 ## What is ClawDrive?
 
-ClawDrive is an agent-native local file storage system with **multimodal semantic search**. Agents (and humans) can add files, organize them into shareable collections called _pots_, and find anything with natural-language or cross-modal queries.
+**ClawDrive** is a local-first file platform for agents and humans who need fast context from real files. It indexes text, images, audio, and video into one searchable space, then exposes that space through a CLI, REST API, and browser UI.
 
-A built-in **3D visualization** renders your entire file cloud in the browser — explore clusters, fly into search results, and see real file previews in spatial context.
+The core unit is a **pot**: a named collection you can build from files, folders, and URLs. Pots give you something concrete to search, hand off, and share without exposing your whole library.
+
+> Files stay on your machine. The ClawDrive server stays on your machine. Pots define what is in scope. If you want remote access, you point your own tunnel at your local server. There is no hosted ClawDrive control plane in the middle; in the default setup, the only hosted dependency is embedding computation via Gemini.
 
 ## Quick Start
 
@@ -43,15 +50,34 @@ npx clawdrive serve --demo nasa
 
 > Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
-## Features
+## Pots, Sharing, and Zero-Cloud Architecture
 
-- **Multimodal semantic search** — query across text, images, video, and audio with a single natural-language prompt
-- **Cross-modal retrieval** — find documents related to a photo, or videos matching a text description
-- **Pots** — named, shareable file collections with fine-grained access control
-- **3D file cloud** — interactive Three.js visualization with UMAP-projected embeddings
-- **Agent-native sharing** — time-limited shares with read/write roles, built for AI agent workflows
-- **REST API** — full programmatic access for integration with any tool or agent
-- **CLI-first** — every feature accessible from the terminal, with `--json` output for scripting
+- A **pot** is a working set for a deal room, a customer account, a research corpus, or a handoff bundle.
+- Search stays scoped to that pot instead of your entire machine.
+- Shares grant access to that pot, not to everything else in your workspace.
+
+For local collaboration, a share is a scoped permission record. For remote collaboration, you can point a tunnel such as Tailscale or Cloudflare at your local ClawDrive server and keep the same pot boundary. Storage stays local, the API stays local, and sharing stays explicit.
+
+## Tiered Retrieval
+
+Cheap context first, full fidelity last.
+
+```mermaid
+flowchart LR
+  Q[Query<br/>text or media] --> P{Pot scope}
+  P --> S[Semantic search]
+  S --> T[TLDR<br/>fast shortlist]
+  T --> D[Digest<br/>richer markdown context]
+  D --> F[Original file or matched chunk<br/>full fidelity]
+```
+
+`tldr` for routing. `digest` for context. Original file when exact wording matters.
+
+### Formats
+
+| 📄 Documents | 🖼️ Images | 🎬 Video | 🎵 Audio |
+|---|---|---|---|
+| PDF, MD, TXT, JSON | JPG, PNG, GIF, WebP, SVG | MP4, MOV, WebM | MP3, WAV |
 
 ## Usage
 
@@ -68,80 +94,48 @@ clawdrive search "the nda we sent acme" --pot acme-dd
 # Cross-modal search: find documents related to a photo
 clawdrive search --image ./photo.jpg
 
-# Share with another agent or person
+# Create a scoped share for another agent or person
 clawdrive share pot acme-dd --to claude-code --role read --expires 24h
 
 # Start the API server and 3D web UI
 clawdrive serve
 ```
 
-Both `clawdrive` and `cdrive` work as the CLI command. See **[CLI.md](CLI.md)** for the full command reference.
+See **[CLI.md](CLI.md)** for the full command reference.
 
-## How It Works
+### Agent-Friendly Output
 
-ClawDrive is a TypeScript monorepo with four packages:
-
-| Package | Role | Key Tech |
-|---|---|---|
-| `core` | Storage, embedding, search, taxonomy, pots, shares | LanceDB, Gemini Embedding API |
-| `server` | REST API layer | Express |
-| `web` | 3D browser frontend | Vite, React, Three.js / R3F |
-| `cli` | CLI entry point | Commander.js |
-
-Files are embedded with the Gemini multimodal embedding API, stored in [LanceDB](https://lancedb.com), and projected into 3D space using UMAP. The web frontend streams those projections via the REST API and renders them with Three.js / React Three Fiber.
-
-## API
-
-All endpoints accept and return JSON. The CLI supports `--json` for machine-readable output.
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/files/store` | Upload and embed a file |
-| `GET` | `/api/files` | List all stored files |
-| `GET` | `/api/search?q=...` | Semantic search across files |
-| `POST` | `/api/pots` | Create a new pot |
-| `GET` | `/api/pots/:pot/files` | List files in a pot |
-| `POST` | `/api/shares/pot/:pot` | Create a share link for a pot |
-| `GET` | `/api/projections` | Fetch UMAP projections for 3D view |
-
-## Requirements
-
-| Dependency | Version | Purpose |
-|---|---|---|
-| [Node.js](https://nodejs.org) | 18+ | Runtime |
-| [ffmpeg](https://ffmpeg.org) | any | Video and audio processing |
-
-## Development
+Commands support `--json` for agent pipelines:
 
 ```bash
-# Clone the repo
-git clone https://github.com/Hyper3Labs/clawdrive.git
-cd clawdrive
-
-# Install dependencies
-npm install
-
-# Start dev mode (all packages in watch mode)
-npm run dev
-
-# Run tests
-npm test
-
-# Production build
-npm run build
+$ clawdrive search "launch telemetry" --json
+```
+```json
+[
+  {
+    "id": "file_01...",
+    "file": "apollo-11-transcript.pdf",
+    "contentType": "application/pdf",
+    "tldr": "Full transcript of Apollo 11 comms...",
+    "score": 0.94
+  }
+]
 ```
 
-## Contributing
+---
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+<div align="center">
 
-## Security
+[![GitHub stars](https://img.shields.io/github/stars/Hyper3Labs/clawdrive?style=social)](https://github.com/Hyper3Labs/clawdrive)
 
-To report a vulnerability, please see [SECURITY.md](SECURITY.md).
+<br/>
+<br/>
 
-## License
+**Made by**  
+Daniil [![X: moroz_i_holod](https://img.shields.io/badge/-@moroz__i__holod-000?style=flat-square&logo=x&logoColor=white)](https://x.com/moroz_i_holod) · Matin [![X: MatinMnM](https://img.shields.io/badge/-@MatinMnM-000?style=flat-square&logo=x&logoColor=white)](https://x.com/MatinMnM)  
+Built in Berlin.
 
-[MIT](LICENSE) — Copyright 2026 Hyper3Labs
+</div>
 
 <!-- ## Star History
 

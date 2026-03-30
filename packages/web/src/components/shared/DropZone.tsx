@@ -1,5 +1,5 @@
 import { useState, useRef, type ReactNode, type DragEvent } from "react";
-import { MAP_THEME, Z_INDEX } from "../../theme";
+import { Z_INDEX } from "../../theme";
 
 interface DropZoneProps {
   onDrop: (files: File[]) => void;
@@ -55,29 +55,15 @@ export function DropZone({
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
+      className="relative flex-1 flex flex-col min-h-0"
     >
       {children}
       {dragOver && (
         <div
-          style={{
-            position: nested ? "absolute" : "fixed",
-            inset: 0,
-            zIndex: Z_INDEX.overlay,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(6, 16, 24, 0.85)",
-            border: `2px dashed ${MAP_THEME.accentPrimary}`,
-            borderRadius: nested ? 8 : 0,
-            pointerEvents: "none",
-          }}
+          style={{ zIndex: Z_INDEX.overlay }}
+          className={`${nested ? 'absolute rounded-lg' : 'fixed rounded-none'} inset-0 flex items-center justify-center bg-[rgba(6,16,24,0.85)] border-2 border-dashed border-[var(--accent-primary)] pointer-events-none`}
         >
-          <span style={{
-            color: MAP_THEME.accentPrimary,
-            fontSize: 16,
-            fontWeight: 600,
-          }}>
+          <span className="text-[var(--accent-primary)] text-base font-semibold">
             {label}
           </span>
         </div>

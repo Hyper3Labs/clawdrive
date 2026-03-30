@@ -1,21 +1,12 @@
 import { useEffect, useState } from "react";
-import { getFile, getFileTags, updateFile } from "../../api";
+import { downloadFileContent, getFile, getFileTags, updateFile } from "../../api";
 import type { FileInfo } from "../../types";
-import { MAP_THEME } from "../../theme";
 import { TagEditor } from "../shared/TagEditor";
 import { InlineEdit } from "../shared/InlineEdit";
 import { DigestModal } from "../shared/DigestModal";
 import { useToast } from "../shared/Toast";
 import { Download } from "lucide-react";
-
-function downloadFile(fileId: string, fileName: string) {
-  const a = document.createElement("a");
-  a.href = `/api/files/${encodeURIComponent(fileId)}/content`;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
+import { formatFileSize, isTextLikeContentType } from "../../utils/files";
 
 interface FilePreviewProps {
   fileId: string;
@@ -37,7 +28,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       .then((f) => {
         setFile(f);
         // For text files, fetch content
-        if (f.content_type?.startsWith("text/") || f.content_type === "application/json") {
+        if (isTextLikeContentType(f.content_type)) {
           fetch(`/api/files/${fileId}/content`)
             .then((r) => r.text())
             .then(setTextContent)
@@ -75,10 +66,10 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
 
   if (loading) {
     return (
-      <div style={panelStyle}>
-        <div style={headerStyle}>
-          <span style={{ opacity: 0.4 }}>Loading...</span>
-          <button onClick={onClose} style={closeStyle}>x</button>
+      <div className="w-[360px] xl:w-[400px] bg-[var(--panel)] border-l border-[var(--border)] flex flex-col flex-shrink-0">
+        <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--borderSubtle)]">
+          <span className="opacity-40 text-sm">Loading...</span>
+          <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-white/10 text-lg flex items-center justify-center -mr-1">x</button>
         </div>
       </div>
     );
@@ -89,39 +80,39 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   const isImage = file.content_type?.startsWith("image/");
   const isVideo = file.content_type?.startsWith("video/");
   const isAudio = file.content_type?.startsWith("audio/");
-  const isText = file.content_type?.startsWith("text/") || file.content_type === "application/json" || file.content_type === "application/yaml";
+  const isText = isTextLikeContentType(file.content_type);
   const isPdf = file.content_type === "application/pdf";
 
   return (
-    <div style={panelStyle}>
-      <div style={headerStyle}>
-        <span style={{ fontWeight: "bold", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+    <div className="w-[360px] xl:w-[400px] bg-[var(--panel)] border-l border-[var(--border)] flex flex-col flex-shrink-0">
+      <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--borderSubtle)] gap-2">
+        <span className="font-bold text-sm overflow-hidden text-ellipsis whitespace-nowrap flex-1">
           {file.name}
         </span>
         <button
-          onClick={() => downloadFile(fileId, file.name)}
-          style={closeStyle}
+          onClick={() => downloadFileContent(fileId, file.name)}
+          className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-white/10 flex items-center justify-center"
           title="Download"
         >
           <Download size={14} />
         </button>
-        <button onClick={onClose} style={closeStyle}>x</button>
+        <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-white/10 text-lg flex items-center justify-center -mr-1">×</button>
       </div>
 
       {/* Metadata */}
-      <div style={{ padding: "12px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}`, fontSize: 12 }}>
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", opacity: 0.6 }}>
+      <div className="px-4 py-3 border-b border-[var(--borderSubtle)] text-xs">
+        <div className="flex gap-4 flex-wrap opacity-60">
           <span>{file.content_type}</span>
-          <span>{formatSize(file.file_size)}</span>
+          <span>{formatFileSize(file.file_size)}</span>
           <span>{new Date(file.created_at).toLocaleDateString()}</span>
         </div>
         {file.source_url && (
-          <div style={{ marginTop: 8 }}>
+          <div className="mt-2">
             <a
               href={file.source_url}
               target="_blank"
               rel="noreferrer"
-              style={{ fontSize: 12, color: MAP_THEME.accentPrimary, textDecoration: "none" }}
+              className="text-xs text-[var(--accent-primary)] no-underline hover:underline"
             >
               Open source
             </a>
@@ -130,13 +121,13 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Tags */}
-      <div style={{ padding: "8px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}` }}>
+      <div className="px-4 py-2 border-b border-[var(--borderSubtle)]">
         <TagEditor tags={tags} onChange={handleTagChange} />
       </div>
 
       {/* Summary */}
-      <div style={{ padding: "8px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}` }}>
-        <div style={{ fontSize: 11, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
+      <div className="px-4 py-2 border-b border-[var(--borderSubtle)]">
+        <div className="text-[11px] opacity-40 mb-1 uppercase tracking-wider">Summary</div>
         <InlineEdit
           value={file.tldr ?? ""}
           placeholder="Add a summary..."
@@ -145,52 +136,23 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Digest button */}
-      <div style={{ padding: "8px 16px", borderBottom: `1px solid ${MAP_THEME.borderSubtle}` }}>
+      <div className="px-4 py-2 border-b border-[var(--borderSubtle)]">
         <button
           onClick={() => setShowDigestModal(true)}
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: 4,
-            color: MAP_THEME.textMuted,
-            fontSize: 11,
-            padding: "4px 10px",
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
+          className="cursor-pointer rounded border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-[var(--textMuted)] transition-colors hover:bg-white/10"
         >
           {file.digest ? "Edit digest" : "Add digest"}
         </button>
       </div>
 
       {/* Content preview */}
-      <div style={{ flex: 1, overflow: "auto", padding: isPdf ? 0 : 16, display: "flex", flexDirection: "column" }}>
+      <div className={`flex-1 overflow-auto flex flex-col ${isPdf ? 'p-0' : 'p-4'}`}>
         {file.digest && (
-          <div style={{
-            marginBottom: 16,
-            padding: 12,
-            borderRadius: 8,
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(255,255,255,0.03)",
-          }}>
-            <div style={{
-              marginBottom: 8,
-              fontSize: 11,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              opacity: 0.55,
-            }}>
+          <div className="mb-4 p-3 rounded-lg border border-white/10 bg-[rgba(255,255,255,0.03)]">
+            <div className="mb-2 text-[11px] tracking-[0.08em] uppercase opacity-[0.55]">
               Digest
             </div>
-            <pre style={{
-              margin: 0,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              fontFamily: "inherit",
-              fontSize: 12,
-              lineHeight: 1.6,
-              color: "rgba(255,255,255,0.85)",
-            }}>
+            <pre className="m-0 whitespace-pre-wrap break-words text-xs leading-[1.6] text-white/85">
               {file.digest}
             </pre>
           </div>
@@ -199,15 +161,11 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           <img
             src={`/api/files/${fileId}/content`}
             alt={file.name}
-            style={{ maxWidth: "100%", borderRadius: 6 }}
+            className="max-w-full rounded-md"
           />
         )}
         {isText && textContent !== null && (
-          <pre style={{
-            fontFamily: "'SF Mono', 'Fira Code', monospace", fontSize: 12,
-            lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word",
-            color: "rgba(255,255,255,0.8)", margin: 0,
-          }}>
+          <pre className="font-mono text-xs leading-[1.6] whitespace-pre-wrap break-words text-white/80 m-0">
             {textContent}
           </pre>
         )}
@@ -215,30 +173,27 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           <video
             src={`/api/files/${fileId}/content`}
             controls
-            style={{ width: "100%", borderRadius: 6, background: "#000" }}
+            className="w-full rounded-md bg-black"
           />
         )}
         {isAudio && (
-          <div style={{ paddingTop: 20 }}>
+          <div className="pt-5">
             <audio
               src={`/api/files/${fileId}/content`}
               controls
-              style={{ width: "100%" }}
+              className="w-full"
             />
           </div>
         )}
         {isPdf && (
           <iframe
             src={`/api/files/${fileId}/content`}
-            style={{
-              width: "100%", height: "100%", border: "none",
-              borderRadius: 6, background: "#fff",
-            }}
+            className="w-full h-full border-none rounded-md bg-white"
             title={file.name}
           />
         )}
         {!isImage && !isVideo && !isAudio && !isText && !isPdf && (
-          <div style={{ textAlign: "center", opacity: 0.4, paddingTop: 40, fontSize: 13 }}>
+          <div className="text-center opacity-40 pt-10 text-[13px]">
             No preview available for this file type
           </div>
         )}
@@ -252,30 +207,4 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       )}
     </div>
   );
-}
-
-const panelStyle: React.CSSProperties = {
-  width: 380, flexShrink: 0,
-  borderLeft: "1px solid rgba(255,255,255,0.1)",
-  display: "flex", flexDirection: "column",
-  background: "rgba(0,0,0,0.2)",
-  overflow: "hidden",
-};
-
-const headerStyle: React.CSSProperties = {
-  display: "flex", alignItems: "center", justifyContent: "space-between",
-  padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.1)",
-  gap: 8,
-};
-
-const closeStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.1)", border: "none", color: MAP_THEME.text,
-  width: 24, height: 24, borderRadius: 4, cursor: "pointer", fontSize: 13,
-  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-};
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }

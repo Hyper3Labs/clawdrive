@@ -4,7 +4,9 @@
   "description": "3D web frontend for ClawDrive",
   "license": "MIT",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Hyper3Labs/clawdrive.git",
@@ -29,10 +31,12 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.175",
     "@vitejs/plugin-react": "^4",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.7",
     "vite": "^6"
   }

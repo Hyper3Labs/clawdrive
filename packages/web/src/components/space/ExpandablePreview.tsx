@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FileInfo, ProjectionPoint } from "../../types";
-import { getModalityColor, getModalityLabel, getPreviewKind, MAP_THEME, Z_INDEX } from "../../theme";
+import { getModalityColor, getModalityLabel, getPreviewKind, Z_INDEX } from "../../theme";
 import { fileContentUrl, getFile, getFileTags, updateFile } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
 import { TagEditor } from "../shared/TagEditor";
@@ -8,6 +8,7 @@ import { InlineEdit } from "../shared/InlineEdit";
 import { DigestModal } from "../shared/DigestModal";
 import { useToast } from "../shared/Toast";
 import { ExternalLink } from "lucide-react";
+import { cx, ui } from "../shared/ui";
 
 function TextPreview({ point }: { point: ProjectionPoint }) {
   const [text, setText] = useState<string | null>(null);
@@ -17,26 +18,24 @@ function TextPreview({ point }: { point: ProjectionPoint }) {
     let cancelled = false;
     fetch(contentUrl, { headers: { Range: "bytes=0-6000" } })
       .then((res) => res.text())
-      .then((t) => { if (!cancelled) setText(t); })
-      .catch(() => { if (!cancelled) setText(null); });
-    return () => { cancelled = true; };
+      .then((value) => {
+        if (!cancelled) setText(value);
+      })
+      .catch(() => {
+        if (!cancelled) setText(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [contentUrl]);
 
   if (text === null) {
-    return (
-      <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: MAP_THEME.textMuted, fontSize: 13 }}>
-        Loading...
-      </div>
-    );
+    return <div className="flex h-[200px] items-center justify-center text-[13px] text-[var(--textMuted)]">Loading...</div>;
   }
 
   return (
-    <pre style={{
-      margin: 0, padding: 14, fontSize: 11, lineHeight: 1.5,
-      color: MAP_THEME.text, fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-      whiteSpace: "pre-wrap", wordBreak: "break-word",
-      maxHeight: 280, overflowY: "auto", background: "transparent",
-    }}>
+    <pre className="m-0 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-words bg-transparent p-3.5 font-mono text-[11px] leading-[1.5] text-[var(--text)]">
       {text.slice(0, 3000)}
     </pre>
   );
@@ -49,51 +48,31 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   const contentUrl = fileContentUrl(point.id);
 
   if (kind === "image") {
-    return (
-      <img
-        src={contentUrl}
-        alt={point.fileName}
-        loading="lazy"
-        style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: MAP_THEME.background }}
-      />
-    );
+    return <img src={contentUrl} alt={point.fileName} loading="lazy" className="block h-[280px] w-full object-contain bg-[var(--background)]" />;
   }
 
   if (kind === "video") {
-    return (
-      <video
-        key={point.id}
-        src={contentUrl}
-        controls
-        autoPlay
-        muted
-        style={{ width: "100%", height: 280, objectFit: "contain", display: "block", background: "#000" }}
-      />
-    );
+    return <video key={point.id} src={contentUrl} controls autoPlay muted className="block h-[280px] w-full object-contain bg-black" />;
   }
 
   if (kind === "audio") {
     return (
-      <div style={{ padding: 20, display: "flex", alignItems: "center" }}>
-        <audio key={point.id} src={contentUrl} controls style={{ width: "100%" }} />
+      <div className="flex items-center p-5">
+        <audio key={point.id} src={contentUrl} controls className="w-full" />
       </div>
     );
   }
 
   if (kind === "pdf") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-        <object
-          key={point.id}
-          data={`${contentUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-          type="application/pdf"
-          style={{ width: "100%", height: 360, borderRadius: 4, background: "#fff" }}
-        >
-          <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: MAP_THEME.textMuted }}>
-            PDF preview unavailable
-          </div>
-        </object>
-      </div>
+      <object
+        key={point.id}
+        data={`${contentUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+        type="application/pdf"
+        className="h-[360px] w-full rounded bg-white"
+      >
+        <div className="flex h-[200px] items-center justify-center text-[var(--textMuted)]">PDF preview unavailable</div>
+      </object>
     );
   }
 
@@ -101,20 +80,8 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
     return <TextPreview point={point} />;
   }
 
-  // Unknown type — show a lightweight placeholder instead of issuing another fetch.
   return (
-    <div
-      style={{
-        height: 200,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color,
-        fontSize: 13,
-        letterSpacing: 0.6,
-        textTransform: "uppercase",
-      }}
-    >
+    <div className="flex h-[200px] items-center justify-center text-[13px] uppercase tracking-[0.6px]" style={{ color }}>
       {label} preview unavailable
     </div>
   );
@@ -127,87 +94,55 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
   const [showPicker, setShowPicker] = useState(false);
   const [localTags, setLocalTags] = useState<string[]>(point.tags);
 
-  // Reset local tags when a different file is displayed
-  useEffect(() => { setLocalTags(point.tags); }, [point.id, point.tags]);
+  useEffect(() => {
+    setLocalTags(point.tags);
+  }, [point.id, point.tags]);
 
-  const assignedSlugs = localTags
-    .filter((t) => t.startsWith("pot:"))
-    .map((t) => t.slice(4));
-
-  const assignedPots = pots.filter((p) => assignedSlugs.includes(p.slug));
-  const unassignedPots = pots.filter((p) => !assignedSlugs.includes(p.slug));
+  const assignedSlugs = localTags.filter((tag) => tag.startsWith("pot:")).map((tag) => tag.slice(4));
+  const assignedPots = pots.filter((pot) => assignedSlugs.includes(pot.slug));
+  const unassignedPots = pots.filter((pot) => !assignedSlugs.includes(pot.slug));
 
   return (
-    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${MAP_THEME.border}` }}>
-      <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Pot</div>
-      <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-        {assignedPots.map((p) => (
-          <span
-            key={p.id}
+    <div className="mt-3 border-t border-[var(--border)] pt-3">
+      <div className={ui.eyebrow}>Pot</div>
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+        {assignedPots.map((pot) => (
+          <button
+            key={pot.id}
+            type="button"
             onClick={async () => {
-              await unassignFileFromPot(point.id, p.slug, localTags);
-              setLocalTags((prev) => prev.filter((t) => t !== `pot:${p.slug}`));
+              await unassignFileFromPot(point.id, pot.slug, localTags);
+              setLocalTags((prev) => prev.filter((tag) => tag !== `pot:${pot.slug}`));
             }}
-            style={{
-              background: "rgba(110, 231, 255, 0.08)",
-              border: "1px solid rgba(110, 231, 255, 0.25)",
-              color: MAP_THEME.accentPrimary,
-              fontSize: 11,
-              padding: "3px 10px",
-              borderRadius: 6,
-              cursor: "pointer",
-            }}
+            className={cx(ui.accentChip, "cursor-pointer px-2.5 py-1 text-[11px]")}
           >
-            {p.name} ×
-          </span>
+            {pot.name} ×
+          </button>
         ))}
         {unassignedPots.length > 0 && (
-          <div style={{ position: "relative" }}>
-            <div
-              onClick={() => setShowPicker(!showPicker)}
-              style={{
-                width: 22, height: 22, borderRadius: 6,
-                background: "rgba(110, 231, 255, 0.08)",
-                border: "1px solid rgba(110, 231, 255, 0.2)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: MAP_THEME.accentPrimary, fontSize: 14, cursor: "pointer",
-              }}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowPicker((prev) => !prev)}
+              className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-[rgba(110,231,255,0.2)] bg-[rgba(110,231,255,0.08)] text-sm text-[var(--accent-primary)] transition-colors hover:bg-[rgba(110,231,255,0.14)]"
             >
               +
-            </div>
+            </button>
             {showPicker && (
-              <div style={{
-                position: "absolute",
-                bottom: "100%",
-                left: 0,
-                marginBottom: 4,
-                background: MAP_THEME.panel,
-                border: `1px solid ${MAP_THEME.border}`,
-                borderRadius: 8,
-                padding: 4,
-                minWidth: 140,
-                zIndex: 10,
-              }}>
-                {unassignedPots.map((p) => (
-                  <div
-                    key={p.id}
+              <div className={cx(ui.popover, "absolute bottom-full left-0 mb-1 min-w-[140px] p-1")}>
+                {unassignedPots.map((pot) => (
+                  <button
+                    key={pot.id}
+                    type="button"
                     onClick={async () => {
-                      await assignFileToPot(point.id, p.slug, localTags);
-                      setLocalTags((prev) => [...prev, `pot:${p.slug}`]);
+                      await assignFileToPot(point.id, pot.slug, localTags);
+                      setLocalTags((prev) => [...prev, `pot:${pot.slug}`]);
                       setShowPicker(false);
                     }}
-                    style={{
-                      padding: "6px 10px",
-                      fontSize: 12,
-                      color: MAP_THEME.text,
-                      cursor: "pointer",
-                      borderRadius: 4,
-                    }}
-                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "rgba(110, 231, 255, 0.08)"; }}
-                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "transparent"; }}
+                    className="block w-full rounded px-2.5 py-1.5 text-left text-xs text-[var(--text)] transition-colors hover:bg-[rgba(110,231,255,0.08)]"
                   >
-                    {p.name}
-                  </div>
+                    {pot.name}
+                  </button>
                 ))}
               </div>
             )}
@@ -233,7 +168,6 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
 
   useEffect(() => {
     if (clickedFileId === null) {
-      // Closing modal — instant
       setDisplayedId(null);
       setOpacity(1);
       prevClickedId.current = null;
@@ -241,7 +175,6 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
     }
 
     if (prevClickedId.current === null) {
-      // Fresh open — instant
       setDisplayedId(clickedFileId);
       setOpacity(1);
       prevClickedId.current = clickedFileId;
@@ -249,7 +182,6 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
     }
 
     if (prevClickedId.current !== clickedFileId) {
-      // Switching files — crossfade
       setOpacity(0);
       const timer = setTimeout(() => {
         setDisplayedId(clickedFileId);
@@ -267,14 +199,25 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       setShowDigestModal(false);
       return;
     }
+
     let cancelled = false;
     getFile(displayedId)
-      .then((info: FileInfo) => { if (!cancelled) { setFileInfo(info); setTags(info.tags ?? []); } })
+      .then((info: FileInfo) => {
+        if (!cancelled) {
+          setFileInfo(info);
+          setTags(info.tags ?? []);
+        }
+      })
       .catch(() => {});
     getFileTags(displayedId)
-      .then((res: { tags?: string[] }) => { if (!cancelled) setTags(res.tags ?? []); })
+      .then((res: { tags?: string[] }) => {
+        if (!cancelled) setTags(res.tags ?? []);
+      })
       .catch(() => {});
-    return () => { cancelled = true; };
+
+    return () => {
+      cancelled = true;
+    };
   }, [displayedId]);
 
   async function handleTagChange(newTags: string[]) {
@@ -283,161 +226,114 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       await updateFile(displayedId, { tags: newTags });
       setTags(newTags);
       show("Tags updated", { type: "success" });
-    } catch { show("Failed to update tags", { type: "error" }); }
+    } catch {
+      show("Failed to update tags", { type: "error" });
+    }
   }
 
   async function handleTldrSave(value: string) {
     if (!displayedId) return;
     try {
       await updateFile(displayedId, { tldr: value || null });
-      setFileInfo((prev) => prev ? { ...prev, tldr: value || null } : prev);
+      setFileInfo((prev) => (prev ? { ...prev, tldr: value || null } : prev));
       show("Saved", { type: "success" });
-    } catch { show("Failed to save", { type: "error" }); }
+    } catch {
+      show("Failed to save", { type: "error" });
+    }
   }
 
   async function handleDigestSave(value: string) {
     if (!displayedId) return;
     try {
       await updateFile(displayedId, { digest: value || null });
-      setFileInfo((prev) => prev ? { ...prev, digest: value || null } : prev);
+      setFileInfo((prev) => (prev ? { ...prev, digest: value || null } : prev));
       show("Digest saved", { type: "success" });
-    } catch { show("Failed to save digest", { type: "error" }); }
+    } catch {
+      show("Failed to save digest", { type: "error" });
+    }
   }
 
-  const dismiss = () => { clickFile(null); };
+  const dismiss = () => {
+    clickFile(null);
+  };
 
-  const point = points.find((p) => p.id === displayedId);
+  const point = points.find((entry) => entry.id === displayedId);
 
-  if (!clickedFileId) return null;
+  if (!clickedFileId || !point) return null;
 
-  // Expanded preview — centered modal with backdrop
   return (
     <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) dismiss();
+      onClick={(event) => {
+        if (event.target === event.currentTarget) dismiss();
       }}
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: Z_INDEX.modal,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(3, 10, 15, 0.6)",
-        backdropFilter: "blur(4px)",
-      }}
+      className="absolute inset-0 flex items-center justify-center bg-[rgba(3,10,15,0.6)] backdrop-blur-[4px]"
+      style={{ zIndex: Z_INDEX.modal }}
     >
       <div
+        className={cx(ui.panel, "max-h-[80vh] w-[560px] overflow-y-auto p-5 text-[13px]")}
         style={{
           background: "linear-gradient(135deg, rgba(8, 22, 32, 0.97), rgba(6, 16, 24, 0.97))",
-          border: `1px solid ${MAP_THEME.border}`,
-          borderRadius: 14,
-          padding: 20,
-          fontSize: 13,
-          width: 560,
-          maxHeight: "80vh",
-          overflowY: "auto",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
           opacity,
           transition: "opacity 100ms ease",
         }}
       >
-        {point && (
-          <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ color: MAP_THEME.text, fontSize: 15, fontWeight: 600, wordBreak: "break-word", flex: 1 }}>
-                {point.fileName}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                <a
-                  href={fileContentUrl(point.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Open in new tab"
-                  style={{
-                    color: MAP_THEME.textMuted, cursor: "pointer", lineHeight: 1,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    width: 28, height: 28, borderRadius: 4,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = MAP_THEME.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = MAP_THEME.textMuted; }}
-                >
-                  <ExternalLink size={16} />
-                </a>
-                <div
-                  onClick={() => dismiss()}
-                  style={{ color: MAP_THEME.textMuted, fontSize: 20, cursor: "pointer", lineHeight: 1,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    width: 28, height: 28, borderRadius: 4,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = MAP_THEME.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = MAP_THEME.textMuted; }}
-                >
-                  ×
-                </div>
-              </div>
-            </div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 break-words text-[15px] font-semibold text-[var(--text)]">{point.fileName}</div>
+          <div className="flex shrink-0 items-center gap-1">
+            <a
+              href={fileContentUrl(point.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open in new tab"
+              className={ui.iconButton}
+            >
+              <ExternalLink size={16} />
+            </a>
+            <button type="button" onClick={dismiss} className={ui.iconButton}>
+              <span className="text-xl leading-none">×</span>
+            </button>
+          </div>
+        </div>
 
-            <div style={{
-              border: `1px solid ${MAP_THEME.border}`, borderRadius: 10,
-              overflow: "hidden", marginTop: 14, background: "rgba(10, 19, 28, 0.7)",
-            }}>
-              <MediaPreview point={point} />
-            </div>
+        <div className={cx(ui.previewFrame, "mt-3.5")}>
+          <MediaPreview point={point} />
+        </div>
 
-            <div style={{
-              marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr",
-              gap: 8, fontSize: 12,
-            }}>
-              <div>
-                <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>Type</div>
-                <div style={{ color: MAP_THEME.text, marginTop: 2 }}>{point.contentType}</div>
-              </div>
-              <div>
-                <div style={{ color: MAP_THEME.textMuted, textTransform: "uppercase", fontSize: 10, letterSpacing: 1 }}>ID</div>
-                <div style={{ color: MAP_THEME.text, marginTop: 2, fontSize: 10, opacity: 0.7 }}>{point.id.slice(0, 12)}...</div>
-              </div>
-            </div>
+        <div className="mt-3.5 grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <div className={ui.eyebrow}>Type</div>
+            <div className="mt-0.5 text-[var(--text)]">{point.contentType}</div>
+          </div>
+          <div>
+            <div className={ui.eyebrow}>ID</div>
+            <div className="mt-0.5 text-[10px] text-[var(--text)] opacity-70">{point.id.slice(0, 12)}...</div>
+          </div>
+        </div>
 
-            <PotAssignment point={point} />
+        <PotAssignment point={point} />
 
-            {/* Metadata editing */}
-            <div style={{ padding: "8px 0", borderTop: `1px solid ${MAP_THEME.borderSubtle}`, marginTop: 12 }}>
-              <TagEditor tags={tags} onChange={handleTagChange} />
-            </div>
-            <div style={{ padding: "8px 0", borderTop: `1px solid ${MAP_THEME.borderSubtle}` }}>
-              <div style={{ fontSize: 10, opacity: 0.4, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
-              <InlineEdit
-                value={fileInfo?.tldr ?? ""}
-                placeholder="Add a summary..."
-                onSave={handleTldrSave}
-              />
-            </div>
-            <div style={{ padding: "8px 0" }}>
-              <button
-                onClick={() => setShowDigestModal(true)}
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 4,
-                  color: MAP_THEME.textMuted,
-                  fontSize: 11,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                {fileInfo?.digest ? "Edit digest" : "Add digest"}
-              </button>
-            </div>
-            {showDigestModal && (
-              <DigestModal
-                value={fileInfo?.digest ?? ""}
-                onSave={handleDigestSave}
-                onClose={() => setShowDigestModal(false)}
-              />
-            )}
-          </>
+        <div className="mt-3 border-t border-[var(--borderSubtle)] pt-2">
+          <TagEditor tags={tags} onChange={handleTagChange} />
+        </div>
+        <div className="border-t border-[var(--borderSubtle)] py-2">
+          <div className={ui.sectionLabel}>Summary</div>
+          <InlineEdit value={fileInfo?.tldr ?? ""} placeholder="Add a summary..." onSave={handleTldrSave} />
+        </div>
+        <div className="py-2">
+          <button
+            type="button"
+            onClick={() => setShowDigestModal(true)}
+            className={cx(ui.subtleButtonCompact, "text-[var(--textMuted)]")}
+          >
+            {fileInfo?.digest ? "Edit digest" : "Add digest"}
+          </button>
+        </div>
+        {showDigestModal && (
+          <DigestModal
+            value={fileInfo?.digest ?? ""}
+            onSave={handleDigestSave}
+            onClose={() => setShowDigestModal(false)}
+          />
         )}
       </div>
     </div>

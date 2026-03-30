@@ -62,11 +62,8 @@ export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
 
   if (error) {
     return (
-      <div style={{
-        height: 80, display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(0,0,0,0.2)",
-      }}>
-        <div style={{ opacity: 0.3 }}><FileText size={36} /></div>
+      <div className="flex h-20 items-center justify-center bg-black/20">
+        <div className="opacity-30"><FileText size={36} /></div>
       </div>
     );
   }
@@ -74,7 +71,7 @@ export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: "100%", display: "block", background: "#fff", borderRadius: "8px 8px 0 0" }}
+      className="block w-full rounded-t-[8px] bg-white"
     />
   );
 }

@@ -37,7 +37,7 @@ export function App() {
 
   return (
     <ToastProvider>
-      <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+      <div className="flex flex-col h-screen overflow-hidden">
         <TopBar
           activeView={view}
           onViewChange={setView}
@@ -51,17 +51,8 @@ export function App() {
         />
 
         {view === "space" ? (
-          <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
-            <div
-              style={{
-                width: 240,
-                flexShrink: 0,
-                borderRight: "1px solid rgba(255,255,255,0.1)",
-                display: "flex",
-                flexDirection: "column",
-                overflowY: "auto",
-              }}
-            >
+          <div className="flex-1 min-h-0 flex bg-[#0a0a0f]">
+            <div className="w-72 shrink-0 border-r border-[#1f3647]/50 bg-[#061018]/50 flex flex-col overflow-y-auto">
               <PotsSidebar
                 selectedSlug={selectedPotSlug}
                 onSelectPot={(slug) => {
@@ -73,7 +64,7 @@ export function App() {
             <EmbeddingSpace focusFileId={focusFileId} />
           </div>
         ) : (
-          <div style={{ flex: 1, minHeight: 0, display: "flex", overflow: "hidden" }}>
+          <div className="flex-1 min-h-0 flex overflow-hidden">
             <FilesBrowser refreshKey={refreshKey} />
           </div>
         )}

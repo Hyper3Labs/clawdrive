@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { registerAddCommand } from "./commands/add.js";
 import { registerCaptionCommand } from "./commands/caption.js";
 import { registerDemoCommand } from "./commands/demo.js";
+import { registerDoctorCommand } from "./commands/doctor.js";
 import { registerDigestCommand } from "./commands/digest.js";
 import { registerTranscriptCommand } from "./commands/transcript.js";
 import { registerTldrCommand } from "./commands/tldr.js";
@@ -22,6 +23,7 @@ export const program = new Command()
 
 registerAddCommand(program);
 registerDemoCommand(program);
+registerDoctorCommand(program);
 registerPotCommand(program);
 registerSearchCommand(program);
 registerTodoCommand(program);

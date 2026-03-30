@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
-import { MAP_THEME, Z_INDEX } from "../../theme";
+import { Z_INDEX } from "../../theme";
+import { cx, ui } from "./ui";
 
 interface ToastAction {
   label: string;
@@ -34,18 +35,12 @@ export function useToast(): ToastContextValue {
 const MAX_TOASTS = 3;
 
 const BORDER_COLORS: Record<string, string> = {
-  success: MAP_THEME.accentSecondary,
-  error: MAP_THEME.accentDanger,
-  info: MAP_THEME.accentPrimary,
+  success: "var(--accent-secondary)",
+  error: "var(--accent-danger)",
+  info: "var(--accent-primary)",
 };
 
-// Inject keyframe animation once
-if (typeof document !== "undefined" && !document.getElementById("toast-keyframes")) {
-  const style = document.createElement("style");
-  style.id = "toast-keyframes";
-  style.textContent = `@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`;
-  document.head.appendChild(style);
-}
+// Removed inline style injection
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -72,49 +67,31 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <div style={{
-        position: "fixed", bottom: 20, right: 20, zIndex: Z_INDEX.toast,
-        display: "flex", flexDirection: "column", gap: 8, pointerEvents: "none",
-      }}>
+      <div
+        className="fixed bottom-5 right-5 flex flex-col gap-2 pointer-events-none"
+        style={{ zIndex: Z_INDEX.toast }}
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
-            style={{
-              background: MAP_THEME.panel,
-              border: `1px solid ${BORDER_COLORS[t.type]}`,
-              borderRadius: 8,
-              padding: "10px 16px",
-              fontSize: 13,
-              color: MAP_THEME.text,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              pointerEvents: "auto",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-              animation: "toast-in 0.2s ease-out",
-              maxWidth: 360,
-            }}
+            style={{ borderColor: BORDER_COLORS[t.type] }}
+            className={cx(
+              ui.popover,
+              "pointer-events-auto flex max-w-[360px] items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--text)] animate-[toast-in_0.2s_ease-out]",
+            )}
           >
-            <span style={{ flex: 1 }}>{t.message}</span>
+            <span className="flex-1">{t.message}</span>
             {t.action && (
               <button
                 onClick={() => { t.action!.onClick(); dismiss(t.id); }}
-                style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  color: MAP_THEME.accentPrimary, fontWeight: 600,
-                  fontSize: 13, padding: "2px 8px", flexShrink: 0,
-                }}
+                className="bg-transparent border-none cursor-pointer text-[var(--accent-primary)] font-semibold text-[13px] px-2 py-0.5 flex-shrink-0 hover:opacity-80 transition-opacity"
               >
                 {t.action.label}
               </button>
             )}
             <button
               onClick={() => dismiss(t.id)}
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                color: MAP_THEME.textMuted, fontSize: 16, padding: 0,
-                lineHeight: 1, flexShrink: 0,
-              }}
+              className="bg-transparent border-none cursor-pointer text-[var(--textMuted)] text-base p-0 leading-none flex-shrink-0 hover:text-white transition-colors"
             >
               ×
             </button>
