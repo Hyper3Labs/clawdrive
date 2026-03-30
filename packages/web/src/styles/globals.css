@@ -1,56 +1,82 @@
 @import "tailwindcss";
 
+@theme {
+  --font-size-xs: 10px;
+  --font-size-xs--line-height: 1.5;
+  --font-size-sm: 12px;
+  --font-size-sm--line-height: 1.5;
+  --font-size-base: 13px;
+  --font-size-base--line-height: 1.5;
+  --font-size-lg: 15px;
+  --font-size-lg--line-height: 1.3;
+  --font-size-xl: 18px;
+  --font-size-xl--line-height: 1.3;
+
+  --font-family-sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --font-family-mono: "SF Mono", "Fira Code", monospace;
+  --font-family-display: "DM Sans", "Avenir Next", "Segoe UI", sans-serif;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  --z-index-sidebar: 10;
+  --z-index-modal: 20;
+  --z-index-overlay: 50;
+  --z-index-context-menu: 1000;
+  --z-index-toast: 9999;
+}
+
 :root {
-  --background: #061018;
-  --bg: var(--background);
-  --panel: #0e1a24;
-  --bg-secondary: var(--panel);
+  --bg: #061018;
+  --bg-panel: #0e1a24;
+  --bg-overlay: rgba(6, 16, 24, 0.92);
+  --bg-backdrop: rgba(3, 10, 15, 0.6);
+
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --surface-3: rgba(255, 255, 255, 0.08);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+
   --border: #1f3647;
-  --borderSubtle: rgba(255, 255, 255, 0.07);
-  --border-subtle: var(--borderSubtle);
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.15);
+
   --text: #e6f0f7;
-  --textMuted: #6b8a9e;
-  --text-muted: var(--textMuted);
-  --text-dim: rgba(230, 240, 247, 0.58);
-  --accent-primary: #6ee7ff;
-  --accent-secondary: #7bd389;
+  --text-muted: #6b8a9e;
+  --text-faint: rgba(230, 240, 247, 0.55);
+
+  --accent: #6ee7ff;
+  --accent-green: #7bd389;
   --accent-warm: #ffb84d;
   --accent-danger: #ff8d8d;
+
+  --accent-a10: rgba(110, 231, 255, 0.10);
+  --accent-a20: rgba(110, 231, 255, 0.20);
+  --accent-a35: rgba(110, 231, 255, 0.35);
+
+  --mod-pdf: #8ab4ff;
+  --mod-image: #7bd389;
+  --mod-video: #c792ea;
+  --mod-audio: #f6c177;
+  --mod-text: #9ad1ff;
 }
 
 @keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--background);
+  background: var(--bg);
   color: var(--text);
-  font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-family-sans);
 }
 
-#root {
-  min-height: 100vh;
-}
-
-button {
-  font-family: inherit;
-}
-
-@keyframes toast-in { 
-  from { opacity: 0; transform: translateY(10px); } 
-  to { opacity: 1; transform: translateY(0); } 
-}
+#root { min-height: 100vh; }
+button { font-family: inherit; }
