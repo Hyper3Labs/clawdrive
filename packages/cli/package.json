@@ -1,6 +1,6 @@
 {
   "name": "clawdrive",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "Google Drive for AI agents. Multimodal semantic search and 3D file visualization.",
   "license": "MIT",
   "type": "module",
@@ -11,7 +11,7 @@
   "files": ["dist", "skill"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hyper3labs/clawdrive.git",
+    "url": "git+https://github.com/hyper3labs/clawdrive.git",
     "directory": "packages/cli"
   },
   "homepage": "https://claw3drive.com",
@@ -31,6 +31,7 @@
   "dependencies": {
     "@clawdrive/core": "*",
     "@clawdrive/server": "*",
+    "@clawdrive/web": "*",
     "chalk": "^5",
     "commander": "^13",
     "dotenv": "^17.3.1",

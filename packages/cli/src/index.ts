@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import { registerAddCommand } from "./commands/add.js";
 import { registerCaptionCommand } from "./commands/caption.js";
@@ -15,10 +16,13 @@ import { registerServeCommand } from "./commands/serve.js";
 import { registerShareCommand } from "./commands/share.js";
 import { registerInstallSkillCommand } from "./commands/install-skill.js";
 
+const require = createRequire(import.meta.url);
+const { version } = require("../../package.json") as { version: string };
+
 export const program = new Command()
   .name("cdrive")
   .description("Agent-native local file sharing and retrieval")
-  .version("0.1.0")
+  .version(version)
   .option("--json", "Output as JSON");
 
 registerAddCommand(program);
