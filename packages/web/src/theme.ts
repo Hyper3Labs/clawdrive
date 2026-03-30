@@ -1,14 +1,26 @@
 export const MAP_THEME = {
-  background: "#061018",
-  panel: "#0E1A24",
-  border: "#1F3647",
-  text: "#E6F0F7",
-  textMuted: "#6B8A9E",
-  accentPrimary: "#6EE7FF",
-  accentSecondary: "#7BD389",
-  accentWarm: "#FFB84D",
-  accentDanger: "#ff8d8d",
-  borderSubtle: "rgba(255,255,255,0.07)",
+  background: "var(--bg)",
+  panel: "var(--bg-panel)",
+  border: "var(--border)",
+  text: "var(--text)",
+  textMuted: "var(--text-muted)",
+  accent: "var(--accent)",
+  accentGreen: "var(--accent-green)",
+  accentWarm: "var(--accent-warm)",
+  accentDanger: "var(--accent-danger)",
+  borderSubtle: "var(--border-subtle)",
+
+  raw: {
+    background: "#061018",
+    panel: "#0e1a24",
+    border: "#1f3647",
+    text: "#e6f0f7",
+    textMuted: "#6b8a9e",
+    accent: "#6ee7ff",
+    accentGreen: "#7bd389",
+    accentWarm: "#ffb84d",
+    accentDanger: "#ff8d8d",
+  },
 } as const;
 
 export const MODALITY_COLORS = {
