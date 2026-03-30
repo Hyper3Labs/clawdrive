@@ -61,9 +61,9 @@ export function DropZone({
       {dragOver && (
         <div
           style={{ zIndex: Z_INDEX.overlay }}
-          className={`${nested ? 'absolute rounded-lg' : 'fixed rounded-none'} inset-0 flex items-center justify-center bg-[rgba(6,16,24,0.85)] border-2 border-dashed border-[var(--accent-primary)] pointer-events-none`}
+          className={`${nested ? 'absolute rounded-lg' : 'fixed rounded-none'} inset-0 flex items-center justify-center bg-[rgba(6,16,24,0.85)] border-2 border-dashed border-[var(--accent)] pointer-events-none`}
         >
-          <span className="text-[var(--accent-primary)] text-base font-semibold">
+          <span className="text-[var(--accent)] text-base font-semibold">
             {label}
           </span>
         </div>

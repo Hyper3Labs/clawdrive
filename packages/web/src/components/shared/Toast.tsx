@@ -35,9 +35,9 @@ export function useToast(): ToastContextValue {
 const MAX_TOASTS = 3;
 
 const BORDER_COLORS: Record<string, string> = {
-  success: "var(--accent-secondary)",
+  success: "var(--accent-green)",
   error: "var(--accent-danger)",
-  info: "var(--accent-primary)",
+  info: "var(--accent)",
 };
 
 // Removed inline style injection
@@ -84,14 +84,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {t.action && (
               <button
                 onClick={() => { t.action!.onClick(); dismiss(t.id); }}
-                className="bg-transparent border-none cursor-pointer text-[var(--accent-primary)] font-semibold text-[13px] px-2 py-0.5 flex-shrink-0 hover:opacity-80 transition-opacity"
+                className="bg-transparent border-none cursor-pointer text-[var(--accent)] font-semibold text-[13px] px-2 py-0.5 flex-shrink-0 hover:opacity-80 transition-opacity"
               >
                 {t.action.label}
               </button>
             )}
             <button
               onClick={() => dismiss(t.id)}
-              className="bg-transparent border-none cursor-pointer text-[var(--textMuted)] text-base p-0 leading-none flex-shrink-0 hover:text-white transition-colors"
+              className="bg-transparent border-none cursor-pointer text-[var(--text-muted)] text-base p-0 leading-none flex-shrink-0 hover:text-white transition-colors"
             >
               ×
             </button>

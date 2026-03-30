@@ -46,8 +46,8 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
           className={cx(
             "block w-full border-none bg-transparent px-3 py-1.5 text-left text-xs transition-colors",
             item.danger
-              ? "text-[var(--accent-danger)] hover:bg-[rgba(255,100,100,0.15)]"
-              : "text-[var(--text)] hover:bg-[rgba(110,231,255,0.1)]",
+              ? "text-[var(--accent-danger)] hover:bg-[var(--accent-danger)]/15"
+              : "text-[var(--text)] hover:bg-[var(--accent-a10)]",
           )}
         >
           {item.label}

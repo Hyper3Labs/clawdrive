@@ -62,13 +62,13 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
   return (
     <div className="space-y-2 px-6 py-6">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 pb-3 border-b border-white/5 mb-4">
-        <span className={cx(ui.eyebrow, "text-[12px] font-bold tracking-[0.2em] text-[#6b8a9e]")}>
+      <div className="flex items-center justify-between px-2 pb-3 border-b border-[var(--border-subtle)] mb-4">
+        <span className={cx(ui.eyebrow, "text-[12px] font-bold tracking-[0.2em] text-[var(--text-muted)]")}>
           Pots
         </span>
         <button
           onClick={() => setCreating(true)}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-[#6ee7ff] transition-all hover:bg-[#6ee7ff]/10 hover:border-[#6ee7ff]/30 hover:-translate-y-0.5"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border-strong)] bg-[var(--surface-1)] text-[var(--accent)] transition-all hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]/30 hover:-translate-y-0.5"
           title="Create pot"
         >
           <Plus size={16} />
@@ -92,14 +92,14 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             }}
             onBlur={() => { setNewPotName(""); setCreating(false); }}
             placeholder="Pot name..."
-            className="block box-border w-full rounded-xl border border-[rgba(110,231,255,0.28)] bg-white/[0.04] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[rgba(230,240,247,0.3)]"
+            className="block box-border w-full rounded-xl border border-[var(--accent-a20)] bg-[var(--surface-2)] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)]"
           />
         </div>
       )}
 
       {/* Pot list */}
       {pots.length === 0 && !creating && (
-        <div className="rounded-xl border border-dashed border-[#1f3647]/50 bg-[#0e1a24]/50 px-5 py-6 text-center text-[13px] text-[#6b8a9e] m-2">
+        <div className="rounded-xl border border-dashed border-[var(--border)]/50 bg-[var(--bg-panel)]/50 px-5 py-6 text-center text-[13px] text-[var(--text-muted)] m-2">
           No pots yet.<br/><span className="text-[11px] opacity-70 mt-1 block">Create one to organize files.</span>
         </div>
       )}
@@ -112,8 +112,8 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, pot }); }}
             className={`mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-[14px] font-medium transition-all duration-200 ${
               isSelected
-                ? "border-[#6ee7ff]/40 bg-[linear-gradient(180deg,rgba(110,231,255,0.15)_0%,rgba(110,231,255,0.05)_100%)] text-[#e6f0f7] shadow-md shadow-[#6ee7ff]/10"
-                : "border-white/5 bg-white/5 text-[#6b8a9e] hover:border-white/20 hover:bg-white/10 hover:text-white hover:-translate-y-0.5"
+                ? "border-[var(--accent)]/40 bg-[linear-gradient(180deg,rgba(110,231,255,0.15)_0%,rgba(110,231,255,0.05)_100%)] text-[var(--text)] shadow-md shadow-[var(--accent)]/10"
+                : "border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] hover:text-white hover:-translate-y-0.5"
             }`}
           >
             {renamingId === pot.id ? (
@@ -130,7 +130,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
                   if (e.key === "Escape") setRenamingId(null);
                 }}
                 onBlur={() => setRenamingId(null)}
-                className="w-full rounded-md border border-[rgba(110,231,255,0.28)] bg-white/[0.04] px-2 py-1.5 text-[13px] text-[var(--text)] outline-none"
+                className="w-full rounded-md border border-[var(--accent-a20)] bg-[var(--surface-2)] px-2 py-1.5 text-[13px] text-[var(--text)] outline-none"
               />
             ) : (
               <span className="block w-full overflow-hidden text-ellipsis whitespace-nowrap font-medium">
@@ -138,7 +138,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
               </span>
             )}
             {isSelected && renamingId !== pot.id && (
-              <span className="ml-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-primary)]" />
+              <span className="ml-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
             )}
           </div>
         );
@@ -154,7 +154,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             }}
             className={cx(
               ui.subtleButton,
-              "w-full justify-center rounded-lg border-dashed py-1.5 text-[11px] text-[var(--textMuted)] hover:text-[var(--text)]",
+              "w-full justify-center rounded-lg border-dashed py-1.5 text-[11px] text-[var(--text-muted)] hover:text-[var(--text)]",
             )}
           >
             + Add files

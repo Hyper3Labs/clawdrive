@@ -37,7 +37,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
 
   return (
     <header
-      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[#0a0a0f] px-8 py-5 shadow-sm"
+      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[var(--bg)] px-8 py-5 shadow-sm"
     >
       {/* Left: Logo */}
       <div className={cx("min-w-0 transition-opacity duration-150 flex-shrink-0 w-[240px]", searchActive ? "opacity-[0.55]" : "opacity-100")}>
@@ -54,11 +54,11 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
               )}
             </div>
             <div className="flex items-center gap-2">
-              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-[#6ee7ff]">Workspace</div>
+              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-[var(--accent)]">Workspace</div>
               {fileCount !== null && (
                 <div className="flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-[#1f3647]"></span>
-                  <span className="text-[10px] font-semibold tracking-wider text-[#6b8a9e]">
+                  <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
+                  <span className="text-[10px] font-semibold tracking-wider text-[var(--text-muted)]">
                     {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
                   </span>
                 </div>
@@ -85,14 +85,14 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         )}
       >
         <ViewTabs activeView={activeView} onViewChange={onViewChange} />
-        <div className="w-px h-6 bg-[#1f3647]/80 mx-1"></div>
+        <div className="w-px h-6 bg-[var(--border)]/80 mx-1"></div>
         <ShareInbox />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="group relative inline-flex items-center justify-center gap-2 px-4 h-[40px] text-[13px] rounded-xl font-bold border border-[#1f3647]/50 bg-[#0e1a24] text-[#e6f0f7] hover:bg-white/5 hover:border-[#6ee7ff]/30 hover:text-white shadow-inner transition-all"
+          className="group relative inline-flex items-center justify-center gap-2 px-4 h-[40px] text-[13px] rounded-xl font-bold border border-[var(--border)]/50 bg-[var(--bg-panel)] text-[var(--text)] hover:bg-[var(--surface-2)] hover:border-[var(--accent)]/30 hover:text-white shadow-inner transition-all"
           title="Upload files"
         >
-          <Upload size={16} className="text-[#6ee7ff] group-hover:text-[#6ee7ff]"/> Upload
+          <Upload size={16} className="text-[var(--accent)] group-hover:text-[var(--accent)]"/> Upload
         </button>
         <input
           ref={fileInputRef}

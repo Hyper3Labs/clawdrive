@@ -39,7 +39,7 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
     <DropZone onDrop={enqueue}>
     <div className="flex flex-1 overflow-hidden min-h-0 w-full">
       {/* Sidebar — pots only */}
-      <div className="w-72 shrink-0 border-r border-[#1f3647]/50 bg-[#061018]/50 flex flex-col overflow-y-auto">
+      <div className="w-72 shrink-0 border-r border-[var(--border)]/50 bg-[var(--bg)]/50 flex flex-col overflow-y-auto">
         <PotsSidebar
           selectedSlug={selectedPotSlug}
           onSelectPot={setSelectedPotSlug}
@@ -48,19 +48,19 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0a0f]">
-        <div className="flex items-center justify-between border-b border-[#1f3647]/50 px-8 py-5">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
+        <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-8 py-5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#6b8a9e]">
+            <span className="rounded-full border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
               Scope
             </span>
-            <span className="truncate text-lg font-bold text-[#e6f0f7]">
+            <span className="truncate text-lg font-bold text-[var(--text)]">
               {selectedPotSlug ? `pot: ${selectedPotSlug}` : "All files"}
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-4">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-[#6b8a9e]">Sort</span>
-            <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#0e1a24] p-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Sort</span>
+            <div className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-panel)] p-1.5">
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -68,8 +68,8 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
                   className={cx(
                     "rounded-lg border-none px-4 py-2 text-[13px] font-semibold transition-all duration-150",
                     sort === opt.value
-                      ? "bg-[#6ee7ff]/20 text-[#e6f0f7] shadow-sm transform scale-105"
-                      : "bg-transparent text-[#6b8a9e] hover:bg-white/10 hover:text-white",
+                      ? "bg-[var(--accent)]/20 text-[var(--text)] shadow-sm transform scale-105"
+                      : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-white",
                   )}
                 >
                   {opt.label}

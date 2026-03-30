@@ -56,7 +56,7 @@ export function FileSearchPicker({ onSelect, excludeIds, onClose, anchorX, ancho
             <button
               key={r.id}
               onClick={() => !inPot && onSelect(r.id)}
-              className={`flex w-full items-center gap-2 rounded border-none bg-transparent px-2 py-1.5 text-left text-xs transition-colors ${inPot ? 'cursor-default text-[var(--textMuted)] opacity-50' : 'cursor-pointer text-[var(--text)] opacity-100 hover:bg-white/5'}`}
+              className={`flex w-full items-center gap-2 rounded border-none bg-transparent px-2 py-1.5 text-left text-xs transition-colors ${inPot ? 'cursor-default text-[var(--text-muted)] opacity-50' : 'cursor-pointer text-[var(--text)] opacity-100 hover:bg-[var(--surface-2)]'}`}
             >
               <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                 {r.file || r.id}

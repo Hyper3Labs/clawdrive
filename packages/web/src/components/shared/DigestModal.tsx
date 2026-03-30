@@ -36,7 +36,7 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           autoFocus
-          className="flex-1 min-h-[200px] m-4 p-3 bg-white/5 border border-[var(--border)] rounded-lg text-[var(--text)] text-[13px] leading-[1.6] font-mono resize-y outline-none focus:border-[var(--accent-primary)] transition-colors"
+          className="flex-1 min-h-[200px] m-4 p-3 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg text-[var(--text)] text-[13px] leading-[1.6] font-mono resize-y outline-none focus:border-[var(--accent)] transition-colors"
           placeholder="Write markdown digest..."
         />
         <div className="px-4 py-3 border-t border-[var(--border)] flex justify-end gap-2">
@@ -48,7 +48,7 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
           </button>
           <button
             onClick={() => { onSave(draft); onClose(); }}
-            className="cursor-pointer rounded-md border-none bg-[var(--accent-primary)] px-4 py-1.5 text-[13px] font-semibold text-[var(--background)] transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-md border-none bg-[var(--accent)] px-4 py-1.5 text-[13px] font-semibold text-[var(--bg)] transition-opacity hover:opacity-90"
           >
             Save
           </button>

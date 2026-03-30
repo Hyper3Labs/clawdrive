@@ -49,9 +49,9 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
             key={opt.value}
             onClick={() => toggleType(opt.value)}
             style={{
-              borderColor: active ? opt.color : "rgba(255,255,255,0.1)",
-              background: active ? `${opt.color}20` : "rgba(255,255,255,0.03)",
-              color: active ? opt.color : "var(--textMuted)",
+              borderColor: active ? opt.color : "var(--border-strong)",
+              background: active ? `${opt.color}20` : "var(--surface-1)",
+              color: active ? opt.color : "var(--text-muted)",
             }}
             className="cursor-pointer rounded-md border px-2.5 py-1 text-[11px] font-medium tracking-[0.02em] transition-opacity hover:opacity-90"
           >

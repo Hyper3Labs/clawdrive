@@ -31,7 +31,7 @@ function TextPreview({ point }: { point: ProjectionPoint }) {
   }, [contentUrl]);
 
   if (text === null) {
-    return <div className="flex h-[200px] items-center justify-center text-[13px] text-[var(--textMuted)]">Loading...</div>;
+    return <div className="flex h-[200px] items-center justify-center text-[13px] text-[var(--text-muted)]">Loading...</div>;
   }
 
   return (
@@ -48,7 +48,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   const contentUrl = fileContentUrl(point.id);
 
   if (kind === "image") {
-    return <img src={contentUrl} alt={point.fileName} loading="lazy" className="block h-[280px] w-full object-contain bg-[var(--background)]" />;
+    return <img src={contentUrl} alt={point.fileName} loading="lazy" className="block h-[280px] w-full object-contain bg-[var(--bg)]" />;
   }
 
   if (kind === "video") {
@@ -71,7 +71,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
         type="application/pdf"
         className="h-[360px] w-full rounded bg-white"
       >
-        <div className="flex h-[200px] items-center justify-center text-[var(--textMuted)]">PDF preview unavailable</div>
+        <div className="flex h-[200px] items-center justify-center text-[var(--text-muted)]">PDF preview unavailable</div>
       </object>
     );
   }
@@ -124,7 +124,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
             <button
               type="button"
               onClick={() => setShowPicker((prev) => !prev)}
-              className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-[rgba(110,231,255,0.2)] bg-[rgba(110,231,255,0.08)] text-sm text-[var(--accent-primary)] transition-colors hover:bg-[rgba(110,231,255,0.14)]"
+              className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-[var(--accent-a20)] bg-[var(--accent-a10)] text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent-a20)]"
             >
               +
             </button>
@@ -139,7 +139,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
                       setLocalTags((prev) => [...prev, `pot:${pot.slug}`]);
                       setShowPicker(false);
                     }}
-                    className="block w-full rounded px-2.5 py-1.5 text-left text-xs text-[var(--text)] transition-colors hover:bg-[rgba(110,231,255,0.08)]"
+                    className="block w-full rounded px-2.5 py-1.5 text-left text-xs text-[var(--text)] transition-colors hover:bg-[var(--accent-a10)]"
                   >
                     {pot.name}
                   </button>
@@ -312,10 +312,10 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
 
         <PotAssignment point={point} />
 
-        <div className="mt-3 border-t border-[var(--borderSubtle)] pt-2">
+        <div className="mt-3 border-t border-[var(--border-subtle)] pt-2">
           <TagEditor tags={tags} onChange={handleTagChange} />
         </div>
-        <div className="border-t border-[var(--borderSubtle)] py-2">
+        <div className="border-t border-[var(--border-subtle)] py-2">
           <div className={ui.sectionLabel}>Summary</div>
           <InlineEdit value={fileInfo?.tldr ?? ""} placeholder="Add a summary..." onSave={handleTldrSave} />
         </div>
@@ -323,7 +323,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           <button
             type="button"
             onClick={() => setShowDigestModal(true)}
-            className={cx(ui.subtleButtonCompact, "text-[var(--textMuted)]")}
+            className={cx(ui.subtleButtonCompact, "text-[var(--text-muted)]")}
           >
             {fileInfo?.digest ? "Edit digest" : "Add digest"}
           </button>
