@@ -2,10 +2,10 @@ import { useEffect, useState, useRef } from "react";
 import { ViewTabs } from "./ViewTabs";
 import { InlineSearch, type InlineSearchHandle } from "./InlineSearch";
 import { ShareInbox } from "./shared/ShareInbox";
-import { listFiles } from "../api";
+import { listFiles, getConfig } from "../api";
 import type { ViewMode, SearchResult } from "../types";
 import { useUploadQueue } from "../hooks/useUploadQueue";
-import { Upload } from "lucide-react";
+import { Upload, AlertTriangle } from "lucide-react";
 import { cx, ui } from "./shared/ui";
 
 interface TopBarProps {
@@ -18,11 +18,16 @@ interface TopBarProps {
 
 export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, onUploadComplete }: TopBarProps) {
   const [fileCount, setFileCount] = useState<number | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { enqueue } = useUploadQueue({ onComplete: onUploadComplete });
 
   useEffect(() => {
+    getConfig().then((config) => {
+      if (config?.readOnly) setIsReadOnly(true);
+    }).catch(() => {});
+
     listFiles({ limit: 1 })
       .then((res: { total?: number }) => {
         if (typeof res.total === "number") setFileCount(res.total);
@@ -39,8 +44,26 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" width={26} height={26} className="shrink-0" />
           <div className="min-w-0 leading-none">
-            <div className="font-bold text-[16px] text-[var(--text)] tracking-tight">ClawDrive</div>
-            <div className="mt-1.5 text-[10px] uppercase font-medium tracking-[0.15em] text-[var(--textMuted)]">Workspace</div>
+            <div className="font-bold text-[16px] text-white tracking-tight mb-[3px]">
+              ClawDrive
+              {isReadOnly && (
+                <span className="ml-3 inline-flex items-center gap-1 rounded bg-[#ff3366]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#ff3366] border border-[#ff3366]/20 align-middle -translate-y-[1px]">
+                  <AlertTriangle size={10} strokeWidth={3} />
+                  Read-Only Demo
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-[#6ee7ff]">Workspace</div>
+              {fileCount !== null && (
+                <div className="flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-[#1f3647]"></span>
+                  <span className="text-[10px] font-semibold tracking-wider text-[#6b8a9e]">
+                    {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -57,18 +80,19 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
       {/* Right: Tabs + Count */}
       <div
         className={cx(
-          "flex min-w-0 items-center justify-end gap-4 transition-opacity duration-150 flex-shrink-0 w-[380px]",
+          "flex min-w-0 items-center justify-end gap-3 transition-opacity duration-150 flex-shrink-0 w-[420px]",
           searchActive ? "opacity-[0.55]" : "opacity-100",
         )}
       >
         <ViewTabs activeView={activeView} onViewChange={onViewChange} />
+        <div className="w-px h-6 bg-[#1f3647]/80 mx-1"></div>
         <ShareInbox />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className={cx(ui.subtleButton, "gap-2 px-3.5 py-2 text-[12px]")}
+          className="group relative inline-flex items-center justify-center gap-2 px-4 h-[40px] text-[13px] rounded-xl font-bold border border-[#1f3647]/50 bg-[#0e1a24] text-[#e6f0f7] hover:bg-white/5 hover:border-[#6ee7ff]/30 hover:text-white shadow-inner transition-all"
           title="Upload files"
         >
-          <Upload size={14} /> Upload
+          <Upload size={16} className="text-[#6ee7ff] group-hover:text-[#6ee7ff]"/> Upload
         </button>
         <input
           ref={fileInputRef}
@@ -81,11 +105,6 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
             e.target.value = "";
           }}
         />
-        {fileCount !== null && (
-          <span className="rounded-full border border-white/8 bg-white/[0.04] px-2.5 py-1 text-[11px] text-[var(--textMuted)]">
-            {fileCount.toLocaleString()} file{fileCount !== 1 ? "s" : ""}
-          </span>
-        )}
       </div>
     </header>
   );

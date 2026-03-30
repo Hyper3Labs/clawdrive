@@ -33,6 +33,7 @@ export function registerServeCommand(program: Command) {
         port: bindings.port,
         host: bindings.host,
         staticDir,
+        readOnly: Boolean(cmdOpts.demo),
       });
 
       app.listen(bindings.port, bindings.host, () => {

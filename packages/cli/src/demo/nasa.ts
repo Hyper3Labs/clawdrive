@@ -5,13 +5,14 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import {
   acquireLock,
+  buildPotTag,
   createDatabase,
   getFilesTable,
-  store,
   toFileRecord,
   update,
   type EmbeddingProvider,
 } from "@clawdrive/core";
+import { ensurePotForImport, importSourceToPot, summarizeImportResults } from "../pot-import.js";
 
 const NASA_DEMO_NAME = "nasa";
 export const NASA_DEMO_WORKSPACE = "nasa-demo";
@@ -154,21 +155,32 @@ async function ensureSeeded(
   await cleanupLegacySeedData(manifest, ctx);
 
   const potName = "NASA Demo";
+  const { pot } = await ensurePotForImport(
+    undefined,
+    { name: potName, description: "Curated NASA sample dataset." },
+    { wsPath: ctx.wsPath },
+  );
   const markerPath = join(ctx.wsPath, NASA_SEED_MARKER);
   const marker = await readJsonFileOrNull<NasaSeedMarker>(markerPath);
   if (
     marker &&
     marker.datasetId === datasetId &&
     marker.fileCount === manifest.entries.length &&
-    marker.totalBytes === manifest.totalBytes
+    marker.totalBytes === manifest.totalBytes &&
+    (await hasCompletePotAttachment(manifest, pot.slug, ctx))
   ) {
     console.log(`[demo:${NASA_DEMO_NAME}] demo dataset already seeded`);
-    return { pot: potName, alreadyInstalled: true, stored: 0, attached: 0, existing: manifest.entries.length, failed: 0 };
+    return {
+      pot: pot.slug,
+      alreadyInstalled: true,
+      stored: 0,
+      attached: 0,
+      existing: manifest.entries.length,
+      failed: 0,
+    };
   }
 
-  let stored = 0;
-  let duplicates = 0;
-  let failed = 0;
+  const results = [];
 
   for (const [index, entry] of manifest.entries.entries()) {
     const sourcePath = await resolveEntryPath(entry, sampleDir, cacheDir);
@@ -176,20 +188,19 @@ async function ensureSeeded(
       `[demo:${NASA_DEMO_NAME}] ingesting ${index + 1}/${manifest.entries.length}: ${entry.fileName}`,
     );
 
-    const result = await store(
+    const result = await importSourceToPot(
       {
-        sourcePath,
+        source: entry.fileName,
+        path: sourcePath,
         sourceUrl: entry.sourceUrl ?? undefined,
       },
+      pot.slug,
       { wsPath: ctx.wsPath, embedder: ctx.embedder },
     );
-
-    if (result.status === "duplicate") {
-      duplicates += 1;
-    } else {
-      stored += 1;
-    }
+    results.push(result);
   }
+
+  const summary = summarizeImportResults(results);
 
   await mkdir(dirname(markerPath), { recursive: true });
   await writeFile(
@@ -208,10 +219,42 @@ async function ensureSeeded(
   );
 
   console.log(
-    `[demo:${NASA_DEMO_NAME}] seed complete: ${stored} stored, ${duplicates} duplicates`,
+    `[demo:${NASA_DEMO_NAME}] seed complete: ${summary.stored} stored, ${summary.attached} attached, ${summary.existing} existing, ${summary.failed} failed`,
   );
 
-  return { pot: potName, alreadyInstalled: false, stored, attached: 0, existing: duplicates, failed };
+  return {
+    pot: pot.slug,
+    alreadyInstalled: false,
+    stored: summary.stored,
+    attached: summary.attached,
+    existing: summary.existing,
+    failed: summary.failed,
+  };
+}
+
+async function hasCompletePotAttachment(
+  manifest: NasaManifest,
+  potSlug: string,
+  ctx: DemoContext,
+): Promise<boolean> {
+  const db = await createDatabase(join(ctx.wsPath, "db"));
+  const table = await getFilesTable(db, ctx.wsPath);
+  const rows = await table
+    .query()
+    .where("deleted_at IS NULL AND parent_id IS NULL")
+    .limit(1_000_000)
+    .toArray();
+
+  const manifestNames = new Set(manifest.entries.map((entry) => entry.fileName));
+  const potTag = buildPotTag(potSlug);
+  const attachedNames = new Set(
+    rows
+      .map((row) => toFileRecord(row as Record<string, unknown>))
+      .filter((file) => manifestNames.has(file.original_name) && file.tags.includes(potTag))
+      .map((file) => file.original_name),
+  );
+
+  return attachedNames.size === manifest.entries.length;
 }
 
 async function cleanupLegacySeedData(

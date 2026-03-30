@@ -57,6 +57,10 @@ export async function ensurePotForImport(
   return { pot: created, created: true };
 }
 
+function hasText(value: string | null | undefined): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export async function importSourceToPot(
   source: PotImportSource,
   potSlug: string,
@@ -90,17 +94,29 @@ export async function importSourceToPot(
     throw new Error(`Duplicate file vanished: ${existingId}`);
   }
 
-  if (existing.tags.includes(potTag)) {
-    return { source: source.source, status: "existing", id: existing.id };
+  const needsPotTag = !existing.tags.includes(potTag);
+  const needsDisplayName = hasText(source.displayName) && !hasText(existing.display_name);
+  const needsTldr = hasText(source.tldr) && !hasText(existing.tldr ?? existing.abstract ?? existing.description);
+  const needsDigest = hasText(source.digest) && !hasText(existing.digest);
+
+  if (needsPotTag || needsDisplayName || needsTldr || needsDigest) {
+    await update(
+      existing.id,
+      {
+        ...(needsPotTag ? { tags: dedupeTags([...existing.tags, potTag]) } : {}),
+        ...(needsDisplayName ? { displayName: source.displayName ?? null } : {}),
+        ...(needsTldr ? { tldr: source.tldr ?? null } : {}),
+        ...(needsDigest ? { digest: source.digest ?? null } : {}),
+      },
+      { wsPath: opts.wsPath },
+    );
   }
 
-  await update(
-    existing.id,
-    { tags: dedupeTags([...existing.tags, potTag]) },
-    { wsPath: opts.wsPath },
-  );
-
-  return { source: source.source, status: "attached", id: existing.id };
+  return {
+    source: source.source,
+    status: needsPotTag ? "attached" : "existing",
+    id: existing.id,
+  };
 }
 
 export function summarizeImportResults(results: PotImportResult[]): {

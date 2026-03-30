@@ -2,6 +2,11 @@ import type { UploadResult } from "./types";
 
 const BASE = "/api";
 
+export async function getConfig() {
+  const res = await fetch(`${BASE}/config`);
+  return res.json();
+}
+
 export async function searchFiles(
   query: string,
   opts?: { type?: string; tags?: string; pot?: string; limit?: number; minScore?: number },

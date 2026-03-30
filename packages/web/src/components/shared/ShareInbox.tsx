@@ -67,13 +67,13 @@ export function ShareInbox() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className={cx(ui.subtleButton, "relative")}
+        className="group relative inline-flex items-center justify-center gap-2 px-4 h-[40px] text-[13px] rounded-xl font-bold border border-[#1f3647]/50 bg-[#0e1a24] text-[#e6f0f7] hover:bg-white/5 hover:border-[#6ee7ff]/30 hover:text-white shadow-inner transition-all"
         title="Share inbox"
       >
-        <Link size={14} />
+        <Link size={16} className="text-[#6b8a9e] group-hover:text-[#6ee7ff]" />
         Shares
         {items.length > 0 && (
-          <span className="bg-[var(--accent-warm)] text-[var(--background)] text-[9px] font-bold min-w-[16px] h-4 rounded-full inline-flex items-center justify-center px-1">
+          <span className="absolute -top-1.5 -right-1.5 bg-[#ffb84d] text-[#0a0a0f] text-[10px] font-bold min-w-[18px] h-[18px] rounded-full inline-flex items-center justify-center px-1 shadow-sm">
             {items.length}
           </span>
         )}

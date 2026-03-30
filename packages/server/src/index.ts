@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { EmbeddingProvider } from "@clawdrive/core";
 import { createAppShell } from "./app.js";
 import { errorHandler } from "./middleware/error.js";
+import { createReadOnlyMiddleware } from "./middleware/read-only.js";
 import { createFileRoutes } from "./routes/files.js";
 import { createThumbnailRoutes } from "./routes/thumbnails.js";
 import { createPotRoutes } from "./routes/pots.js";
@@ -20,12 +21,17 @@ export interface ServerOptions {
   port: number;
   host: string;
   staticDir?: string;
+  readOnly?: boolean;
 }
 
 export function createServer(opts: ServerOptions) {
   const app = createAppShell();
 
   app.use("/s", createPublicShareRoutes(opts.wsPath));
+
+  if (opts.readOnly) {
+    app.use("/api", createReadOnlyMiddleware());
+  }
 
   // API routes
   app.use("/api/files", createThumbnailRoutes(opts.wsPath));
@@ -36,6 +42,9 @@ export function createServer(opts: ServerOptions) {
   app.use("/api/taxonomy", createTaxonomyRoutes(opts.wsPath));
   app.use("/api/projections", createProjectionRoutes(opts.wsPath));
   app.use("/api/usage", createUsageRoutes(opts.wsPath));
+  app.get("/api/config", (req, res) => {
+    res.json({ readOnly: !!opts.readOnly });
+  });
 
   // Serve static web UI if provided
   if (opts.staticDir) {
