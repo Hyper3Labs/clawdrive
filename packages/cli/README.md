@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://github.com/Hyper3Labs/clawdrive/blob/main/LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/Hyper3Labs/clawdrive?style=flat-square&color=green)](https://github.com/Hyper3Labs/clawdrive/releases)
-[![🤗 Live Demo](https://img.shields.io/badge/%F0%9F%A4%97-Live%20Demo-orange?style=flat-square)](https://huggingface.co/spaces/hyper3labs/clawdrive)
+
 
 ## Quick Start
 
