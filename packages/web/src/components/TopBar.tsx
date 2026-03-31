@@ -48,24 +48,23 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         <Menu size={18} />
       </button>
       <div className={cx("min-w-0 transition-opacity duration-150 shrink-0", searchActive ? "opacity-[0.55]" : "opacity-100")}>
-        <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="" width={26} height={26} className="shrink-0" />
+        <div className="flex items-center gap-2.5">
+          <img src="/favicon.svg" alt="" width={24} height={24} className="shrink-0" />
           <div className="min-w-0 leading-none">
-            <div className="font-bold text-xl text-white tracking-tight mb-[3px]">
-              ClawDrive
-              {isReadOnly && (
-                <span className="text-xs text-[var(--text-muted)] ml-2">Demo</span>
-              )}
+            <div className="font-semibold text-sm text-[var(--text)] tracking-tight">
+              ClawDrive Workspace
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-xs uppercase font-bold tracking-widest text-[var(--accent)]">Workspace</div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {isReadOnly && (
+                <>
+                  <span className="text-xs text-[var(--text-muted)]">Demo</span>
+                  <span className="text-xs text-[var(--text-muted)]">·</span>
+                </>
+              )}
               {fileCount !== null && (
-                <div className="flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
-                  <span className="text-xs font-semibold tracking-wider text-[var(--text-muted)]">
-                    {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
-                  </span>
-                </div>
+                <span className="text-xs text-[var(--text-muted)]">
+                  {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
+                </span>
               )}
             </div>
           </div>
@@ -92,9 +91,12 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         <div className="w-px h-6 bg-[var(--border)]/80 mx-1"></div>
         <ShareInbox />
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="hidden md:inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]"
-          title="Upload files"
+          onClick={() => !isReadOnly && fileInputRef.current?.click()}
+          className={cx(
+            "hidden md:inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]",
+            isReadOnly && "opacity-40 cursor-not-allowed"
+          )}
+          title={isReadOnly ? "Read-only demo" : "Upload files"}
         >
           <Upload size={16} /> Upload
         </button>

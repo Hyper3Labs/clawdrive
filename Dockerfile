@@ -28,4 +28,4 @@ RUN npm run build:web && npm run build
 
 EXPOSE 7860
 
-CMD ["node", "packages/cli/dist/bin/clawdrive.js", "serve", "--demo", "nasa", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["node", "packages/cli/dist/bin/clawdrive.js", "serve", "--demo", "nasa", "--read-only", "--host", "0.0.0.0", "--port", "7860"]

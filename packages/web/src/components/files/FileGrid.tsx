@@ -8,6 +8,7 @@ import { useVisualizationStore } from "../space/useVisualizationStore";
 import { useToast } from "../shared/Toast";
 import { FileText, Video, Volume2, FileCode, Music } from "lucide-react";
 import { formatFileSize, isTextLikeContentType } from "../../utils/files";
+import { Masonry } from "react-plock";
 
 export type SortMode = "recent" | "name" | "type" | "size";
 
@@ -24,8 +25,9 @@ function contentTypeIcon(ct: string, size = 16): ReactNode {
   return <FileCode size={size} />;
 }
 
-// Global snippet cache — survives re-renders and re-mounts
+// Global caches — survive re-renders and re-mounts
 const snippetCache = new Map<string, string>();
+const imageBlobCache = new Map<string, string>();
 
 const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file: FileInfo; onClick: () => void; onContextMenu: (e: React.MouseEvent) => void }) {
   const isImage = file.content_type.startsWith("image/");
@@ -35,6 +37,9 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
   const isText = isTextLikeContentType(file.content_type);
   const [textSnippet, setTextSnippet] = useState<string | null>(
     snippetCache.get(file.id) ?? null
+  );
+  const [imageSrc, setImageSrc] = useState<string | null>(
+    imageBlobCache.get(file.id) ?? null
   );
 
   useEffect(() => {
@@ -50,9 +55,23 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
     }
   }, [file.id, isText]);
 
+  // Cache image blob URLs so remounts show instantly
+  useEffect(() => {
+    if (isImage && !imageBlobCache.has(file.id)) {
+      fetch(`/api/files/${file.id}/content`)
+        .then((r) => r.blob())
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          imageBlobCache.set(file.id, url);
+          setImageSrc(url);
+        })
+        .catch(() => {});
+    }
+  }, [file.id, isImage]);
+
   return (
     <div
-      className="bg-[var(--bg-panel)] border border-[var(--border)]/50 shadow-md shadow-black/20 rounded-xl cursor-pointer flex flex-col overflow-hidden mb-4 break-inside-avoid transition-all duration-200 hover:bg-[var(--border)]/40 hover:border-[var(--accent)]/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
+      className="bg-[var(--bg-panel)] border border-[var(--border)]/50 shadow-md shadow-black/20 rounded-xl cursor-pointer flex flex-col overflow-hidden transition-all duration-200 hover:bg-[var(--border)]/40 hover:border-[var(--accent)]/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
@@ -60,10 +79,10 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
       {isImage ? (
         <div className="bg-[var(--surface-1)]">
           <img
-            src={`/api/files/${file.id}/content`}
+            src={imageSrc ?? `/api/files/${file.id}/content`}
             alt={file.name}
             className="w-full block"
-            loading="lazy"
+            loading={imageSrc ? undefined : "lazy"}
           />
         </div>
       ) : isVideo ? (
@@ -139,9 +158,9 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
   const pendingDeletes = useVisualizationStore((s) => s.pendingDeletes);
   const { show } = useToast();
 
-  // Fetch once on mount
+  // Fetch on mount and when pot changes — keep showing old cards while fetching
   useEffect(() => {
-    setLoading(true);
+    if (allFiles.length === 0) setLoading(true);
     let cancelled = false;
 
     async function fetchAll() {
@@ -216,8 +235,16 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
 
   return (
     <>
-      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-5 py-2">
-        {displayFiles.map((f) => (
+      <Masonry
+        items={displayFiles}
+        config={{
+          columns: [2, 3, 4, 5],
+          gap: [16, 16, 20, 20],
+          media: [640, 768, 1024, 1280],
+          useBalancedLayout: true,
+        }}
+        className="py-2"
+        render={(f) => (
           <FileCard
             key={f.id}
             file={f}
@@ -227,8 +254,8 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
               setCtxMenu({ x: e.clientX, y: e.clientY, file: f });
             }}
           />
-        ))}
-      </div>
+        )}
+      />
       {ctxMenu && (
         <ContextMenu
           x={ctxMenu.x}

@@ -69,7 +69,7 @@ export function ShareInbox() {
         className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)] relative"
         title="Share inbox"
       >
-        <Link size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
+        <Link size={16} />
         Shares
         {items.length > 0 && (
           <span className="absolute -top-1.5 -right-1.5 bg-[var(--accent-warm)] text-[var(--bg)] text-xs font-bold min-w-[18px] h-[18px] rounded-full inline-flex items-center justify-center px-1 shadow-sm">

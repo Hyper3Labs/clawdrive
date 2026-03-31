@@ -8,6 +8,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+// Module-level cache — survives re-renders and re-mounts
+const thumbnailCache = new Map<string, string>();
+
 interface PdfThumbnailProps {
   url: string;
   desiredWidth?: number;
@@ -16,8 +19,15 @@ interface PdfThumbnailProps {
 export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState(false);
+  const [cached, setCached] = useState<string | null>(thumbnailCache.get(url) ?? null);
 
   useEffect(() => {
+    // If already cached, no need to render
+    if (thumbnailCache.has(url)) {
+      setCached(thumbnailCache.get(url)!);
+      return;
+    }
+
     let cancelled = false;
     let pdfDocument: { destroy(): Promise<void> } | null = null;
     let renderTask: { cancel(): void; promise: Promise<unknown> } | null = null;
@@ -47,6 +57,17 @@ export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
 
         renderTask = page.render({ canvas, canvasContext: ctx, viewport });
         await renderTask.promise;
+
+        // Cache the rendered thumbnail as a data URL
+        if (!cancelled) {
+          try {
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            thumbnailCache.set(url, dataUrl);
+            setCached(dataUrl);
+          } catch {
+            // toDataURL can fail on tainted canvases — ignore
+          }
+        }
       } catch {
         if (!cancelled) setError(true);
       }
@@ -68,10 +89,24 @@ export function PdfThumbnail({ url, desiredWidth = 300 }: PdfThumbnailProps) {
     );
   }
 
+  // Show cached image instantly — no white flash
+  if (cached) {
+    return (
+      <img
+        src={cached}
+        alt=""
+        className="block w-full rounded-t-[8px]"
+      />
+    );
+  }
+
+  // First render — show dark placeholder while canvas renders behind the scenes
   return (
-    <canvas
-      ref={canvasRef}
-      className="block w-full rounded-t-[8px] bg-white"
-    />
+    <div className="relative">
+      <canvas
+        ref={canvasRef}
+        className="block w-full rounded-t-[8px] bg-[var(--bg-panel)]"
+      />
+    </div>
   );
 }

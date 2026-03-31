@@ -21,6 +21,7 @@ export function registerServeCommand(program: Command) {
     .option("--public-port <port>", "Optional share-only public surface port")
     .option("--public-host <host>", "Host to bind the share-only public surface")
     .option("--demo <dataset>", "Prepare and launch a curated demo dataset")
+    .option("--read-only", "Block all mutations (read-only mode)")
     .option("--open", "Open browser after starting")
     .action(async (cmdOpts, cmd) => {
       const ctx = await setupServerContext(cmd);
@@ -33,7 +34,7 @@ export function registerServeCommand(program: Command) {
         port: bindings.port,
         host: bindings.host,
         staticDir,
-        readOnly: Boolean(cmdOpts.demo),
+        readOnly: Boolean(cmdOpts.readOnly),
       });
 
       app.listen(bindings.port, bindings.host, () => {

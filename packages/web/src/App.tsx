@@ -54,9 +54,9 @@ export function App() {
         />
 
         {view === "space" ? (
-          <div className="flex-1 min-h-0 flex bg-[#0a0a0f]">
-            {/* Desktop sidebar */}
-            <div className="hidden md:flex w-72 shrink-0 border-r border-[var(--border)]/50 bg-[rgba(6,16,24,0.5)] flex-col overflow-y-auto">
+          <div className="flex-1 min-h-0 flex relative">
+            {/* Desktop sidebar — absolutely positioned to overlay canvas for transparency */}
+            <div className="hidden md:flex absolute left-0 top-0 h-full w-72 z-sidebar border-r border-[var(--border)]/50 bg-[var(--bg-panel)]/80 backdrop-blur-sm flex-col overflow-y-auto">
               <PotsSidebar
                 selectedSlug={selectedPotSlug}
                 onSelectPot={(slug) => {
