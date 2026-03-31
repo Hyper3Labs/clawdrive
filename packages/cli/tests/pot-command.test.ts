@@ -151,6 +151,29 @@ describe("CLI pot commands", () => {
     expect(potFiles[0]?.original_name).toBe("potfile.md");
   });
 
+  it("deletes a pot with pot delete", async () => {
+    const program1 = createProgram();
+    registerPotCommand(program1);
+    await runCommand(program1, ["pot", "create", "doomed-pot"]);
+
+    const program2 = createProgram();
+    registerPotCommand(program2);
+    const result = await runCommand(program2, ["pot", "delete", "doomed-pot"]);
+
+    expect(result.errors).toEqual([]);
+    expect(result.logs).toHaveLength(1);
+
+    const output = JSON.parse(result.logs[0]);
+    expect(output).toMatchObject({ deleted: true, slug: "doomed-pot" });
+
+    // Verify pot is gone
+    const program3 = createProgram();
+    registerPotCommand(program3);
+    const listResult = await runCommand(program3, ["pot", "list"]);
+    const pots = JSON.parse(listResult.logs[0]);
+    expect(pots).toHaveLength(0);
+  });
+
   it("lists pots with pot list", async () => {
     const program1 = createProgram();
     registerPotCommand(program1);

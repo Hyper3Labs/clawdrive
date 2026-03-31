@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { createPot, requirePot, listPots, listPotFiles } from "@clawdrive/core";
+import { createPot, requirePot, listPots, listPotFiles, deletePot } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
 import { formatPotList } from "../formatters/human.js";
 import { getGlobalOptions, setupContext, setupWorkspaceContext } from "../helpers.js";
@@ -62,6 +62,29 @@ export function registerPotCommand(program: Command) {
         }
       } catch (err) {
         console.error(`Error listing pots: ${(err as Error).message}`);
+        process.exit(1);
+      }
+    });
+
+  pot
+    .command("delete <pot>")
+    .alias("rm")
+    .description("Delete a pot (files are untagged, not removed)")
+    .action(async (potRef: string, _cmdOpts, cmd) => {
+      const globalOpts = getGlobalOptions(cmd);
+      const ctx = await setupWorkspaceContext(globalOpts);
+
+      try {
+        const potRecord = await requirePot(potRef, { wsPath: ctx.wsPath });
+        await deletePot(potRecord.id, { wsPath: ctx.wsPath });
+
+        if (globalOpts.json) {
+          console.log(formatJson({ deleted: true, slug: potRecord.slug }));
+        } else {
+          console.log(`Deleted pot ${potRecord.slug}`);
+        }
+      } catch (err) {
+        console.error(`Error deleting pot: ${(err as Error).message}`);
         process.exit(1);
       }
     });
