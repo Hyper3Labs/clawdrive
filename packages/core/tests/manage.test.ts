@@ -168,4 +168,17 @@ describe("manage", () => {
     expect(result.healthy).toBe(true);
     expect(result.issues).toEqual([]);
   });
+
+  it("doctor reports missing API key", async () => {
+    const configPath = join(ctx.baseDir, "config.json");
+    const result = await doctor({
+      wsPath: ctx.wsPath,
+      configPath,
+      envApiKey: undefined,
+    });
+    expect(result.healthy).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.stringContaining("No Gemini API key configured"),
+    );
+  });
 });

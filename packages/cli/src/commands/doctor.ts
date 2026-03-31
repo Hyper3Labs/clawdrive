@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import chalk from "chalk";
+import { join } from "node:path";
 import { doctor } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
 import { getGlobalOptions, setupWorkspaceContext } from "../helpers.js";
@@ -13,7 +14,12 @@ export function registerDoctorCommand(program: Command) {
       const ctx = await setupWorkspaceContext(globalOpts);
 
       try {
-        const result = await doctor({ wsPath: ctx.wsPath });
+        const configPath = join(ctx.baseDir, "config.json");
+        const result = await doctor({
+          wsPath: ctx.wsPath,
+          configPath,
+          envApiKey: process.env.GEMINI_API_KEY,
+        });
 
         if (globalOpts.json) {
           console.log(formatJson(result));

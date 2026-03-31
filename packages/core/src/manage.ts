@@ -7,6 +7,7 @@ import { acquireLock } from "./lock.js";
 import { normalizeCaption, normalizeTldr, normalizeTranscript } from "./metadata.js";
 import { normalizeDigest } from "./digests.js";
 import { ensureUniqueFileName, getFileName, normalizeDisplayName } from "./display-names.js";
+import { loadConfig, resolveApiKey } from "./config.js";
 
 export interface ManageOptions {
   wsPath: string;
@@ -238,13 +239,29 @@ export async function gc(
 /**
  * Health check: report issues with the workspace.
  */
+export interface DoctorOptions extends ManageOptions {
+  configPath?: string;
+  envApiKey?: string;
+}
+
 export async function doctor(
-  opts: ManageOptions,
+  opts: DoctorOptions,
 ): Promise<{ healthy: boolean; issues: string[] }> {
   const { wsPath } = opts;
   const dbPath = join(wsPath, "db");
   const filesDir = join(wsPath, "files");
   const issues: string[] = [];
+
+  // Check API key configuration
+  if (opts.configPath) {
+    const config = await loadConfig(opts.configPath);
+    const apiKey = resolveApiKey(opts.envApiKey, config.gemini_api_key);
+    if (!apiKey) {
+      issues.push(
+        'No Gemini API key configured. Set GEMINI_API_KEY or add gemini_api_key to ~/.clawdrive/config.json',
+      );
+    }
+  }
 
   try {
     const db = await createDatabase(dbPath);
