@@ -30,7 +30,7 @@ function scoreColor(score: number): string {
 }
 
 const kbdClassName =
-  "mx-[3px] inline-block rounded border border-[var(--border-subtle)] px-[5px] py-px text-[10px] leading-4";
+  "mx-[3px] inline-block rounded border border-[var(--border-subtle)] px-[5px] py-px text-xs leading-4";
 
 export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
   function InlineSearch({ onSelectResult, onActiveChange }, ref) {
@@ -180,16 +180,16 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
-            className="min-w-0 flex-1 border-none bg-transparent text-[15px] font-medium text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]/60"
+            className="min-w-0 flex-1 border-none bg-transparent text-lg font-medium text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]/60"
           />
           {loading && (
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent)]/80">searching...</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]/80">searching...</span>
           )}
           {!loading && !dropdownOpen && (
-            <span className="text-[11px] font-semibold tracking-wider text-[var(--text-muted)] border border-[var(--border-strong)] px-2 py-0.5 rounded bg-[var(--surface-2)]">&#8984;K</span>
+            <span className="text-xs font-semibold tracking-wider text-[var(--text-muted)] border border-[var(--border-strong)] px-2 py-0.5 rounded bg-[var(--surface-2)]">&#8984;K</span>
           )}
           {dropdownOpen && (
-            <span className="text-[11px] font-semibold tracking-wider text-[var(--text-muted)] border border-[var(--border-strong)] px-2 py-0.5 rounded bg-[var(--surface-2)]">Esc</span>
+            <span className="text-xs font-semibold tracking-wider text-[var(--text-muted)] border border-[var(--border-strong)] px-2 py-0.5 rounded bg-[var(--surface-2)]">Esc</span>
           )}
         </div>
 
@@ -202,7 +202,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             </div>
 
             {results.length === 0 && query.trim() && !loading && (
-              <div className="px-4 py-6 text-center text-[13px] text-[var(--text-muted)]">
+              <div className="px-4 py-6 text-center text-base text-[var(--text-muted)]">
                 No results found
               </div>
             )}
@@ -222,11 +222,11 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[var(--surface-2)] text-[var(--text-muted)]">
                     {contentTypeIcon(r.contentType)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-[var(--text)]">
+                  <span className="min-w-0 flex-1 truncate text-base font-semibold leading-5 text-[var(--text)]">
                     {r.file}
                   </span>
                   <span
-                    className="ml-2 shrink-0 rounded-[4px] bg-[var(--accent-a10)] px-1.5 py-[2px] text-[10px] font-semibold"
+                    className="ml-2 shrink-0 rounded-[4px] bg-[var(--accent-a10)] px-1.5 py-[2px] text-xs font-semibold"
                     style={{ color: scoreColor(r.score) }}
                   >
                     {r.score.toFixed(2)}
@@ -234,13 +234,13 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
                 </div>
 
                 {r.taxonomyPath && r.taxonomyPath.length > 0 && (
-                  <div className="mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[var(--text-faint)]">
+                  <div className="mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-[var(--text-faint)]">
                     {r.taxonomyPath.join(" \u203A ")}
                   </div>
                 )}
 
                 {(r.matchedChunk || r.tldr || r.description) && (
-                  <div className="max-h-[3.35em] overflow-hidden rounded-md border-l-2 border-[var(--accent-a35)] bg-[var(--bg-panel)]/60 px-2.5 py-2 text-[12px] leading-[1.4] text-[var(--text)]/58 whitespace-normal">
+                  <div className="max-h-[3.35em] overflow-hidden rounded-md border-l-2 border-[var(--accent-a35)] bg-[var(--bg-panel)]/60 px-2.5 py-2 text-sm leading-[1.4] text-[var(--text)]/58 whitespace-normal">
                     {r.matchedChunk ? r.matchedChunk.label : (r.tldr ?? r.description)}
                   </div>
                 )}
@@ -248,7 +248,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             ))}
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-[var(--border)]/40 bg-[var(--bg-panel)]/50 px-4 py-2 text-[11px] text-[var(--text-faint)]">
+            <div className="flex items-center justify-between border-t border-[var(--border)]/40 bg-[var(--bg-panel)]/50 px-4 py-2 text-xs text-[var(--text-faint)]">
               <span>
                 <kbd className={kbdClassName}>{"\u2191"}</kbd>
                 <kbd className={kbdClassName}>{"\u2193"}</kbd> navigate{" "}

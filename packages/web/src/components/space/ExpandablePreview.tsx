@@ -31,11 +31,11 @@ function TextPreview({ point }: { point: ProjectionPoint }) {
   }, [contentUrl]);
 
   if (text === null) {
-    return <div className="flex h-[200px] items-center justify-center text-[13px] text-[var(--text-muted)]">Loading...</div>;
+    return <div className="flex h-[200px] items-center justify-center text-base text-[var(--text-muted)]">Loading...</div>;
   }
 
   return (
-    <pre className="m-0 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-words bg-transparent p-3.5 font-mono text-[11px] leading-[1.5] text-[var(--text)]">
+    <pre className="m-0 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-words bg-transparent p-3.5 font-mono text-xs leading-[1.5] text-[var(--text)]">
       {text.slice(0, 3000)}
     </pre>
   );
@@ -81,7 +81,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   }
 
   return (
-    <div className="flex h-[200px] items-center justify-center text-[13px] uppercase tracking-[0.6px]" style={{ color }}>
+    <div className="flex h-[200px] items-center justify-center text-base uppercase tracking-wider" style={{ color }}>
       {label} preview unavailable
     </div>
   );
@@ -114,7 +114,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
               await unassignFileFromPot(point.id, pot.slug, localTags);
               setLocalTags((prev) => prev.filter((tag) => tag !== `pot:${pot.slug}`));
             }}
-            className={cx(ui.accentChip, "cursor-pointer px-2.5 py-1 text-[11px]")}
+            className={cx(ui.accentChip, "cursor-pointer px-2.5 py-1 text-xs")}
           >
             {pot.name} ×
           </button>
@@ -270,7 +270,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       style={{ zIndex: Z_INDEX.modal }}
     >
       <div
-        className={cx(ui.panel, "max-h-[80vh] w-[560px] overflow-y-auto p-5 text-[13px]")}
+        className={cx(ui.panel, "max-h-[80vh] w-[560px] overflow-y-auto p-5 text-base")}
         style={{
           background: "linear-gradient(135deg, rgba(8, 22, 32, 0.97), rgba(6, 16, 24, 0.97))",
           opacity,
@@ -278,7 +278,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
         }}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 break-words text-[15px] font-semibold text-[var(--text)]">{point.fileName}</div>
+          <div className="flex-1 break-words text-lg font-semibold text-[var(--text)]">{point.fileName}</div>
           <div className="flex shrink-0 items-center gap-1">
             <a
               href={fileContentUrl(point.id)}
@@ -306,7 +306,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           </div>
           <div>
             <div className={ui.eyebrow}>ID</div>
-            <div className="mt-0.5 text-[10px] text-[var(--text)] opacity-70">{point.id.slice(0, 12)}...</div>
+            <div className="mt-0.5 text-xs text-[var(--text)] opacity-70">{point.id.slice(0, 12)}...</div>
           </div>
         </div>
 

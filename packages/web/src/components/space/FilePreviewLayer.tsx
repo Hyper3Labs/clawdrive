@@ -70,7 +70,7 @@ function PreviewCard({
           <MapPreviewSurface point={point} variant="card" />
         </div>
         <div
-          className="max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap rounded-[3px] bg-[rgba(6,16,24,0.75)] px-1.5 py-px text-[8px] font-bold leading-[1.2] tracking-[0.5px]"
+          className="max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap rounded-[3px] bg-[rgba(6,16,24,0.75)] px-1.5 py-px text-xs font-bold leading-[1.2] tracking-wider"
           style={{ color }}
         >
           {label} · {point.fileName.replace(/\.[^.]+$/, "")}
