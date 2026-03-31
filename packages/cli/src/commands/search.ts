@@ -54,15 +54,25 @@ export function registerSearchCommand(program: Command) {
         }
       } catch (err) {
         const msg = (err as Error).message ?? "";
-        if (
+        const isAuthError =
           msg.includes("API key expired") ||
           msg.includes("API key not valid") ||
-          msg.includes("API_KEY_INVALID")
-        ) {
+          msg.includes("API_KEY_INVALID");
+        const isRateLimit = msg.includes("429");
+
+        if (globalOpts.json) {
+          const code = isAuthError ? "INVALID_API_KEY" : isRateLimit ? "RATE_LIMIT" : "SEARCH_ERROR";
+          const error = isAuthError
+            ? "Gemini API key is invalid or expired."
+            : isRateLimit
+              ? "Gemini API rate limit exceeded."
+              : msg;
+          console.error(JSON.stringify({ error, code }));
+        } else if (isAuthError) {
           console.error("Error: Gemini API key is invalid or expired.");
           console.error("Get a free key at https://aistudio.google.com/apikey");
           console.error('Set it with: export GEMINI_API_KEY="your-key"');
-        } else if (msg.includes("429")) {
+        } else if (isRateLimit) {
           console.error("Error: Gemini API rate limit exceeded. Wait a moment and retry.");
         } else {
           console.error(`Search error: ${msg}`);

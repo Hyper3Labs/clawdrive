@@ -43,6 +43,14 @@ Create a new pot.
 |---|---|
 | `--desc <text>` | Pot description |
 
+### `cdrive pot list`
+
+List all pots with file counts. Alias: `cdrive pot ls`.
+
+### `cdrive pot delete <pot>`
+
+Delete a pot. Files are untagged from the pot but remain in the workspace. Alias: `cdrive pot rm`.
+
 ### `cdrive pot add <pot> <sources...>`
 
 Add local files, folders, or links directly to a pot.
@@ -91,9 +99,12 @@ List files missing agent-authored metadata (`tldr`, `transcript`, `caption`, `di
 
 | Option | Description | Default |
 |---|---|---|
+| `--pot <pot>` | Filter by pot name or slug | all pots |
 | `--kind <kinds>` | Comma-separated: `tldr`, `transcript`, `caption`, `digest`, `display_name` | all |
 | `--limit <n>` | Max items | `50` |
 | `--cursor <id>` | Resume after a previous item id | — |
+
+Only files with embeddings are included. The `transcript` kind applies to audio/video files, `caption` to images.
 
 ### `cdrive doctor`
 
