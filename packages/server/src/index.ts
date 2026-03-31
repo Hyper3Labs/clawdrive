@@ -33,6 +33,11 @@ export function createServer(opts: ServerOptions) {
     app.use("/api", createReadOnlyMiddleware());
   }
 
+  // Health check
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+
   // API routes
   app.use("/api/files", createThumbnailRoutes(opts.wsPath));
   app.use("/api/files", createFileRoutes(opts.wsPath, opts.embedder));
