@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -88,3 +88,12 @@ jobs:
       - name: Report already-published version
         if: github.event_name == 'push' && steps.exists.outputs.publish != 'true'
         run: echo "Nothing to publish. ${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }} is already on npm."
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && steps.exists.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "v${{ steps.pkg.outputs.version }}" \
+            --generate-notes
