@@ -53,7 +53,20 @@ export function registerSearchCommand(program: Command) {
           console.log(formatSearchResults(results));
         }
       } catch (err) {
-        console.error(`Search error: ${(err as Error).message}`);
+        const msg = (err as Error).message ?? "";
+        if (
+          msg.includes("API key expired") ||
+          msg.includes("API key not valid") ||
+          msg.includes("API_KEY_INVALID")
+        ) {
+          console.error("Error: Gemini API key is invalid or expired.");
+          console.error("Get a free key at https://aistudio.google.com/apikey");
+          console.error('Set it with: export GEMINI_API_KEY="your-key"');
+        } else if (msg.includes("429")) {
+          console.error("Error: Gemini API rate limit exceeded. Wait a moment and retry.");
+        } else {
+          console.error(`Search error: ${msg}`);
+        }
         process.exit(1);
       }
     });
