@@ -37,28 +37,28 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
 
   return (
     <header
-      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[var(--bg)] px-8 py-5 shadow-sm"
+      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[var(--bg)] px-5 py-2.5 shadow-sm"
     >
       {/* Left: Logo */}
-      <div className={cx("min-w-0 transition-opacity duration-150 flex-shrink-0 w-[240px]", searchActive ? "opacity-[0.55]" : "opacity-100")}>
+      <div className={cx("min-w-0 transition-opacity duration-150 shrink-0", searchActive ? "opacity-[0.55]" : "opacity-100")}>
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" width={26} height={26} className="shrink-0" />
           <div className="min-w-0 leading-none">
-            <div className="font-bold text-[16px] text-white tracking-tight mb-[3px]">
+            <div className="font-bold text-xl text-white tracking-tight mb-[3px]">
               ClawDrive
               {isReadOnly && (
-                <span className="ml-3 inline-flex items-center gap-1 rounded bg-[#ff3366]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#ff3366] border border-[#ff3366]/20 align-middle -translate-y-[1px]">
+                <span className="ml-3 inline-flex items-center gap-1 rounded bg-[#ff3366]/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-widest text-[#ff3366] border border-[#ff3366]/20 align-middle -translate-y-[1px]">
                   <AlertTriangle size={10} strokeWidth={3} />
                   Read-Only Demo
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-[var(--accent)]">Workspace</div>
+              <div className="text-xs uppercase font-bold tracking-widest text-[var(--accent)]">Workspace</div>
               {fileCount !== null && (
                 <div className="flex items-center gap-2">
                   <span className="w-1 h-1 rounded-full bg-[var(--border)]"></span>
-                  <span className="text-[10px] font-semibold tracking-wider text-[var(--text-muted)]">
+                  <span className="text-xs font-semibold tracking-wider text-[var(--text-muted)]">
                     {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
                   </span>
                 </div>
@@ -80,7 +80,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
       {/* Right: Tabs + Count */}
       <div
         className={cx(
-          "flex min-w-0 items-center justify-end gap-3 transition-opacity duration-150 flex-shrink-0 w-[420px]",
+          "flex min-w-0 items-center justify-end gap-3 transition-opacity duration-150 shrink-0",
           searchActive ? "opacity-[0.55]" : "opacity-100",
         )}
       >
@@ -89,7 +89,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         <ShareInbox />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="group relative inline-flex items-center justify-center gap-2 px-4 h-[40px] text-[13px] rounded-xl font-bold border border-[var(--border)]/50 bg-[var(--bg-panel)] text-[var(--text)] hover:bg-[var(--surface-2)] hover:border-[var(--accent)]/30 hover:text-white shadow-inner transition-all"
+          className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]"
           title="Upload files"
         >
           <Upload size={16} className="text-[var(--accent)] group-hover:text-[var(--accent)]"/> Upload

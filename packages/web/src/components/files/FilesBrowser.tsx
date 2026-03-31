@@ -49,27 +49,27 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
-        <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-8 py-5">
+        <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-2">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="rounded-full border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+            <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
               Scope
             </span>
-            <span className="truncate text-lg font-bold text-[var(--text)]">
+            <span className="truncate text-sm font-medium text-[var(--text)]">
               {selectedPotSlug ? `pot: ${selectedPotSlug}` : "All files"}
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-4">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Sort</span>
-            <div className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-panel)] p-1.5">
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Sort</span>
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] p-0.5">
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setSort(opt.value)}
                   className={cx(
-                    "rounded-lg border-none px-4 py-2 text-[13px] font-semibold transition-all duration-150",
+                    "rounded border-none px-2.5 py-1 text-xs font-medium transition-all duration-150",
                     sort === opt.value
-                      ? "bg-[var(--accent)]/20 text-[var(--text)] shadow-sm transform scale-105"
-                      : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-white",
+                      ? "bg-[var(--accent-a20)] text-[var(--text)]"
+                      : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)]",
                   )}
                 >
                   {opt.label}
