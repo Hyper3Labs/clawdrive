@@ -65,6 +65,23 @@ Prefer the hosted version? Try the live demo at [app.claw3drive.com](https://app
 
 > Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
+## Configuration
+
+ClawDrive reads settings from the environment and from `~/.clawdrive/config.json`:
+
+```jsonc
+{
+  "gemini_api_key": "your-key-here",   // alternative to GEMINI_API_KEY env var
+  "default_workspace": "default",
+  "embedding": {
+    "model": "gemini-embedding-2-preview",
+    "dimensions": 3072
+  }
+}
+```
+
+The `GEMINI_API_KEY` environment variable takes precedence over the config file. Data is stored in `~/.clawdrive/workspaces/`.
+
 ## Pots and sharing
 
 A pot can be anything — a specific codebase, a side-project workspace, or a feature's design docs. All search and sharing happens at the pot level, so you never accidentally expose files outside of it.
@@ -98,7 +115,9 @@ Agents don't need to read an entire file to decide if it's relevant. ClawDrive r
 | `cdrive search [query] --pot <pot>` | Search by meaning, scoped to one pot when you want it. |
 | `cdrive search --file <path>` | Use an image, PDF, audio, or video file as the query. |
 | `cdrive get <file-or-share>` | Read a file by canonical name, or inspect a share by id or token. |
-| `cdrive todo [--kind <kinds>]` | Find files still missing agent-written metadata such as `tldr`, `digest`, or `transcript`. |
+| `cdrive pot list` | List all pots with file counts. |
+| `cdrive pot delete <pot>` | Delete a pot (files are untagged, not removed). |
+| `cdrive todo [--pot <pot>] [--kind <kinds>]` | Find files still missing agent-written metadata such as `tldr`, `digest`, or `transcript`. |
 | `cdrive tldr <file>` | Show or update the short summary attached to a file. |
 | `cdrive share pot <pot> --to <principal>` | Create a pot-scoped share for a person or agent. |
 | `cdrive share pot <pot> --link` | Create a pending link share you can approve and send out. |
