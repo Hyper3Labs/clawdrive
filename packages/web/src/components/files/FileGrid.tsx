@@ -58,12 +58,14 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
     >
       {/* Preview area — natural height for images, variable for text */}
       {isImage ? (
-        <img
-          src={`/api/files/${file.id}/content`}
-          alt={file.name}
-          className="w-full block"
-          loading="lazy"
-        />
+        <div className="bg-[var(--surface-1)]">
+          <img
+            src={`/api/files/${file.id}/content`}
+            alt={file.name}
+            className="w-full block"
+            loading="lazy"
+          />
+        </div>
       ) : isVideo ? (
         <video
           src={`/api/files/${file.id}/content`}
@@ -214,7 +216,7 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
 
   return (
     <>
-      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-5 py-2">
+      <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-5 py-2">
         {displayFiles.map((f) => (
           <FileCard
             key={f.id}
