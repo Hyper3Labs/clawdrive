@@ -216,7 +216,7 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
 
   return (
     <>
-      <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-5 py-2">
+      <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-5 py-2">
         {displayFiles.map((f) => (
           <FileCard
             key={f.id}

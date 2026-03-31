@@ -41,7 +41,7 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0, sidebarOpen, 
     <DropZone onDrop={enqueue}>
     <div className="flex flex-1 overflow-hidden min-h-0 w-full">
       {/* Desktop sidebar — pots only */}
-      <div className="hidden md:flex w-60 shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg)]/50 flex-col overflow-y-auto">
+      <div className="hidden md:flex w-72 shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg)]/50 flex-col overflow-y-auto">
         <PotsSidebar
           selectedSlug={selectedPotSlug}
           onSelectPot={setSelectedPotSlug}
@@ -51,7 +51,7 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0, sidebarOpen, 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-overlay md:hidden" onClick={onCloseSidebar}>
-          <div className="absolute left-0 top-0 h-full w-60 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute left-0 top-0 h-full w-72 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <PotsSidebar
               selectedSlug={selectedPotSlug}
               onSelectPot={(slug) => {

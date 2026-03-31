@@ -56,7 +56,7 @@ export function App() {
         {view === "space" ? (
           <div className="flex-1 min-h-0 flex bg-[var(--bg)]">
             {/* Desktop sidebar */}
-            <div className="hidden md:flex w-60 shrink-0 border-r border-[var(--border-subtle)] flex-col overflow-y-auto">
+            <div className="hidden md:flex w-72 shrink-0 border-r border-[var(--border-subtle)] flex-col overflow-y-auto">
               <PotsSidebar
                 selectedSlug={selectedPotSlug}
                 onSelectPot={(slug) => {
@@ -68,7 +68,7 @@ export function App() {
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
               <div className="fixed inset-0 z-overlay md:hidden" onClick={() => setSidebarOpen(false)}>
-                <div className="absolute left-0 top-0 h-full w-60 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="absolute left-0 top-0 h-full w-72 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                   <PotsSidebar
                     selectedSlug={selectedPotSlug}
                     onSelectPot={(slug) => {

@@ -96,7 +96,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
           className="hidden md:inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]"
           title="Upload files"
         >
-          <Upload size={16} className="text-[var(--accent)] group-hover:text-[var(--accent)]"/> Upload
+          <Upload size={16} /> Upload
         </button>
         <input
           ref={fileInputRef}
