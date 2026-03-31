@@ -7,7 +7,7 @@ import { useVisualizationStore } from "./useVisualizationStore";
 import { useClickedPoint, useHoveredPoint } from "./useVisualizationHooks";
 
 const DIM_FACTOR = 0.96; // nearly invisible
-const BG_COLOR = new THREE.Color(MAP_THEME.background);
+const BG_COLOR = new THREE.Color(MAP_THEME.raw.background);
 const POT_HIGHLIGHT_COLOR = new THREE.Color("#FFEB3B"); // bright yellow for pot members
 
 interface Props {

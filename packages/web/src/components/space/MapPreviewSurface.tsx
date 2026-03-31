@@ -170,10 +170,10 @@ export function MapPreviewSurface({ point, variant }: MapPreviewSurfaceProps) {
         color,
       }}
     >
-      <div className="font-bold tracking-[1px]" style={{ fontSize: variant === "card" ? 16 : 18 }}>
+      <div className="font-bold tracking-widest" style={{ fontSize: variant === "card" ? 16 : 18 }}>
         {label}
       </div>
-      <div className="text-[var(--text)] opacity-60 tracking-[0.8px]" style={{ fontSize: variant === "card" ? 9 : 10 }}>
+      <div className="text-[var(--text)] opacity-60 tracking-widest" style={{ fontSize: variant === "card" ? 9 : 10 }}>
         Preview unavailable
       </div>
     </div>

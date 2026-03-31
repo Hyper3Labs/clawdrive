@@ -32,7 +32,7 @@ export function InlineEdit({ value, placeholder, onSave }: InlineEditProps) {
     return (
       <div
         onClick={() => setEditing(true)}
-        className={`cursor-pointer text-xs leading-[1.6] ${value ? 'text-[var(--text)] opacity-70 not-italic' : 'text-[var(--textMuted)] opacity-40 italic'}`}
+        className={`cursor-pointer text-xs leading-[1.6] ${value ? 'text-[var(--text)] opacity-70 not-italic' : 'text-[var(--text-muted)] opacity-40 italic'}`}
       >
         {value || placeholder || "Click to edit..."}
       </div>
@@ -55,7 +55,7 @@ export function InlineEdit({ value, placeholder, onSave }: InlineEditProps) {
       }}
       className={cx(
         ui.input,
-        "box-border resize-none overflow-hidden border-[var(--accent-primary)] px-2 py-1 text-xs leading-[1.6]",
+        "box-border resize-none overflow-hidden border-[var(--accent)] px-2 py-1 text-xs leading-[1.6]",
       )}
       rows={1}
     />

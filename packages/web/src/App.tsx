@@ -12,6 +12,7 @@ export function App() {
   const [view, setView] = useState<ViewMode>("space");
   const [focusFileId, setFocusFileId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const searchRef = useRef<InlineSearchHandle>(null);
   const selectPot = useVisualizationStore((s) => s.selectPot);
   const selectedPotId = useVisualizationStore((s) => s.selectedPotId);
@@ -27,13 +28,14 @@ export function App() {
         e.preventDefault();
         searchRef.current?.focus();
       }
-      if (e.key === "Escape" && selectedPotId) {
-        selectPot(null);
+      if (e.key === "Escape") {
+        if (sidebarOpen) setSidebarOpen(false);
+        if (selectedPotId) selectPot(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedPotId, selectPot]);
+  }, [selectedPotId, selectPot, sidebarOpen]);
 
   return (
     <ToastProvider>
@@ -48,11 +50,13 @@ export function App() {
           }}
           searchRef={searchRef}
           onUploadComplete={() => setRefreshKey((k) => k + 1)}
+          onToggleSidebar={() => setSidebarOpen((o) => !o)}
         />
 
         {view === "space" ? (
-          <div className="flex-1 min-h-0 flex bg-[#0a0a0f]">
-            <div className="w-72 shrink-0 border-r border-[#1f3647]/50 bg-[#061018]/50 flex flex-col overflow-y-auto">
+          <div className="flex-1 min-h-0 flex relative">
+            {/* Desktop sidebar — absolutely positioned to overlay canvas for transparency */}
+            <div className="hidden md:flex absolute left-0 top-0 h-full w-72 z-sidebar border-r border-[var(--border)]/50 bg-[var(--bg-panel)]/80 backdrop-blur-sm flex-col overflow-y-auto">
               <PotsSidebar
                 selectedSlug={selectedPotSlug}
                 onSelectPot={(slug) => {
@@ -61,11 +65,26 @@ export function App() {
                 }}
               />
             </div>
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+              <div className="fixed inset-0 z-overlay md:hidden" onClick={() => setSidebarOpen(false)}>
+                <div className="absolute left-0 top-0 h-full w-72 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  <PotsSidebar
+                    selectedSlug={selectedPotSlug}
+                    onSelectPot={(slug) => {
+                      const pot = slug ? pots.find((p) => p.slug === slug) : null;
+                      selectPot(pot?.id ?? null);
+                      setSidebarOpen(false);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             <EmbeddingSpace focusFileId={focusFileId} />
           </div>
         ) : (
           <div className="flex-1 min-h-0 flex overflow-hidden">
-            <FilesBrowser refreshKey={refreshKey} />
+            <FilesBrowser refreshKey={refreshKey} sidebarOpen={sidebarOpen} onCloseSidebar={() => setSidebarOpen(false)} />
           </div>
         )}
       </div>

@@ -24,13 +24,13 @@ function contentTypeIcon(ct: string): ReactNode {
 }
 
 function scoreColor(score: number): string {
-  if (score > 0.9) return "var(--accent-secondary)";
+  if (score > 0.9) return "var(--accent-green)";
   if (score > 0.7) return "var(--accent-warm)";
   return "rgba(255,255,255,0.4)";
 }
 
 const kbdClassName =
-  "mx-[3px] inline-block rounded border border-white/15 px-[5px] py-px text-[10px] leading-4";
+  "mx-[3px] inline-block rounded border border-[var(--border-subtle)] px-[5px] py-px text-xs leading-4";
 
 export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
   function InlineSearch({ onSelectResult, onActiveChange }, ref) {
@@ -164,12 +164,12 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
         {/* Search input */}
         <div
           className={cx(
-            "flex items-center gap-3 border bg-[#0e1a24] px-5 py-3 transition-all duration-200",
+            "flex items-center gap-3 border bg-[var(--bg-panel)] px-5 py-3 transition-all duration-200",
             showDropdown ? "rounded-t-2xl border-b-transparent shadow-xl" : "rounded-2xl",
-            showDropdown || focused ? "border-[#6ee7ff]/40 ring-1 ring-[#6ee7ff]/10" : "border-[#1f3647]/50 shadow-inner",
+            showDropdown || focused ? "border-[var(--accent)]/40 ring-1 ring-[var(--accent)]/10" : "border-[var(--border)]/50 shadow-inner",
           )}
         >
-          <span className={cx("flex items-center transition-colors", focused ? "text-[#6ee7ff]" : "text-[#6b8a9e]")}>
+          <span className={cx("flex items-center transition-colors", focused ? "text-[var(--accent)]" : "text-[var(--text-muted)]")}>
             <Search size={16} />
           </span>
           <input
@@ -180,29 +180,29 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
-            className="min-w-0 flex-1 border-none bg-transparent text-[15px] font-medium text-[#e6f0f7] outline-none placeholder:text-[#6b8a9e]/60"
+            className="min-w-0 flex-1 border-none bg-transparent text-lg font-medium text-[var(--text)] outline-none placeholder:text-[var(--text-muted)]/60"
           />
           {loading && (
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#6ee7ff]/80">searching...</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]/80">searching...</span>
           )}
           {!loading && !dropdownOpen && (
-            <span className="text-[11px] font-semibold tracking-wider text-[#6b8a9e] border border-white/10 px-2 py-0.5 rounded bg-white/5">&#8984;K</span>
+            <span className="text-xs font-semibold tracking-wider text-[var(--text-muted)] border border-[var(--border-strong)] px-2 py-0.5 rounded bg-[var(--surface-2)]">&#8984;K</span>
           )}
           {dropdownOpen && (
-            <span className="text-[11px] font-semibold tracking-wider text-[#6b8a9e] border border-white/10 px-2 py-0.5 rounded bg-white/5">Esc</span>
+            <span className="text-xs font-semibold tracking-wider text-[var(--text-muted)] border border-[var(--border-strong)] px-2 py-0.5 rounded bg-[var(--surface-2)]">Esc</span>
           )}
         </div>
 
         {/* Results dropdown */}
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 z-[1000] max-h-[68vh] overflow-y-auto rounded-b-xl border border-[rgba(110,231,255,0.18)] border-t-transparent bg-[rgba(9,20,31,0.98)] shadow-[0_22px_54px_rgba(0,0,0,0.48)] backdrop-blur">
+          <div className="absolute top-full left-0 right-0 z-context-menu max-h-[68vh] overflow-y-auto rounded-b-xl border border-[var(--accent-a20)] border-t-transparent bg-[var(--bg-panel)]/98 shadow-[0_22px_54px_rgba(0,0,0,0.48)] backdrop-blur">
             {/* Filter row */}
-            <div className="border-b border-[rgba(31,54,71,0.45)] px-4 py-2.5">
+            <div className="border-b border-[var(--border)]/45 px-4 py-2.5">
               <SearchFilters value={filters} onChange={handleFiltersChange} />
             </div>
 
             {results.length === 0 && query.trim() && !loading && (
-              <div className="px-4 py-6 text-center text-[13px] text-[var(--textMuted)]">
+              <div className="px-4 py-6 text-center text-base text-[var(--text-muted)]">
                 No results found
               </div>
             )}
@@ -211,22 +211,22 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
               <div
                 key={`${r.id}-${idx}`}
                 className={`cursor-pointer px-4 py-3 transition-colors duration-100 ${
-                  idx === selectedIdx ? "bg-[rgba(110,231,255,0.06)]" : "bg-transparent"
+                  idx === selectedIdx ? "bg-[var(--accent-a10)]" : "bg-transparent"
                 } ${
-                  idx < results.length - 1 ? "border-b border-[rgba(31,54,71,0.4)]" : "border-none"
+                  idx < results.length - 1 ? "border-b border-[var(--border)]/40" : "border-none"
                 }`}
                 onMouseEnter={() => setSelectedIdx(idx)}
                 onClick={() => handleSelect(r)}
               >
                 <div className="mb-1.5 flex items-center gap-2.5">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/[0.04] text-[var(--textMuted)]">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[var(--surface-2)] text-[var(--text-muted)]">
                     {contentTypeIcon(r.contentType)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-semibold leading-5 text-[var(--text)]">
+                  <span className="min-w-0 flex-1 truncate text-base font-semibold leading-5 text-[var(--text)]">
                     {r.file}
                   </span>
                   <span
-                    className="ml-2 shrink-0 rounded-[4px] bg-[rgba(110,231,255,0.12)] px-1.5 py-[2px] text-[10px] font-semibold"
+                    className="ml-2 shrink-0 rounded-[4px] bg-[var(--accent-a10)] px-1.5 py-[2px] text-xs font-semibold"
                     style={{ color: scoreColor(r.score) }}
                   >
                     {r.score.toFixed(2)}
@@ -234,13 +234,13 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
                 </div>
 
                 {r.taxonomyPath && r.taxonomyPath.length > 0 && (
-                  <div className="mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-[rgba(230,240,247,0.4)]">
+                  <div className="mb-1.5 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-[var(--text-faint)]">
                     {r.taxonomyPath.join(" \u203A ")}
                   </div>
                 )}
 
                 {(r.matchedChunk || r.tldr || r.description) && (
-                  <div className="max-h-[3.35em] overflow-hidden rounded-md border-l-2 border-[rgba(110,231,255,0.3)] bg-[rgba(14,26,36,0.6)] px-2.5 py-2 text-[12px] leading-[1.4] text-[rgba(230,240,247,0.58)] whitespace-normal">
+                  <div className="max-h-[3.35em] overflow-hidden rounded-md border-l-2 border-[var(--accent-a35)] bg-[var(--bg-panel)]/60 px-2.5 py-2 text-sm leading-[1.4] text-[var(--text)]/58 whitespace-normal">
                     {r.matchedChunk ? r.matchedChunk.label : (r.tldr ?? r.description)}
                   </div>
                 )}
@@ -248,7 +248,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
             ))}
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-[rgba(31,54,71,0.4)] bg-[rgba(14,26,36,0.5)] px-4 py-2 text-[11px] text-[rgba(230,240,247,0.42)]">
+            <div className="flex items-center justify-between border-t border-[var(--border)]/40 bg-[var(--bg-panel)]/50 px-4 py-2 text-xs text-[var(--text-faint)]">
               <span>
                 <kbd className={kbdClassName}>{"\u2191"}</kbd>
                 <kbd className={kbdClassName}>{"\u2193"}</kbd> navigate{" "}

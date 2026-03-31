@@ -65,13 +65,24 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   }
 
   if (loading) {
-    return (
-      <div className="w-[360px] xl:w-[400px] bg-[var(--panel)] border-l border-[var(--border)] flex flex-col flex-shrink-0">
-        <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--borderSubtle)]">
-          <span className="opacity-40 text-sm">Loading...</span>
-          <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-white/10 text-lg flex items-center justify-center -mr-1">x</button>
-        </div>
+    const loadingContent = (
+      <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--border-subtle)]">
+        <span className="opacity-40 text-sm">Loading...</span>
+        <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-[var(--surface-3)] text-lg flex items-center justify-center -mr-1">x</button>
       </div>
+    );
+    return (
+      <>
+        <div className="hidden lg:flex w-96 shrink-0 border-l border-[var(--border-subtle)] flex-col overflow-y-auto bg-[var(--bg-panel)]">
+          {loadingContent}
+        </div>
+        <div className="fixed inset-0 z-modal lg:hidden">
+          <div className="absolute inset-0 bg-[var(--bg-backdrop)]" onClick={onClose} />
+          <div className="absolute inset-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border)] overflow-y-auto flex flex-col shadow-xl">
+            {loadingContent}
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -83,24 +94,24 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   const isText = isTextLikeContentType(file.content_type);
   const isPdf = file.content_type === "application/pdf";
 
-  return (
-    <div className="w-[360px] xl:w-[400px] bg-[var(--panel)] border-l border-[var(--border)] flex flex-col flex-shrink-0">
-      <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--borderSubtle)] gap-2">
+  const panelContent = (
+    <>
+      <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--border-subtle)] gap-2">
         <span className="font-bold text-sm overflow-hidden text-ellipsis whitespace-nowrap flex-1">
           {file.name}
         </span>
         <button
           onClick={() => downloadFileContent(fileId, file.name)}
-          className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-white/10 flex items-center justify-center"
+          className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-[var(--surface-3)] flex items-center justify-center"
           title="Download"
         >
           <Download size={14} />
         </button>
-        <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-white/10 text-lg flex items-center justify-center -mr-1">×</button>
+        <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-[var(--surface-3)] text-lg flex items-center justify-center -mr-1">×</button>
       </div>
 
       {/* Metadata */}
-      <div className="px-4 py-3 border-b border-[var(--borderSubtle)] text-xs">
+      <div className="px-4 py-3 border-b border-[var(--border-subtle)] text-xs">
         <div className="flex gap-4 flex-wrap opacity-60">
           <span>{file.content_type}</span>
           <span>{formatFileSize(file.file_size)}</span>
@@ -112,7 +123,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
               href={file.source_url}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-[var(--accent-primary)] no-underline hover:underline"
+              className="text-xs text-[var(--accent)] no-underline hover:underline"
             >
               Open source
             </a>
@@ -121,13 +132,13 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Tags */}
-      <div className="px-4 py-2 border-b border-[var(--borderSubtle)]">
+      <div className="px-4 py-2 border-b border-[var(--border-subtle)]">
         <TagEditor tags={tags} onChange={handleTagChange} />
       </div>
 
       {/* Summary */}
-      <div className="px-4 py-2 border-b border-[var(--borderSubtle)]">
-        <div className="text-[11px] opacity-40 mb-1 uppercase tracking-wider">Summary</div>
+      <div className="px-4 py-2 border-b border-[var(--border-subtle)]">
+        <div className="text-xs opacity-40 mb-1 uppercase tracking-wider">Summary</div>
         <InlineEdit
           value={file.tldr ?? ""}
           placeholder="Add a summary..."
@@ -136,10 +147,10 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       </div>
 
       {/* Digest button */}
-      <div className="px-4 py-2 border-b border-[var(--borderSubtle)]">
+      <div className="px-4 py-2 border-b border-[var(--border-subtle)]">
         <button
           onClick={() => setShowDigestModal(true)}
-          className="cursor-pointer rounded border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-[var(--textMuted)] transition-colors hover:bg-white/10"
+          className="cursor-pointer rounded border border-[var(--border-strong)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)]"
         >
           {file.digest ? "Edit digest" : "Add digest"}
         </button>
@@ -148,11 +159,11 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       {/* Content preview */}
       <div className={`flex-1 overflow-auto flex flex-col ${isPdf ? 'p-0' : 'p-4'}`}>
         {file.digest && (
-          <div className="mb-4 p-3 rounded-lg border border-white/10 bg-[rgba(255,255,255,0.03)]">
-            <div className="mb-2 text-[11px] tracking-[0.08em] uppercase opacity-[0.55]">
+          <div className="mb-4 p-3 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-1)]">
+            <div className="mb-2 text-xs tracking-wider uppercase opacity-[0.55]">
               Digest
             </div>
-            <pre className="m-0 whitespace-pre-wrap break-words text-xs leading-[1.6] text-white/85">
+            <pre className="m-0 whitespace-pre-wrap break-words text-xs leading-[1.6] text-[var(--text)]">
               {file.digest}
             </pre>
           </div>
@@ -165,7 +176,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           />
         )}
         {isText && textContent !== null && (
-          <pre className="font-mono text-xs leading-[1.6] whitespace-pre-wrap break-words text-white/80 m-0">
+          <pre className="font-mono text-xs leading-[1.6] whitespace-pre-wrap break-words text-[var(--text)] m-0">
             {textContent}
           </pre>
         )}
@@ -193,7 +204,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           />
         )}
         {!isImage && !isVideo && !isAudio && !isText && !isPdf && (
-          <div className="text-center opacity-40 pt-10 text-[13px]">
+          <div className="text-center opacity-40 pt-10 text-base">
             No preview available for this file type
           </div>
         )}
@@ -205,6 +216,22 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           onClose={() => setShowDigestModal(false)}
         />
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop side panel */}
+      <div className="hidden lg:flex w-96 shrink-0 border-l border-[var(--border-subtle)] flex-col overflow-y-auto bg-[var(--bg-panel)]">
+        {panelContent}
+      </div>
+      {/* Mobile modal */}
+      <div className="fixed inset-0 z-modal lg:hidden">
+        <div className="absolute inset-0 bg-[var(--bg-backdrop)]" onClick={onClose} />
+        <div className="absolute inset-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border)] overflow-y-auto flex flex-col shadow-xl">
+          {panelContent}
+        </div>
+      </div>
+    </>
   );
 }

@@ -4,22 +4,28 @@ export function cx(...parts: Array<string | false | null | undefined>) {
 
 export const ui = {
   panel:
-    "rounded-xl border border-[var(--border)] bg-[var(--panel)] shadow-[0_8px_40px_rgba(0,0,0,0.45)]",
+    "rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] shadow-lg",
   popover:
-    "rounded-lg border border-[var(--border)] bg-[var(--panel)] shadow-[0_4px_20px_rgba(0,0,0,0.5)]",
+    "rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] shadow",
+  card: "rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-strong)] transition-all duration-150",
   subtleButton:
-    "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--border)] bg-white/5 px-3 py-1.5 text-xs text-[var(--text)] transition-colors hover:bg-white/10",
+    "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]",
   subtleButtonCompact:
-    "inline-flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-white/5 px-2.5 py-1 text-[11px] text-[var(--text)] transition-colors hover:bg-white/10",
+    "inline-flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]",
+  btnPrimary:
+    "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium bg-[var(--accent)] text-[var(--bg)] transition-colors",
+  btnDanger:
+    "inline-flex items-center justify-center gap-1.5 rounded-md border border-[var(--accent-danger)]/30 px-3 py-1.5 text-sm text-[var(--accent-danger)] transition-colors hover:bg-[var(--accent-danger)]/10",
   iconButton:
-    "inline-flex h-7 w-7 items-center justify-center rounded-md bg-transparent text-[var(--textMuted)] transition-colors hover:bg-white/10 hover:text-[var(--text)]",
+    "inline-flex h-7 w-7 items-center justify-center rounded-md bg-transparent text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text)]",
   input:
-    "w-full rounded-md border border-[var(--border)] bg-white/5 px-2.5 py-1.5 text-xs text-[var(--text)] outline-none transition-colors focus:border-[var(--accent-primary)]",
-  eyebrow: "text-[10px] uppercase tracking-[0.08em] text-[var(--textMuted)]",
-  sectionLabel: "mb-1 text-[11px] uppercase tracking-[0.05em] text-white/40",
-  emptyState: "p-6 text-center text-[13px] text-white/40",
+    "w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1.5 text-xs text-[var(--text)] outline-none transition-colors focus:border-[var(--accent-a35)]",
+  eyebrow: "text-xs uppercase tracking-wider text-[var(--text-muted)]",
+  sectionLabel: "mb-1 text-xs uppercase tracking-wider text-[var(--text-faint)]",
+  emptyState: "p-6 text-center text-base text-[var(--text-faint)]",
   accentChip:
-    "rounded-md border border-[rgba(110,231,255,0.25)] bg-[rgba(110,231,255,0.08)] text-[var(--accent-primary)]",
+    "rounded-md border border-[var(--accent-a20)] bg-[var(--accent-a10)] text-[var(--accent)]",
   previewFrame:
-    "overflow-hidden rounded-xl border border-[var(--border)] bg-[rgba(10,19,28,0.7)]",
+    "overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-overlay)]",
+  disabled: "opacity-40 cursor-not-allowed",
 };

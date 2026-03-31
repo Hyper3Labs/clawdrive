@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
-import { Z_INDEX } from "../../theme";
 import { cx, ui } from "./ui";
 
 interface ToastAction {
@@ -35,9 +34,9 @@ export function useToast(): ToastContextValue {
 const MAX_TOASTS = 3;
 
 const BORDER_COLORS: Record<string, string> = {
-  success: "var(--accent-secondary)",
+  success: "var(--accent-green)",
   error: "var(--accent-danger)",
-  info: "var(--accent-primary)",
+  info: "var(--accent)",
 };
 
 // Removed inline style injection
@@ -68,8 +67,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ show }}>
       {children}
       <div
-        className="fixed bottom-5 right-5 flex flex-col gap-2 pointer-events-none"
-        style={{ zIndex: Z_INDEX.toast }}
+        className="fixed bottom-5 right-5 z-toast flex flex-col gap-2 pointer-events-none"
       >
         {toasts.map((t) => (
           <div
@@ -77,21 +75,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             style={{ borderColor: BORDER_COLORS[t.type] }}
             className={cx(
               ui.popover,
-              "pointer-events-auto flex max-w-[360px] items-center gap-3 px-4 py-2.5 text-[13px] text-[var(--text)] animate-[toast-in_0.2s_ease-out]",
+              "pointer-events-auto flex max-w-[360px] items-center gap-3 px-4 py-2.5 text-base text-[var(--text)] animate-[toast-in_0.2s_ease-out]",
             )}
           >
             <span className="flex-1">{t.message}</span>
             {t.action && (
               <button
                 onClick={() => { t.action!.onClick(); dismiss(t.id); }}
-                className="bg-transparent border-none cursor-pointer text-[var(--accent-primary)] font-semibold text-[13px] px-2 py-0.5 flex-shrink-0 hover:opacity-80 transition-opacity"
+                className="bg-transparent border-none cursor-pointer text-[var(--accent)] font-semibold text-base px-2 py-0.5 flex-shrink-0 hover:opacity-80 transition-opacity"
               >
                 {t.action.label}
               </button>
             )}
             <button
               onClick={() => dismiss(t.id)}
-              className="bg-transparent border-none cursor-pointer text-[var(--textMuted)] text-base p-0 leading-none flex-shrink-0 hover:text-white transition-colors"
+              className="bg-transparent border-none cursor-pointer text-[var(--text-muted)] text-base p-0 leading-none flex-shrink-0 hover:text-white transition-colors"
             >
               ×
             </button>

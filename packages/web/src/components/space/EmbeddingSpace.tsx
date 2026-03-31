@@ -79,7 +79,7 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
     );
   if (error)
     return (
-      <div className={STATUS_CLASS} style={{ color: "#ff8d8d" }}>
+      <div className={STATUS_CLASS} style={{ color: "var(--accent-danger)" }}>
         Error: {error}
       </div>
     );
@@ -98,11 +98,11 @@ export function EmbeddingSpace({ focusFileId }: EmbeddingSpaceProps) {
           hoverFile(null);
         }
       }}>
-        <color attach="background" args={[MAP_THEME.background]} />
-        <fog attach="fog" args={[MAP_THEME.background, 50, 120]} />
+        <color attach="background" args={[MAP_THEME.raw.background]} />
+        <fog attach="fog" args={[MAP_THEME.raw.background, 50, 120]} />
         <ambientLight intensity={0.32} />
-        <directionalLight position={[20, 25, 10]} intensity={0.46} color={MAP_THEME.accentPrimary} />
-        <pointLight position={[-24, -16, 12]} intensity={0.34} color={MAP_THEME.accentSecondary} />
+        <directionalLight position={[20, 25, 10]} intensity={0.46} color={MAP_THEME.raw.accent} />
+        <pointLight position={[-24, -16, 12]} intensity={0.34} color={MAP_THEME.raw.accentGreen} />
 
         <PointCloud points={points} />
         <FilePreviewLayer points={points} />

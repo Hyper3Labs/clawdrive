@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FileInfo, ProjectionPoint } from "../../types";
-import { getModalityColor, getModalityLabel, getPreviewKind, Z_INDEX } from "../../theme";
+import { getModalityColor, getModalityLabel, getPreviewKind } from "../../theme";
 import { fileContentUrl, getFile, getFileTags, updateFile } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
 import { TagEditor } from "../shared/TagEditor";
@@ -31,11 +31,11 @@ function TextPreview({ point }: { point: ProjectionPoint }) {
   }, [contentUrl]);
 
   if (text === null) {
-    return <div className="flex h-[200px] items-center justify-center text-[13px] text-[var(--textMuted)]">Loading...</div>;
+    return <div className="flex h-[200px] items-center justify-center text-base text-[var(--text-muted)]">Loading...</div>;
   }
 
   return (
-    <pre className="m-0 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-words bg-transparent p-3.5 font-mono text-[11px] leading-[1.5] text-[var(--text)]">
+    <pre className="m-0 max-h-[280px] overflow-y-auto whitespace-pre-wrap break-words bg-transparent p-3.5 font-mono text-xs leading-[1.5] text-[var(--text)]">
       {text.slice(0, 3000)}
     </pre>
   );
@@ -48,7 +48,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   const contentUrl = fileContentUrl(point.id);
 
   if (kind === "image") {
-    return <img src={contentUrl} alt={point.fileName} loading="lazy" className="block h-[280px] w-full object-contain bg-[var(--background)]" />;
+    return <img src={contentUrl} alt={point.fileName} loading="lazy" className="block h-[280px] w-full object-contain bg-[var(--bg)]" />;
   }
 
   if (kind === "video") {
@@ -71,7 +71,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
         type="application/pdf"
         className="h-[360px] w-full rounded bg-white"
       >
-        <div className="flex h-[200px] items-center justify-center text-[var(--textMuted)]">PDF preview unavailable</div>
+        <div className="flex h-[200px] items-center justify-center text-[var(--text-muted)]">PDF preview unavailable</div>
       </object>
     );
   }
@@ -81,7 +81,7 @@ function MediaPreview({ point }: { point: ProjectionPoint }) {
   }
 
   return (
-    <div className="flex h-[200px] items-center justify-center text-[13px] uppercase tracking-[0.6px]" style={{ color }}>
+    <div className="flex h-[200px] items-center justify-center text-base uppercase tracking-wider" style={{ color }}>
       {label} preview unavailable
     </div>
   );
@@ -114,7 +114,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
               await unassignFileFromPot(point.id, pot.slug, localTags);
               setLocalTags((prev) => prev.filter((tag) => tag !== `pot:${pot.slug}`));
             }}
-            className={cx(ui.accentChip, "cursor-pointer px-2.5 py-1 text-[11px]")}
+            className={cx(ui.accentChip, "cursor-pointer px-2.5 py-1 text-xs")}
           >
             {pot.name} ×
           </button>
@@ -124,7 +124,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
             <button
               type="button"
               onClick={() => setShowPicker((prev) => !prev)}
-              className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-[rgba(110,231,255,0.2)] bg-[rgba(110,231,255,0.08)] text-sm text-[var(--accent-primary)] transition-colors hover:bg-[rgba(110,231,255,0.14)]"
+              className="flex h-[22px] w-[22px] items-center justify-center rounded-md border border-[var(--accent-a20)] bg-[var(--accent-a10)] text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent-a20)]"
             >
               +
             </button>
@@ -139,7 +139,7 @@ function PotAssignment({ point }: { point: ProjectionPoint }) {
                       setLocalTags((prev) => [...prev, `pot:${pot.slug}`]);
                       setShowPicker(false);
                     }}
-                    className="block w-full rounded px-2.5 py-1.5 text-left text-xs text-[var(--text)] transition-colors hover:bg-[rgba(110,231,255,0.08)]"
+                    className="block w-full rounded px-2.5 py-1.5 text-left text-xs text-[var(--text)] transition-colors hover:bg-[var(--accent-a10)]"
                   >
                     {pot.name}
                   </button>
@@ -266,11 +266,10 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       onClick={(event) => {
         if (event.target === event.currentTarget) dismiss();
       }}
-      className="absolute inset-0 flex items-center justify-center bg-[rgba(3,10,15,0.6)] backdrop-blur-[4px]"
-      style={{ zIndex: Z_INDEX.modal }}
+      className="z-modal absolute inset-0 flex items-center justify-center bg-[rgba(3,10,15,0.6)] backdrop-blur-[4px]"
     >
       <div
-        className={cx(ui.panel, "max-h-[80vh] w-[560px] overflow-y-auto p-5 text-[13px]")}
+        className={cx(ui.panel, "max-h-[80vh] w-[560px] overflow-y-auto p-5 text-base")}
         style={{
           background: "linear-gradient(135deg, rgba(8, 22, 32, 0.97), rgba(6, 16, 24, 0.97))",
           opacity,
@@ -278,7 +277,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
         }}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 break-words text-[15px] font-semibold text-[var(--text)]">{point.fileName}</div>
+          <div className="flex-1 break-words text-lg font-semibold text-[var(--text)]">{point.fileName}</div>
           <div className="flex shrink-0 items-center gap-1">
             <a
               href={fileContentUrl(point.id)}
@@ -306,16 +305,16 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           </div>
           <div>
             <div className={ui.eyebrow}>ID</div>
-            <div className="mt-0.5 text-[10px] text-[var(--text)] opacity-70">{point.id.slice(0, 12)}...</div>
+            <div className="mt-0.5 text-xs text-[var(--text)] opacity-70">{point.id.slice(0, 12)}...</div>
           </div>
         </div>
 
         <PotAssignment point={point} />
 
-        <div className="mt-3 border-t border-[var(--borderSubtle)] pt-2">
+        <div className="mt-3 border-t border-[var(--border-subtle)] pt-2">
           <TagEditor tags={tags} onChange={handleTagChange} />
         </div>
-        <div className="border-t border-[var(--borderSubtle)] py-2">
+        <div className="border-t border-[var(--border-subtle)] py-2">
           <div className={ui.sectionLabel}>Summary</div>
           <InlineEdit value={fileInfo?.tldr ?? ""} placeholder="Add a summary..." onSave={handleTldrSave} />
         </div>
@@ -323,7 +322,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
           <button
             type="button"
             onClick={() => setShowDigestModal(true)}
-            className={cx(ui.subtleButtonCompact, "text-[var(--textMuted)]")}
+            className={cx(ui.subtleButtonCompact, "text-[var(--text-muted)]")}
           >
             {fileInfo?.digest ? "Edit digest" : "Add digest"}
           </button>

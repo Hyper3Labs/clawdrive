@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { searchFiles } from "../../api";
-import { Z_INDEX } from "../../theme";
 import type { SearchResult } from "../../types";
 import { cx, ui } from "./ui";
 
@@ -39,8 +38,8 @@ export function FileSearchPicker({ onSelect, excludeIds, onClose, anchorX, ancho
   return (
     <div
       ref={ref}
-      style={{ left: anchorX, top: anchorY, zIndex: Z_INDEX.contextMenu }}
-      className={cx(ui.popover, "fixed w-[280px] p-2")}
+      style={{ left: anchorX, top: anchorY }}
+      className={cx(ui.popover, "z-context-menu fixed w-[280px] p-2")}
     >
       <input
         autoFocus
@@ -56,17 +55,17 @@ export function FileSearchPicker({ onSelect, excludeIds, onClose, anchorX, ancho
             <button
               key={r.id}
               onClick={() => !inPot && onSelect(r.id)}
-              className={`flex w-full items-center gap-2 rounded border-none bg-transparent px-2 py-1.5 text-left text-xs transition-colors ${inPot ? 'cursor-default text-[var(--textMuted)] opacity-50' : 'cursor-pointer text-[var(--text)] opacity-100 hover:bg-white/5'}`}
+              className={`flex w-full items-center gap-2 rounded border-none bg-transparent px-2 py-1.5 text-left text-xs transition-colors ${inPot ? 'cursor-default text-[var(--text-muted)] opacity-50' : 'cursor-pointer text-[var(--text)] opacity-100 hover:bg-[var(--surface-2)]'}`}
             >
               <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
                 {r.file || r.id}
               </span>
-              {inPot && <span className="text-[10px]">✓</span>}
+              {inPot && <span className="text-xs">✓</span>}
             </button>
           );
         })}
         {query && results.length === 0 && (
-          <div className="p-2 text-[11px] opacity-40 text-center">No results</div>
+          <div className="p-2 text-xs opacity-40 text-center">No results</div>
         )}
       </div>
     </div>

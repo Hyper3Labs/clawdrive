@@ -9,14 +9,14 @@ interface ViewTabsProps {
 export function ViewTabs({ activeView, onViewChange }: ViewTabsProps) {
   const getTabClass = (active: boolean) =>
     cx(
-      "rounded-lg px-5 h-full flex items-center justify-center text-[13px] font-bold leading-none transition-all duration-200",
+      "rounded px-3 py-1.5 flex items-center justify-center text-sm font-medium leading-none transition-all duration-200",
       active
-        ? "bg-[#6ee7ff]/20 text-[#6ee7ff] shadow-sm transform scale-105"
-        : "bg-transparent text-[#6b8a9e] hover:bg-white/10 hover:text-white"
+        ? "bg-[var(--accent-a20)] text-[var(--accent)]"
+        : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)]"
     );
 
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#1f3647]/50 bg-[#0e1a24] p-1 shadow-inner h-[40px]">
+    <div className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)]/50 bg-[var(--bg-panel)] p-1">
       <button className={getTabClass(activeView === "space")} onClick={() => onViewChange("space")}>
         Space
       </button>

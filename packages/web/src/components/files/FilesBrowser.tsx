@@ -16,9 +16,11 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 
 interface FilesBrowserProps {
   refreshKey?: number;
+  sidebarOpen?: boolean;
+  onCloseSidebar?: () => void;
 }
 
-export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowserProps) {
+export function FilesBrowser({ refreshKey: externalRefreshKey = 0, sidebarOpen, onCloseSidebar }: FilesBrowserProps) {
   const [selectedPotSlug, setSelectedPotSlug] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [sort, setSort] = useState<SortMode>("recent");
@@ -38,38 +40,53 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
   return (
     <DropZone onDrop={enqueue}>
     <div className="flex flex-1 overflow-hidden min-h-0 w-full">
-      {/* Sidebar — pots only */}
-      <div className="w-72 shrink-0 border-r border-[#1f3647]/50 bg-[#061018]/50 flex flex-col overflow-y-auto">
+      {/* Desktop sidebar — pots only */}
+      <div className="hidden md:flex w-72 shrink-0 border-r border-[var(--border)]/50 bg-[var(--bg-panel)]/60 flex-col overflow-y-auto">
         <PotsSidebar
           selectedSlug={selectedPotSlug}
           onSelectPot={setSelectedPotSlug}
           onPotContentChanged={() => setRefreshKey((k) => k + 1)}
         />
       </div>
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-overlay md:hidden" onClick={onCloseSidebar}>
+          <div className="absolute left-0 top-0 h-full w-72 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <PotsSidebar
+              selectedSlug={selectedPotSlug}
+              onSelectPot={(slug) => {
+                setSelectedPotSlug(slug);
+                onCloseSidebar?.();
+              }}
+              onPotContentChanged={() => setRefreshKey((k) => k + 1)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0a0f]">
-        <div className="flex items-center justify-between border-b border-[#1f3647]/50 px-8 py-5">
+        <div className="flex items-center justify-between border-b border-[var(--border)]/50 px-5 py-2">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#6b8a9e]">
+            <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
               Scope
             </span>
-            <span className="truncate text-lg font-bold text-[#e6f0f7]">
+            <span className="truncate text-sm font-medium text-[var(--text)]">
               {selectedPotSlug ? `pot: ${selectedPotSlug}` : "All files"}
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-4">
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-[#6b8a9e]">Sort</span>
-            <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-[#0e1a24] p-1.5">
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Sort</span>
+            <div className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] p-0.5">
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setSort(opt.value)}
                   className={cx(
-                    "rounded-lg border-none px-4 py-2 text-[13px] font-semibold transition-all duration-150",
+                    "rounded border-none px-2.5 py-1 text-xs font-medium transition-all duration-150",
                     sort === opt.value
-                      ? "bg-[#6ee7ff]/20 text-[#e6f0f7] shadow-sm transform scale-105"
-                      : "bg-transparent text-[#6b8a9e] hover:bg-white/10 hover:text-white",
+                      ? "bg-[var(--accent-a20)] text-[var(--text)]"
+                      : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)]",
                   )}
                 >
                   {opt.label}

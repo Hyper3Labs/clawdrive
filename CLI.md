@@ -210,7 +210,8 @@ Start the REST API and web UI.
 | `--host <host>` | Bind host | `127.0.0.1` |
 | `--public-port <port>` | Share-only public surface port | — |
 | `--public-host <host>` | Share-only public surface host | — |
-| `--demo <dataset>` | Prepare a curated demo dataset and run the server in read-only mode | — |
+| `--demo <dataset>` | Prepare and launch a curated demo dataset | — |
+| `--read-only` | Block all write operations (read-only mode) | — |
 | `--open` | Open browser after starting | — |
 
 Current curated dataset: `nasa`.
@@ -246,4 +247,5 @@ cdrive share inbox
 cdrive share approve <share>
 cdrive demo install nasa
 cdrive serve --demo nasa
+cdrive serve --demo nasa --read-only   # read-only hosted demo
 ```

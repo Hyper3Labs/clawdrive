@@ -5,7 +5,7 @@ import { ShareInbox } from "./shared/ShareInbox";
 import { listFiles, getConfig } from "../api";
 import type { ViewMode, SearchResult } from "../types";
 import { useUploadQueue } from "../hooks/useUploadQueue";
-import { Upload, AlertTriangle } from "lucide-react";
+import { Menu, Upload } from "lucide-react";
 import { cx, ui } from "./shared/ui";
 
 interface TopBarProps {
@@ -14,9 +14,10 @@ interface TopBarProps {
   onSelectResult: (result: SearchResult) => void;
   searchRef?: React.Ref<InlineSearchHandle>;
   onUploadComplete?: () => void;
+  onToggleSidebar?: () => void;
 }
 
-export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, onUploadComplete }: TopBarProps) {
+export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, onUploadComplete, onToggleSidebar }: TopBarProps) {
   const [fileCount, setFileCount] = useState<number | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
@@ -37,31 +38,33 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
 
   return (
     <header
-      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[#0a0a0f] px-8 py-5 shadow-sm"
+      className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[var(--bg)] px-5 py-2.5 shadow-sm"
     >
-      {/* Left: Logo */}
-      <div className={cx("min-w-0 transition-opacity duration-150 flex-shrink-0 w-[240px]", searchActive ? "opacity-[0.55]" : "opacity-100")}>
-        <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="" width={26} height={26} className="shrink-0" />
+      {/* Left: Hamburger + Logo */}
+      <button
+        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] transition-colors md:hidden"
+        onClick={onToggleSidebar}
+      >
+        <Menu size={18} />
+      </button>
+      <div className={cx("min-w-0 transition-opacity duration-150 shrink-0", searchActive ? "opacity-[0.55]" : "opacity-100")}>
+        <div className="flex items-center gap-2.5">
+          <img src="/favicon.svg" alt="" width={24} height={24} className="shrink-0" />
           <div className="min-w-0 leading-none">
-            <div className="font-bold text-[16px] text-white tracking-tight mb-[3px]">
-              ClawDrive
-              {isReadOnly && (
-                <span className="ml-3 inline-flex items-center gap-1 rounded bg-[#ff3366]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#ff3366] border border-[#ff3366]/20 align-middle -translate-y-[1px]">
-                  <AlertTriangle size={10} strokeWidth={3} />
-                  Read-Only Demo
-                </span>
-              )}
+            <div className="font-semibold text-sm text-[var(--text)] tracking-tight">
+              ClawDrive Workspace
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-[#6ee7ff]">Workspace</div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {isReadOnly && (
+                <>
+                  <span className="text-xs text-[var(--text-muted)]">Demo</span>
+                  <span className="text-xs text-[var(--text-muted)]">·</span>
+                </>
+              )}
               {fileCount !== null && (
-                <div className="flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-[#1f3647]"></span>
-                  <span className="text-[10px] font-semibold tracking-wider text-[#6b8a9e]">
-                    {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
-                  </span>
-                </div>
+                <span className="text-xs text-[var(--text-muted)]">
+                  {fileCount.toLocaleString()} {fileCount === 1 ? "file" : "files"}
+                </span>
               )}
             </div>
           </div>
@@ -80,19 +83,22 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
       {/* Right: Tabs + Count */}
       <div
         className={cx(
-          "flex min-w-0 items-center justify-end gap-3 transition-opacity duration-150 flex-shrink-0 w-[420px]",
+          "flex min-w-0 items-center justify-end gap-3 transition-opacity duration-150 shrink-0",
           searchActive ? "opacity-[0.55]" : "opacity-100",
         )}
       >
         <ViewTabs activeView={activeView} onViewChange={onViewChange} />
-        <div className="w-px h-6 bg-[#1f3647]/80 mx-1"></div>
+        <div className="w-px h-6 bg-[var(--border)]/80 mx-1"></div>
         <ShareInbox />
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="group relative inline-flex items-center justify-center gap-2 px-4 h-[40px] text-[13px] rounded-xl font-bold border border-[#1f3647]/50 bg-[#0e1a24] text-[#e6f0f7] hover:bg-white/5 hover:border-[#6ee7ff]/30 hover:text-white shadow-inner transition-all"
-          title="Upload files"
+          onClick={() => !isReadOnly && fileInputRef.current?.click()}
+          className={cx(
+            "hidden md:inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]",
+            isReadOnly && "opacity-40 cursor-not-allowed"
+          )}
+          title={isReadOnly ? "Read-only demo" : "Upload files"}
         >
-          <Upload size={16} className="text-[#6ee7ff] group-hover:text-[#6ee7ff]"/> Upload
+          <Upload size={16} /> Upload
         </button>
         <input
           ref={fileInputRef}

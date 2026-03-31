@@ -8,6 +8,7 @@ import { useVisualizationStore } from "../space/useVisualizationStore";
 import { useToast } from "../shared/Toast";
 import { FileText, Video, Volume2, FileCode, Music } from "lucide-react";
 import { formatFileSize, isTextLikeContentType } from "../../utils/files";
+import { Masonry } from "react-plock";
 
 export type SortMode = "recent" | "name" | "type" | "size";
 
@@ -24,8 +25,9 @@ function contentTypeIcon(ct: string, size = 16): ReactNode {
   return <FileCode size={size} />;
 }
 
-// Global snippet cache — survives re-renders and re-mounts
+// Global caches — survive re-renders and re-mounts
 const snippetCache = new Map<string, string>();
+const imageBlobCache = new Map<string, string>();
 
 const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file: FileInfo; onClick: () => void; onContextMenu: (e: React.MouseEvent) => void }) {
   const isImage = file.content_type.startsWith("image/");
@@ -35,6 +37,9 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
   const isText = isTextLikeContentType(file.content_type);
   const [textSnippet, setTextSnippet] = useState<string | null>(
     snippetCache.get(file.id) ?? null
+  );
+  const [imageSrc, setImageSrc] = useState<string | null>(
+    imageBlobCache.get(file.id) ?? null
   );
 
   useEffect(() => {
@@ -50,20 +55,36 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
     }
   }, [file.id, isText]);
 
+  // Cache image blob URLs so remounts show instantly
+  useEffect(() => {
+    if (isImage && !imageBlobCache.has(file.id)) {
+      fetch(`/api/files/${file.id}/content`)
+        .then((r) => r.blob())
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          imageBlobCache.set(file.id, url);
+          setImageSrc(url);
+        })
+        .catch(() => {});
+    }
+  }, [file.id, isImage]);
+
   return (
     <div
-      className="bg-[#0e1a24] border border-[#1f3647]/50 shadow-md shadow-black/20 rounded-xl cursor-pointer flex flex-col overflow-hidden mb-4 break-inside-avoid transition-all duration-200 hover:bg-[#1f3647]/40 hover:border-[#6ee7ff]/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
+      className="bg-[var(--bg-panel)] border border-[var(--border)]/50 shadow-md shadow-black/20 rounded-xl cursor-pointer flex flex-col overflow-hidden transition-all duration-200 hover:bg-[var(--border)]/40 hover:border-[var(--accent)]/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40"
       onClick={onClick}
       onContextMenu={onContextMenu}
     >
       {/* Preview area — natural height for images, variable for text */}
       {isImage ? (
-        <img
-          src={`/api/files/${file.id}/content`}
-          alt={file.name}
-          className="w-full block"
-          loading="lazy"
-        />
+        <div className="bg-[var(--surface-1)]">
+          <img
+            src={imageSrc ?? `/api/files/${file.id}/content`}
+            alt={file.name}
+            className="w-full block"
+            loading={imageSrc ? undefined : "lazy"}
+          />
+        </div>
       ) : isVideo ? (
         <video
           src={`/api/files/${file.id}/content`}
@@ -89,7 +110,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
         <PdfThumbnail url={`/api/files/${file.id}/content`} />
       ) : isText && textSnippet ? (
         <div className="bg-black/25 p-3">
-          <pre className="text-[10px] leading-relaxed text-white/50 m-0 overflow-hidden whitespace-pre-wrap break-words max-h-40 font-mono">
+          <pre className="text-xs leading-relaxed text-[var(--text-faint)] m-0 overflow-hidden whitespace-pre-wrap break-words max-h-40 font-mono">
             {textSnippet}
           </pre>
         </div>
@@ -104,7 +125,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
         <div className="overflow-hidden text-ellipsis whitespace-nowrap text-xs text-[var(--text)]" title={file.name}>
           {file.name}
         </div>
-        <div className="mt-1 text-[11px] text-white/35">{formatFileSize(file.file_size)}</div>
+        <div className="mt-1 text-xs text-[var(--text-faint)]">{formatFileSize(file.file_size)}</div>
       </div>
     </div>
   );
@@ -137,9 +158,9 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
   const pendingDeletes = useVisualizationStore((s) => s.pendingDeletes);
   const { show } = useToast();
 
-  // Fetch once on mount
+  // Fetch on mount and when pot changes — keep showing old cards while fetching
   useEffect(() => {
-    setLoading(true);
+    if (allFiles.length === 0) setLoading(true);
     let cancelled = false;
 
     async function fetchAll() {
@@ -191,10 +212,10 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 p-12 text-[#6b8a9e] bg-[#0e1a24] rounded-2xl border border-dashed border-[#1f3647]">
+      <div className="flex flex-col items-center justify-center h-64 p-12 text-[var(--text-muted)] bg-[var(--bg-panel)] rounded-2xl border border-dashed border-[var(--border)]">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="h-8 w-8 mb-4 border-2 border-t-transparent border-[#6ee7ff] rounded-full animate-spin"></div>
-          <span className="text-[14px] font-medium tracking-wide">Loading files...</span>
+          <div className="h-8 w-8 mb-4 border-2 border-t-transparent border-[var(--accent)] rounded-full animate-spin"></div>
+          <span className="text-lg font-medium tracking-wide">Loading files...</span>
         </div>
       </div>
     );
@@ -202,20 +223,28 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
 
   if (displayFiles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 mt-8 mx-auto max-w-lg text-center bg-[#0e1a24] rounded-2xl border border-dashed border-[#1f3647]">
-        <div className="w-16 h-16 mb-4 rounded-full bg-[#1f3647]/50 flex items-center justify-center opacity-50">
-          <FileText size={24} className="text-[#6b8a9e]" />
+      <div className="flex flex-col items-center justify-center p-16 mt-8 mx-auto max-w-lg text-center bg-[var(--bg-panel)] rounded-2xl border border-dashed border-[var(--border)]">
+        <div className="w-16 h-16 mb-4 rounded-full bg-[var(--border)]/50 flex items-center justify-center opacity-50">
+          <FileText size={24} className="text-[var(--text-muted)]" />
         </div>
-        <h3 className="text-[16px] font-bold text-[#e6f0f7] mb-2">No files found</h3>
-        <p className="text-[14px] text-[#6b8a9e]">Use the Upload button or CLI to add some files to this workspace.</p>
+        <h3 className="text-xl font-bold text-[var(--text)] mb-2">No files found</h3>
+        <p className="text-lg text-[var(--text-muted)]">Use the Upload button or CLI to add some files to this workspace.</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 py-2 auto-rows-max">
-        {displayFiles.map((f) => (
+      <Masonry
+        items={displayFiles}
+        config={{
+          columns: [2, 3, 4, 5],
+          gap: [16, 16, 20, 20],
+          media: [640, 768, 1024, 1280],
+          useBalancedLayout: true,
+        }}
+        className="py-2"
+        render={(f) => (
           <FileCard
             key={f.id}
             file={f}
@@ -225,8 +254,8 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
               setCtxMenu({ x: e.clientX, y: e.clientY, file: f });
             }}
           />
-        ))}
-      </div>
+        )}
+      />
       {ctxMenu && (
         <ContextMenu
           x={ctxMenu.x}
