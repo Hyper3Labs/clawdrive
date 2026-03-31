@@ -4,6 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![GitHub Release](https://img.shields.io/github/v/release/hyper3labs/clawdrive?style=flat-square&color=green)](https://github.com/hyper3labs/clawdrive/releases)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Hyper3Labs/clawdrive)
+[![Discord](https://img.shields.io/badge/Discord-hyper%C2%B3labs-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Za3rBkTPSf)
 
 [Website](https://claw3drive.com) · [Documentation](CLI.md) · [Live Demo](https://app.claw3drive.com/) · [Report Bug](https://github.com/hyper3labs/clawdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/hyper3labs/clawdrive/issues/new?template=feature_request.md)
 
@@ -123,9 +125,17 @@ $ cdrive search "launch telemetry" --json
 ]
 ```
 
----
+## Community
 
-[How to contribute](CONTRIBUTING.md) · [Report a vulnerability](SECURITY.md) · [MIT](LICENSE) © 2026 hyper3labs
+Join the [Discord](https://discord.gg/Za3rBkTPSf) to ask questions, share what you're building, and follow development.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
@@ -133,13 +143,6 @@ $ cdrive search "launch telemetry" --json
 
 [![GitHub stars](https://img.shields.io/github/stars/hyper3labs/clawdrive?style=social)](https://github.com/hyper3labs/clawdrive)
 
-<br/>
-<br/>
-
-Built by Daniil [@moroz_i_holod](https://x.com/moroz_i_holod) · Matin [@MatinMnM](https://x.com/MatinMnM)
-
-<br/>
-
-Made with 🦞 in Berlin.
+Built by [Daniil](https://x.com/moroz_i_holod) & [Matin](https://x.com/MatinMnM) in Berlin 🦞
 
 </div>
