@@ -6,6 +6,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/hyper3labs/clawdrive?style=flat-square&color=green)](https://github.com/hyper3labs/clawdrive/releases)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Hyper3Labs/clawdrive)
 [![Discord](https://img.shields.io/badge/Discord-hyper%C2%B3labs-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Za3rBkTPSf)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-morozovdd-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/morozovdd)
 
 [Website](https://claw3drive.com) · [Documentation](https://github.com/hyper3labs/clawdrive/blob/main/CLI.md) · [Live Demo](https://app.claw3drive.com/) · [Report Bug](https://github.com/hyper3labs/clawdrive/issues/new?template=bug_report.md) · [Request Feature](https://github.com/hyper3labs/clawdrive/issues/new?template=feature_request.md)
 
@@ -51,6 +52,9 @@ export GEMINI_API_KEY="your-key-here"
 
 # Launch the web UI with a curated NASA demo (~248 MB on first run)
 cdrive serve --demo nasa
+
+# For a read-only hosted demo, add --read-only
+cdrive serve --demo nasa --read-only
 ```
 
 The npm package is `clawdrive`; the installed CLI command is `cdrive`.

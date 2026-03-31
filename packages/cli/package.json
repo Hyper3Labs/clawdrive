@@ -1,6 +1,6 @@
 {
   "name": "clawdrive",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Google Drive for AI agents. Multimodal semantic search and 3D file visualization.",
   "license": "MIT",
   "type": "module",
