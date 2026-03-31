@@ -25,6 +25,7 @@ export function registerTodoCommand(program: Command) {
     .option("--kind <kinds>", "Comma-separated todo kinds: tldr,transcript,caption,digest,display_name", parseTodoKinds)
     .option("--limit <n>", "Max todo items to return", (value: string) => parseInt(value, 10), 50)
     .option("--cursor <id>", "Resume after a previous todo item id")
+    .option("--pot <pot>", "Filter by pot name or slug")
     .action(async (cmdOpts, cmd) => {
       const globalOpts = getGlobalOptions(cmd);
       const ctx = await setupWorkspaceContext(globalOpts);
@@ -35,6 +36,7 @@ export function registerTodoCommand(program: Command) {
             kinds: cmdOpts.kind,
             limit: cmdOpts.limit,
             cursor: cmdOpts.cursor,
+            pot: cmdOpts.pot,
           },
           { wsPath: ctx.wsPath },
         );

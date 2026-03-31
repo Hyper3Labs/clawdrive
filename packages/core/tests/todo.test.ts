@@ -5,6 +5,8 @@ import { store } from "../src/store.js";
 import { listTodos } from "../src/todo.js";
 import { createTestWorkspace, writeSilentWav, writeTinyPng } from "./helpers.js";
 import { MockEmbeddingProvider } from "../src/embedding/mock.js";
+import { createPot } from "../src/pots.js";
+import { buildPotTag } from "../src/metadata.js";
 
 describe("todo", () => {
   let ctx: Awaited<ReturnType<typeof createTestWorkspace>>;
@@ -210,5 +212,33 @@ describe("todo", () => {
     expect(result.total).toBe(1);
     expect(result.items[0]?.id).toBe(image.id);
     expect(result.items[0]?.missing).toEqual(["caption"]);
+  });
+
+  it("filters todos by pot", async () => {
+    const pot = await createPot({ name: "filter-pot" }, { wsPath: ctx.wsPath });
+
+    const inPotSrc = join(ctx.baseDir, "in-pot.md");
+    const outsideSrc = join(ctx.baseDir, "outside.md");
+    await writeFile(inPotSrc, "in pot content");
+    await writeFile(outsideSrc, "outside content");
+
+    await store(
+      { sourcePath: inPotSrc, tags: [buildPotTag(pot.slug)] },
+      { wsPath: ctx.wsPath, embedder },
+    );
+    await store(
+      { sourcePath: outsideSrc },
+      { wsPath: ctx.wsPath, embedder },
+    );
+
+    const allTodos = await listTodos({ kinds: ["tldr"] }, { wsPath: ctx.wsPath });
+    expect(allTodos.items.length).toBeGreaterThanOrEqual(2);
+
+    const potTodos = await listTodos(
+      { kinds: ["tldr"], pot: pot.slug },
+      { wsPath: ctx.wsPath },
+    );
+    expect(potTodos.items).toHaveLength(1);
+    expect(potTodos.items[0].name).toContain("in-pot");
   });
 });

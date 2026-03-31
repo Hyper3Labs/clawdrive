@@ -1,7 +1,7 @@
 import { normalizeDigest } from "./digests.js";
 import { getFileName, normalizeDisplayName } from "./display-names.js";
 import { listFiles, type ManageOptions } from "./manage.js";
-import { normalizeCaption, normalizeTldr, normalizeTranscript } from "./metadata.js";
+import { buildPotTag, normalizeCaption, normalizeTldr, normalizeTranscript } from "./metadata.js";
 
 export type TodoKind = "tldr" | "transcript" | "caption" | "digest" | "display_name";
 
@@ -20,6 +20,7 @@ export interface ListTodosInput {
   cursor?: string;
   kinds?: TodoKind[];
   taxonomyPath?: string[];
+  pot?: string;
 }
 
 export interface ListTodosResult {
@@ -83,7 +84,8 @@ export async function listTodos(
 ): Promise<ListTodosResult> {
   const limit = input.limit ?? 50;
   const requestedKinds = new Set(input.kinds?.length ? input.kinds : DEFAULT_TODO_KINDS);
-  const files = await listFiles({ limit: 1_000_000, taxonomyPath: input.taxonomyPath }, opts);
+  const tags = input.pot ? [buildPotTag(input.pot)] : undefined;
+  const files = await listFiles({ limit: 1_000_000, taxonomyPath: input.taxonomyPath, tags }, opts);
 
   let items = files.items
     .map((item) => {
