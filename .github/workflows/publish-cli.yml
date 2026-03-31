@@ -75,13 +75,15 @@ jobs:
 
       - name: Dry-run publish
         if: github.event_name == 'workflow_dispatch'
-        run: npm publish --workspace packages/cli --access public --dry-run
+        working-directory: packages/cli
+        run: npm publish --access public --dry-run
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish to npm
         if: github.event_name == 'push' && steps.exists.outputs.publish == 'true'
-        run: npm publish --workspace packages/cli --access public --provenance
+        working-directory: packages/cli
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
