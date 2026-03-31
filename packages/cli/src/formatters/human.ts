@@ -30,3 +30,12 @@ export function formatTodoResults(result: { items: Array<{ name: string; origina
 
   return lines.join("\n");
 }
+
+export function formatPotList(pots: Array<{ name: string; slug: string; description: string | null; fileCount: number; created_at: number }>): string {
+  if (pots.length === 0) return chalk.dim("No pots.");
+  return pots.map((p) => {
+    const files = chalk.green(`${p.fileCount} file${p.fileCount === 1 ? "" : "s"}`);
+    const desc = p.description ? chalk.dim(` "${p.description}"`) : "";
+    return `${p.name}  ${files}${desc}`;
+  }).join("\n");
+}

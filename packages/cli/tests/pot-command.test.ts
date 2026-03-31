@@ -150,4 +150,27 @@ describe("CLI pot commands", () => {
     expect(potFiles).toHaveLength(1);
     expect(potFiles[0]?.original_name).toBe("potfile.md");
   });
+
+  it("lists pots with pot list", async () => {
+    const program1 = createProgram();
+    registerPotCommand(program1);
+    await runCommand(program1, ["pot", "create", "alpha-pot"]);
+
+    const program2 = createProgram();
+    registerPotCommand(program2);
+    await runCommand(program2, ["pot", "create", "beta-pot"]);
+
+    const program3 = createProgram();
+    registerPotCommand(program3);
+    const result = await runCommand(program3, ["pot", "list"]);
+
+    expect(result.errors).toEqual([]);
+    expect(result.logs).toHaveLength(1);
+
+    const output = JSON.parse(result.logs[0]);
+    expect(output).toHaveLength(2);
+    expect(output.map((p: any) => p.name)).toContain("alpha-pot");
+    expect(output.map((p: any) => p.name)).toContain("beta-pot");
+    expect(output[0]).toHaveProperty("fileCount");
+  });
 });

@@ -1,6 +1,7 @@
 import type { Command } from "commander";
-import { createPot, requirePot } from "@clawdrive/core";
+import { createPot, requirePot, listPots, listPotFiles } from "@clawdrive/core";
 import { formatJson } from "../formatters/json.js";
+import { formatPotList } from "../formatters/human.js";
 import { getGlobalOptions, setupContext, setupWorkspaceContext } from "../helpers.js";
 import { importSources } from "../import-sources.js";
 import { summarizeImportResults } from "../pot-import.js";
@@ -34,6 +35,33 @@ export function registerPotCommand(program: Command) {
         }
       } catch (err) {
         console.error(`Error creating pot: ${(err as Error).message}`);
+        process.exit(1);
+      }
+    });
+
+  pot
+    .command("list")
+    .alias("ls")
+    .description("List all pots")
+    .action(async (_cmdOpts, cmd) => {
+      const globalOpts = getGlobalOptions(cmd);
+      const ctx = await setupWorkspaceContext(globalOpts);
+
+      try {
+        const pots = await listPots({ wsPath: ctx.wsPath });
+        const potsWithCounts = [];
+        for (const p of pots) {
+          const files = await listPotFiles(p.slug, { wsPath: ctx.wsPath });
+          potsWithCounts.push({ ...p, fileCount: files.length });
+        }
+
+        if (globalOpts.json) {
+          console.log(formatJson(potsWithCounts));
+        } else {
+          console.log(formatPotList(potsWithCounts));
+        }
+      } catch (err) {
+        console.error(`Error listing pots: ${(err as Error).message}`);
         process.exit(1);
       }
     });
