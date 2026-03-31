@@ -13,4 +13,4 @@ context/
 test*.png
 *-changes*.png
 *.screenshot.png
-cdrive-landing/packages/cli/skill/
+.DS_Store
