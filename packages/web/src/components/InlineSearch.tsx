@@ -195,7 +195,7 @@ export const InlineSearch = forwardRef<InlineSearchHandle, InlineSearchProps>(
 
         {/* Results dropdown */}
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 z-[1000] max-h-[68vh] overflow-y-auto rounded-b-xl border border-[var(--accent-a20)] border-t-transparent bg-[var(--bg-panel)]/98 shadow-[0_22px_54px_rgba(0,0,0,0.48)] backdrop-blur">
+          <div className="absolute top-full left-0 right-0 z-context-menu max-h-[68vh] overflow-y-auto rounded-b-xl border border-[var(--accent-a20)] border-t-transparent bg-[var(--bg-panel)]/98 shadow-[0_22px_54px_rgba(0,0,0,0.48)] backdrop-blur">
             {/* Filter row */}
             <div className="border-b border-[var(--border)]/45 px-4 py-2.5">
               <SearchFilters value={filters} onChange={handleFiltersChange} />

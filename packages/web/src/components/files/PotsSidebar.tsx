@@ -63,7 +63,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
     <div className="space-y-2 px-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between px-2 pb-3 border-b border-[var(--border-subtle)] mb-4">
-        <span className={cx(ui.eyebrow, "text-[12px] font-bold tracking-[0.2em] text-[var(--text-muted)]")}>
+        <span className={cx(ui.eyebrow, "text-sm font-bold tracking-widest text-[var(--text-muted)]")}>
           Pots
         </span>
         <button
@@ -92,15 +92,15 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             }}
             onBlur={() => { setNewPotName(""); setCreating(false); }}
             placeholder="Pot name..."
-            className="block box-border w-full rounded-xl border border-[var(--accent-a20)] bg-[var(--surface-2)] px-3 py-2 text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-faint)]"
+            className="block box-border w-full rounded-xl border border-[var(--accent-a20)] bg-[var(--surface-2)] px-3 py-2 text-base text-[var(--text)] outline-none placeholder:text-[var(--text-faint)]"
           />
         </div>
       )}
 
       {/* Pot list */}
       {pots.length === 0 && !creating && (
-        <div className="rounded-xl border border-dashed border-[var(--border)]/50 bg-[var(--bg-panel)]/50 px-5 py-6 text-center text-[13px] text-[var(--text-muted)] m-2">
-          No pots yet.<br/><span className="text-[11px] opacity-70 mt-1 block">Create one to organize files.</span>
+        <div className="rounded-xl border border-dashed border-[var(--border)]/50 bg-[var(--bg-panel)]/50 px-5 py-6 text-center text-base text-[var(--text-muted)] m-2">
+          No pots yet.<br/><span className="text-xs opacity-70 mt-1 block">Create one to organize files.</span>
         </div>
       )}
       {pots.map((pot) => {
@@ -110,7 +110,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             key={pot.id}
             onClick={() => onSelectPot(isSelected ? null : pot.slug)}
             onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, pot }); }}
-            className={`mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-[14px] font-medium transition-all duration-200 ${
+            className={`mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 text-lg font-medium transition-all duration-200 ${
               isSelected
                 ? "border-[var(--accent)]/40 bg-[linear-gradient(180deg,rgba(110,231,255,0.15)_0%,rgba(110,231,255,0.05)_100%)] text-[var(--text)] shadow-md shadow-[var(--accent)]/10"
                 : "border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] hover:text-white hover:-translate-y-0.5"
@@ -130,7 +130,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
                   if (e.key === "Escape") setRenamingId(null);
                 }}
                 onBlur={() => setRenamingId(null)}
-                className="w-full rounded-md border border-[var(--accent-a20)] bg-[var(--surface-2)] px-2 py-1.5 text-[13px] text-[var(--text)] outline-none"
+                className="w-full rounded-md border border-[var(--accent-a20)] bg-[var(--surface-2)] px-2 py-1.5 text-base text-[var(--text)] outline-none"
               />
             ) : (
               <span className="block w-full overflow-hidden text-ellipsis whitespace-nowrap font-medium">
@@ -154,7 +154,7 @@ export function PotsSidebar({ selectedSlug, onSelectPot, onPotContentChanged }: 
             }}
             className={cx(
               ui.subtleButton,
-              "w-full justify-center rounded-lg border-dashed py-1.5 text-[11px] text-[var(--text-muted)] hover:text-[var(--text)]",
+              "w-full justify-center rounded-lg border-dashed py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text)]",
             )}
           >
             + Add files

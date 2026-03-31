@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { FileInfo, ProjectionPoint } from "../../types";
-import { getModalityColor, getModalityLabel, getPreviewKind, Z_INDEX } from "../../theme";
+import { getModalityColor, getModalityLabel, getPreviewKind } from "../../theme";
 import { fileContentUrl, getFile, getFileTags, updateFile } from "../../api";
 import { useVisualizationStore } from "./useVisualizationStore";
 import { TagEditor } from "../shared/TagEditor";
@@ -266,8 +266,7 @@ export function ExpandablePreview({ points }: { points: ProjectionPoint[] }) {
       onClick={(event) => {
         if (event.target === event.currentTarget) dismiss();
       }}
-      className="absolute inset-0 flex items-center justify-center bg-[rgba(3,10,15,0.6)] backdrop-blur-[4px]"
-      style={{ zIndex: Z_INDEX.modal }}
+      className="z-modal absolute inset-0 flex items-center justify-center bg-[rgba(3,10,15,0.6)] backdrop-blur-[4px]"
     >
       <div
         className={cx(ui.panel, "max-h-[80vh] w-[560px] overflow-y-auto p-5 text-base")}

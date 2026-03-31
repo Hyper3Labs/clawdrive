@@ -1,5 +1,4 @@
 import { useState, useRef, type ReactNode, type DragEvent } from "react";
-import { Z_INDEX } from "../../theme";
 
 interface DropZoneProps {
   onDrop: (files: File[]) => void;
@@ -60,8 +59,7 @@ export function DropZone({
       {children}
       {dragOver && (
         <div
-          style={{ zIndex: Z_INDEX.overlay }}
-          className={`${nested ? 'absolute rounded-lg' : 'fixed rounded-none'} inset-0 flex items-center justify-center bg-[rgba(6,16,24,0.85)] border-2 border-dashed border-[var(--accent)] pointer-events-none`}
+          className={`${nested ? 'absolute rounded-lg' : 'fixed rounded-none'} z-overlay inset-0 flex items-center justify-center bg-[rgba(6,16,24,0.85)] border-2 border-dashed border-[var(--accent)] pointer-events-none`}
         >
           <span className="text-[var(--accent)] text-base font-semibold">
             {label}

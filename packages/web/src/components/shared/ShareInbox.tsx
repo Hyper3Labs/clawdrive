@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { listShareInbox, approveShare, revokeShare } from "../../api";
 import { useToast } from "./Toast";
-import { Z_INDEX } from "../../theme";
 import type { PotShare } from "../../types";
 import { Link } from "lucide-react";
 import { cx, ui } from "./ui";
@@ -80,8 +79,7 @@ export function ShareInbox() {
       </button>
       {open && (
         <div
-          style={{ zIndex: Z_INDEX.contextMenu }}
-          className={cx(ui.popover, "absolute right-0 top-full mt-2 w-[320px] overflow-hidden rounded-xl p-0")}
+          className={cx(ui.popover, "z-context-menu absolute right-0 top-full mt-2 w-[320px] overflow-hidden rounded-xl p-0")}
         >
           <div className="border-b border-[var(--border-subtle)] px-4 py-3 text-base font-semibold text-[var(--text)]">
             Pending Shares

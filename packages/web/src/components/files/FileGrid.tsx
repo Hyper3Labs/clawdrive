@@ -89,7 +89,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
         <PdfThumbnail url={`/api/files/${file.id}/content`} />
       ) : isText && textSnippet ? (
         <div className="bg-black/25 p-3">
-          <pre className="text-[10px] leading-relaxed text-[var(--text-faint)] m-0 overflow-hidden whitespace-pre-wrap break-words max-h-40 font-mono">
+          <pre className="text-xs leading-relaxed text-[var(--text-faint)] m-0 overflow-hidden whitespace-pre-wrap break-words max-h-40 font-mono">
             {textSnippet}
           </pre>
         </div>
@@ -104,7 +104,7 @@ const FileCard = memo(function FileCard({ file, onClick, onContextMenu }: { file
         <div className="overflow-hidden text-ellipsis whitespace-nowrap text-xs text-[var(--text)]" title={file.name}>
           {file.name}
         </div>
-        <div className="mt-1 text-[11px] text-[var(--text-faint)]">{formatFileSize(file.file_size)}</div>
+        <div className="mt-1 text-xs text-[var(--text-faint)]">{formatFileSize(file.file_size)}</div>
       </div>
     </div>
   );
@@ -194,7 +194,7 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
       <div className="flex flex-col items-center justify-center h-64 p-12 text-[var(--text-muted)] bg-[var(--bg-panel)] rounded-2xl border border-dashed border-[var(--border)]">
         <div className="animate-pulse flex flex-col items-center">
           <div className="h-8 w-8 mb-4 border-2 border-t-transparent border-[var(--accent)] rounded-full animate-spin"></div>
-          <span className="text-[14px] font-medium tracking-wide">Loading files...</span>
+          <span className="text-lg font-medium tracking-wide">Loading files...</span>
         </div>
       </div>
     );
@@ -206,8 +206,8 @@ export function FileGrid({ potSlug, onFileClick, sort = "recent" }: FileGridProp
         <div className="w-16 h-16 mb-4 rounded-full bg-[var(--border)]/50 flex items-center justify-center opacity-50">
           <FileText size={24} className="text-[var(--text-muted)]" />
         </div>
-        <h3 className="text-[16px] font-bold text-[var(--text)] mb-2">No files found</h3>
-        <p className="text-[14px] text-[var(--text-muted)]">Use the Upload button or CLI to add some files to this workspace.</p>
+        <h3 className="text-xl font-bold text-[var(--text)] mb-2">No files found</h3>
+        <p className="text-lg text-[var(--text-muted)]">Use the Upload button or CLI to add some files to this workspace.</p>
       </div>
     );
   }

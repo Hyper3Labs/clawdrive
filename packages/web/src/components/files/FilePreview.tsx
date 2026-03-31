@@ -127,7 +127,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
 
       {/* Summary */}
       <div className="px-4 py-2 border-b border-[var(--border-subtle)]">
-        <div className="text-[11px] opacity-40 mb-1 uppercase tracking-wider">Summary</div>
+        <div className="text-xs opacity-40 mb-1 uppercase tracking-wider">Summary</div>
         <InlineEdit
           value={file.tldr ?? ""}
           placeholder="Add a summary..."
@@ -139,7 +139,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       <div className="px-4 py-2 border-b border-[var(--border-subtle)]">
         <button
           onClick={() => setShowDigestModal(true)}
-          className="cursor-pointer rounded border border-[var(--border-strong)] bg-[var(--surface-2)] px-2.5 py-1 text-[11px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)]"
+          className="cursor-pointer rounded border border-[var(--border-strong)] bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)]"
         >
           {file.digest ? "Edit digest" : "Add digest"}
         </button>
@@ -149,7 +149,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
       <div className={`flex-1 overflow-auto flex flex-col ${isPdf ? 'p-0' : 'p-4'}`}>
         {file.digest && (
           <div className="mb-4 p-3 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-1)]">
-            <div className="mb-2 text-[11px] tracking-[0.08em] uppercase opacity-[0.55]">
+            <div className="mb-2 text-xs tracking-wider uppercase opacity-[0.55]">
               Digest
             </div>
             <pre className="m-0 whitespace-pre-wrap break-words text-xs leading-[1.6] text-[var(--text)]">
@@ -193,7 +193,7 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           />
         )}
         {!isImage && !isVideo && !isAudio && !isText && !isPdf && (
-          <div className="text-center opacity-40 pt-10 text-[13px]">
+          <div className="text-center opacity-40 pt-10 text-base">
             No preview available for this file type
           </div>
         )}

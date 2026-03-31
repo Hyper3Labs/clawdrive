@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Z_INDEX } from "../../theme";
 import { cx, ui } from "./ui";
 
 interface DigestModalProps {
@@ -21,8 +20,7 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
 
   return (
     <div
-      style={{ zIndex: Z_INDEX.modal }}
-      className="fixed inset-0 bg-black/60 flex items-center justify-center"
+      className="z-modal fixed inset-0 bg-black/60 flex items-center justify-center"
       onClick={onClose}
     >
       <div
@@ -36,19 +34,19 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           autoFocus
-          className="flex-1 min-h-[200px] m-4 p-3 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg text-[var(--text)] text-[13px] leading-[1.6] font-mono resize-y outline-none focus:border-[var(--accent)] transition-colors"
+          className="flex-1 min-h-[200px] m-4 p-3 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg text-[var(--text)] text-base leading-[1.6] font-mono resize-y outline-none focus:border-[var(--accent)] transition-colors"
           placeholder="Write markdown digest..."
         />
         <div className="px-4 py-3 border-t border-[var(--border)] flex justify-end gap-2">
           <button
             onClick={onClose}
-            className={cx(ui.subtleButton, "bg-transparent px-4 text-[13px]")}
+            className={cx(ui.subtleButton, "bg-transparent px-4 text-base")}
           >
             Cancel
           </button>
           <button
             onClick={() => { onSave(draft); onClose(); }}
-            className="cursor-pointer rounded-md border-none bg-[var(--accent)] px-4 py-1.5 text-[13px] font-semibold text-[var(--bg)] transition-opacity hover:opacity-90"
+            className="cursor-pointer rounded-md border-none bg-[var(--accent)] px-4 py-1.5 text-base font-semibold text-[var(--bg)] transition-opacity hover:opacity-90"
           >
             Save
           </button>

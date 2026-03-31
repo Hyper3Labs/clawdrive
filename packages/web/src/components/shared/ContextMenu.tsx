@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Z_INDEX } from "../../theme";
 import { cx, ui } from "./ui";
 
 export interface ContextMenuItem {
@@ -36,8 +35,8 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   return (
     <div
       ref={ref}
-      style={{ left: x, top: y, zIndex: Z_INDEX.contextMenu }}
-      className={cx(ui.popover, "fixed min-w-[140px] py-1")}
+      style={{ left: x, top: y }}
+      className={cx(ui.popover, "z-context-menu fixed min-w-[140px] py-1")}
     >
       {items.map((item, i) => (
         <button

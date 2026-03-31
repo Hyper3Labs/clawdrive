@@ -30,7 +30,7 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
       {tags.map((tag) => (
         <span
           key={tag}
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] border ${
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border ${
             isPotTag(tag) 
               ? 'bg-[var(--accent-green)]/15 text-[var(--accent-green)] border-[var(--accent-green)]/30' 
               : 'bg-[var(--surface-2)] text-[var(--text)] border-[var(--border-strong)]'
@@ -58,12 +58,12 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
           }}
           onBlur={handleAdd}
           placeholder="tag name"
-          className={cx(ui.input, "w-20 border-[var(--accent)] px-2 py-0.5 text-[11px]")}
+          className={cx(ui.input, "w-20 border-[var(--accent)] px-2 py-0.5 text-xs")}
         />
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="cursor-pointer rounded border border-dashed border-[var(--border-subtle)] bg-[var(--surface-2)] px-2 py-0.5 text-[11px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-white"
+          className="cursor-pointer rounded border border-dashed border-[var(--border-subtle)] bg-[var(--surface-2)] px-2 py-0.5 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-3)] hover:text-white"
         >
           + tag
         </button>

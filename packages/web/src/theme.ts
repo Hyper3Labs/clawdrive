@@ -55,12 +55,4 @@ export function getModalityLabel(contentType: string): string {
   return "TXT";
 }
 
-export const Z_INDEX = {
-  sidebar: 10,
-  modal: 20,
-  contextMenu: 1000,
-  overlay: 50,
-  toast: 9999,
-} as const;
-
 export const MINI_CARD_Z_RANGE: [number, number] = [100, 0];
