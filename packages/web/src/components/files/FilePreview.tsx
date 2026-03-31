@@ -65,13 +65,24 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   }
 
   if (loading) {
-    return (
-      <div className="w-[360px] xl:w-[400px] bg-[var(--bg-panel)] border-l border-[var(--border)] flex flex-col flex-shrink-0">
-        <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--border-subtle)]">
-          <span className="opacity-40 text-sm">Loading...</span>
-          <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-[var(--surface-3)] text-lg flex items-center justify-center -mr-1">x</button>
-        </div>
+    const loadingContent = (
+      <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--border-subtle)]">
+        <span className="opacity-40 text-sm">Loading...</span>
+        <button onClick={onClose} className="bg-transparent border-none text-[var(--text)] opacity-40 hover:opacity-100 cursor-pointer p-1 rounded hover:bg-[var(--surface-3)] text-lg flex items-center justify-center -mr-1">x</button>
       </div>
+    );
+    return (
+      <>
+        <div className="hidden lg:flex w-96 shrink-0 border-l border-[var(--border-subtle)] flex-col overflow-y-auto bg-[var(--bg-panel)]">
+          {loadingContent}
+        </div>
+        <div className="fixed inset-0 z-modal lg:hidden">
+          <div className="absolute inset-0 bg-[var(--bg-backdrop)]" onClick={onClose} />
+          <div className="absolute inset-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border)] overflow-y-auto flex flex-col shadow-xl">
+            {loadingContent}
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -83,8 +94,8 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
   const isText = isTextLikeContentType(file.content_type);
   const isPdf = file.content_type === "application/pdf";
 
-  return (
-    <div className="w-[360px] xl:w-[400px] bg-[var(--bg-panel)] border-l border-[var(--border)] flex flex-col flex-shrink-0">
+  const panelContent = (
+    <>
       <div className="flex justify-between items-center px-4 py-3 border-b border-[var(--border-subtle)] gap-2">
         <span className="font-bold text-sm overflow-hidden text-ellipsis whitespace-nowrap flex-1">
           {file.name}
@@ -205,6 +216,22 @@ export function FilePreview({ fileId, onClose }: FilePreviewProps) {
           onClose={() => setShowDigestModal(false)}
         />
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop side panel */}
+      <div className="hidden lg:flex w-96 shrink-0 border-l border-[var(--border-subtle)] flex-col overflow-y-auto bg-[var(--bg-panel)]">
+        {panelContent}
+      </div>
+      {/* Mobile modal */}
+      <div className="fixed inset-0 z-modal lg:hidden">
+        <div className="absolute inset-0 bg-[var(--bg-backdrop)]" onClick={onClose} />
+        <div className="absolute inset-2 rounded-xl bg-[var(--bg-panel)] border border-[var(--border)] overflow-y-auto flex flex-col shadow-xl">
+          {panelContent}
+        </div>
+      </div>
+    </>
   );
 }

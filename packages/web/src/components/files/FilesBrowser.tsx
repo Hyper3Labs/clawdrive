@@ -16,9 +16,11 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 
 interface FilesBrowserProps {
   refreshKey?: number;
+  sidebarOpen?: boolean;
+  onCloseSidebar?: () => void;
 }
 
-export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowserProps) {
+export function FilesBrowser({ refreshKey: externalRefreshKey = 0, sidebarOpen, onCloseSidebar }: FilesBrowserProps) {
   const [selectedPotSlug, setSelectedPotSlug] = useState<string | null>(null);
   const [previewFileId, setPreviewFileId] = useState<string | null>(null);
   const [sort, setSort] = useState<SortMode>("recent");
@@ -38,14 +40,29 @@ export function FilesBrowser({ refreshKey: externalRefreshKey = 0 }: FilesBrowse
   return (
     <DropZone onDrop={enqueue}>
     <div className="flex flex-1 overflow-hidden min-h-0 w-full">
-      {/* Sidebar — pots only */}
-      <div className="w-72 shrink-0 border-r border-[var(--border)]/50 bg-[var(--bg)]/50 flex flex-col overflow-y-auto">
+      {/* Desktop sidebar — pots only */}
+      <div className="hidden md:flex w-60 shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg)]/50 flex-col overflow-y-auto">
         <PotsSidebar
           selectedSlug={selectedPotSlug}
           onSelectPot={setSelectedPotSlug}
           onPotContentChanged={() => setRefreshKey((k) => k + 1)}
         />
       </div>
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-overlay md:hidden" onClick={onCloseSidebar}>
+          <div className="absolute left-0 top-0 h-full w-60 bg-[var(--bg-panel)] border-r border-[var(--border-subtle)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <PotsSidebar
+              selectedSlug={selectedPotSlug}
+              onSelectPot={(slug) => {
+                setSelectedPotSlug(slug);
+                onCloseSidebar?.();
+              }}
+              onPotContentChanged={() => setRefreshKey((k) => k + 1)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">

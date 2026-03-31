@@ -5,7 +5,7 @@ import { ShareInbox } from "./shared/ShareInbox";
 import { listFiles, getConfig } from "../api";
 import type { ViewMode, SearchResult } from "../types";
 import { useUploadQueue } from "../hooks/useUploadQueue";
-import { Upload } from "lucide-react";
+import { Menu, Upload } from "lucide-react";
 import { cx, ui } from "./shared/ui";
 
 interface TopBarProps {
@@ -14,9 +14,10 @@ interface TopBarProps {
   onSelectResult: (result: SearchResult) => void;
   searchRef?: React.Ref<InlineSearchHandle>;
   onUploadComplete?: () => void;
+  onToggleSidebar?: () => void;
 }
 
-export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, onUploadComplete }: TopBarProps) {
+export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, onUploadComplete, onToggleSidebar }: TopBarProps) {
   const [fileCount, setFileCount] = useState<number | null>(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
@@ -39,7 +40,13 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
     <header
       className="flex shrink-0 items-center justify-between gap-6 border-b border-[var(--border)] bg-[var(--bg)] px-5 py-2.5 shadow-sm"
     >
-      {/* Left: Logo */}
+      {/* Left: Hamburger + Logo */}
+      <button
+        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] transition-colors md:hidden"
+        onClick={onToggleSidebar}
+      >
+        <Menu size={18} />
+      </button>
       <div className={cx("min-w-0 transition-opacity duration-150 shrink-0", searchActive ? "opacity-[0.55]" : "opacity-100")}>
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" width={26} height={26} className="shrink-0" />
@@ -86,7 +93,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
         <ShareInbox />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]"
+          className="hidden md:inline-flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors hover:bg-[var(--surface-3)]"
           title="Upload files"
         >
           <Upload size={16} className="text-[var(--accent)] group-hover:text-[var(--accent)]"/> Upload

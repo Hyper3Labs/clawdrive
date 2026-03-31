@@ -25,7 +25,7 @@ export function DigestModal({ value, onSave, onClose }: DigestModalProps) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={cx(ui.panel, "flex max-h-[70vh] w-[600px] flex-col")}
+        className={cx(ui.panel, "flex max-h-[70vh] w-full mx-2 sm:mx-auto sm:max-w-xl flex-col")}
       >
         <div className="px-4 py-3 border-b border-[var(--border)] font-semibold text-sm text-[var(--text)]">
           Edit Digest
