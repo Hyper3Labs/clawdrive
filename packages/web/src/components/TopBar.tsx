@@ -5,7 +5,7 @@ import { ShareInbox } from "./shared/ShareInbox";
 import { listFiles, getConfig } from "../api";
 import type { ViewMode, SearchResult } from "../types";
 import { useUploadQueue } from "../hooks/useUploadQueue";
-import { Upload, AlertTriangle } from "lucide-react";
+import { Upload } from "lucide-react";
 import { cx, ui } from "./shared/ui";
 
 interface TopBarProps {
@@ -47,10 +47,7 @@ export function TopBar({ activeView, onViewChange, onSelectResult, searchRef, on
             <div className="font-bold text-xl text-white tracking-tight mb-[3px]">
               ClawDrive
               {isReadOnly && (
-                <span className="ml-3 inline-flex items-center gap-1 rounded bg-[#ff3366]/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-widest text-[#ff3366] border border-[#ff3366]/20 align-middle -translate-y-[1px]">
-                  <AlertTriangle size={10} strokeWidth={3} />
-                  Read-Only Demo
-                </span>
+                <span className="text-xs text-[var(--text-muted)] ml-2">Demo</span>
               )}
             </div>
             <div className="flex items-center gap-2">
