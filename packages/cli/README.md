@@ -16,6 +16,9 @@ export GEMINI_API_KEY="your-key-here"
 
 # Launch the web UI with a curated NASA demo
 clawdrive serve --demo nasa
+
+# For a read-only hosted demo, add --read-only
+clawdrive serve --demo nasa --read-only
 ```
 
 Or run directly without installing:

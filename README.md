@@ -49,6 +49,9 @@ export GEMINI_API_KEY="your-key-here"
 
 # Launch the web UI with a curated NASA demo (~248 MB on first run)
 cdrive serve --demo nasa
+
+# For a read-only hosted demo, add --read-only
+cdrive serve --demo nasa --read-only
 ```
 
 The npm package is `clawdrive`; the installed CLI command is `cdrive`.

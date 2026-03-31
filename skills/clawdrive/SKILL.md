@@ -39,8 +39,9 @@ export GEMINI_API_KEY="your-key-here"
 ## Quick Start
 
 ```bash
-clawdrive serve --demo nasa          # web UI + API on :7432 (downloads ~248 MB first run)
-clawdrive serve                      # start with your own workspace
+clawdrive serve --demo nasa                  # web UI + API on :7432 (downloads ~248 MB first run)
+clawdrive serve --demo nasa --read-only      # hosted demo, mutations blocked
+clawdrive serve                              # start with your own workspace
 ```
 
 ## Core Commands
